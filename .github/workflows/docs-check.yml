@@ -1,0 +1,62 @@
+name: docs-check
+
+on:
+  pull_request:
+    paths:
+      - "**/*.md"
+      - ".markdownlint.jsonc"
+      - ".github/workflows/docs-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs-check:
+    name: Markdown lint + link check + TBD/TODO scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Markdown lint
+        uses: DavidAnson/markdownlint-cli2-action@db41cce12c75ba6b048c86f4d15c4b1af4c4f79d # v17.0.0
+        with:
+          globs: |
+            **/*.md
+            !CHANGELOG.md
+            !LICENSE
+
+      - name: Link check
+        uses: lycheeverse/lychee-action@f61336214c01f770516a8e0d4aaa3e510b6677c9 # v2.3.0
+        with:
+          args: >-
+            --no-progress
+            --exclude-loopback
+            --exclude "^https://github.com/.*/(security|settings)/.*$"
+            README.md docs
+          fail: true
+
+      - name: Scan for TBD/TODO/FIXME in docs (allowed only in docs/plans/)
+        shell: python
+        run: |
+          import glob, re, sys
+          pattern = re.compile(r"\b(TBD|TODO|FIXME)\b")
+          offenders = []
+          for f in glob.glob("docs/**/*.md", recursive=True):
+              if f.startswith("docs/plans/"):
+                  continue  # plans may legitimately carry TODOs
+              for i, line in enumerate(open(f, encoding="utf-8"), 1):
+                  if pattern.search(line):
+                      offenders.append(f"{f}:{i}: {line.strip()}")
+          if offenders:
+              print("Unresolved markers found outside docs/plans/:")
+              for o in offenders:
+                  print(" -", o)
+              sys.exit(1)
+          print("No unresolved TBD/TODO/FIXME markers outside docs/plans/.")

@@ -1,0 +1,51 @@
+name: validate-metadata
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-metadata:
+    name: Validate required docs & metadata
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Check required root docs exist
+        shell: python
+        run: |
+          import os, sys
+          required = ["README.md", "PRODUCT.md", "DESIGN.md", "ARCHITECTURE.md", "AGENTS.md"]
+          missing = [f for f in required if not os.path.isfile(f)]
+          if missing:
+              print("Missing required docs:", ", ".join(missing))
+              sys.exit(1)
+          print("All required root docs present:", ", ".join(required))
+
+      - name: Check changed docs have an H1 title
+        shell: python
+        run: |
+          import glob, sys
+          bad = []
+          for f in glob.glob("docs/**/*.md", recursive=True):
+              try:
+                  head = open(f, encoding="utf-8").read()
+              except Exception as e:
+                  bad.append((f, f"unreadable: {e}")); continue
+              if not any(line.lstrip().startswith("# ") for line in head.splitlines()):
+                  bad.append((f, "no top-level '# ' H1 title"))
+          if bad:
+              for f, why in bad:
+                  print(f"FAIL {f}: {why}")
+              sys.exit(1)
+          print("All docs/**/*.md have an H1 title.")

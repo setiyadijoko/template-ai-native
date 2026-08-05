@@ -1,0 +1,59 @@
+name: action-security
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - ".github/actions/**"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/**"
+      - ".github/actions/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  actionlint:
+    name: actionlint (workflow syntax)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run actionlint
+        uses: rhysd/actionlint-action@e35e8598fa73c5d2055d6d8a39d278c4f6785632 # v1.7.0
+        with:
+          # Treat shellcheck warnings; shellcheck is bundled in this action.
+          shellcheck: true
+
+  zizmor:
+    name: zizmor (workflow security)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      security-events: write  # to upload SARIF on non-fork runs
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install zizmor
+        run: pipx install zizmor
+
+      - name: Run zizmor
+        run: zizmor --pedantic --format sarif .github/workflows > zizmor.sarif || true
+
+      - name: Upload SARIF
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: github/codeql-action/upload-sarif@df55935f05f7b626fce0c1f5e8f4d3f2b2971c65 # v3.27.0
+        with:
+          sarif_file: zizmor.sarif
+          category: zizmor

@@ -1,0 +1,18 @@
+{
+  // markdownlint-cli2 configuration for template-ai-native.
+  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint/main/schema/markdownlint-config-schema.json",
+  "default": true,
+  // Allow long lines (tables, code blocks).
+  "MD013": false,
+  // Allow duplicate headings only when they are siblings (not elsewhere in the doc).
+  "MD024": { "siblings_only": true },
+  // Allow inline HTML (badges, collapsible sections, comments).
+  "MD033": false,
+  // Allow multiple top-level headings is not enforced strictly.
+  "MD025": false,
+  "ignores": [
+    "node_modules/**",
+    "CHANGELOG.md",
+    "LICENSE"
+  ]
+}
