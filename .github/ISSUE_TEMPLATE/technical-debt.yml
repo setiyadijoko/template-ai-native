@@ -1,0 +1,43 @@
+name: Technical debt
+description: Record deferred technical debt, refactors, or cleanup
+title: "[debt]: "
+labels: ["technical-debt"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What debt exists and where?
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Why it matters
+      description: Risk, cost, or friction this debt causes.
+    validations:
+      required: true
+  - type: textarea
+    id: location
+    attributes:
+      label: Location
+      description: File(s), module(s), or area affected.
+    validations:
+      required: false
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Low
+        - Medium
+        - High
+    validations:
+      required: false
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed resolution
+      description: Suggested fix or next step.
+    validations:
+      required: false

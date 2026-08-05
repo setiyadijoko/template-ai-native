@@ -1,0 +1,64 @@
+# Release Drafter configuration.
+# Generates a draft release from merged PRs using Conventional Commits.
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+template: |
+  ## What's changed
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPO/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+
+categories:
+  - title: "🚀 Features"
+    labels:
+      - "feature"
+      - "enhancement"
+  - title: "🐛 Bug Fixes"
+    labels:
+      - "bug"
+      - "fix"
+  - title: "📖 Documentation"
+    labels:
+      - "documentation"
+  - title: "⚙️ CI/Build"
+    labels:
+      - "github-actions"
+      - "dependencies"
+  - title: "🔒 Security"
+    labels:
+      - "security"
+  - title: "🧰 Maintenance"
+    labels:
+      - "chore"
+      - "maintenance"
+
+autolabeler:
+  - label: "feature"
+    branch:
+      - "/^feat(\/|-|:)?/i"
+    title:
+      - "/^feat(\\(.*\\))?[: ]/i"
+  - label: "fix"
+    branch:
+      - "/^fix(\/|-|:)?/i"
+    title:
+      - "/^fix(\\(.*\\))?[: ]/i"
+  - label: "documentation"
+    files:
+      - "**/*.md"
+    title:
+      - "/^docs(\\(.*\\))?[: ]/i"
+  - label: "security"
+    title:
+      - "/^security(\\(.*\\))?[: ]/i"
+  - label: "github-actions"
+    files:
+      - ".github/workflows/**"
+  - label: "dependencies"
+    files:
+      - ".github/dependabot.yml"
+
+change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
+change-title-escapes: '\<*_&'
+no-changes-template: "No notable changes in this release."

@@ -1,0 +1,53 @@
+name: Bug report
+description: Report something that is broken or behaves incorrectly
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report.
+        **Do not report security vulnerabilities here** — see [SECURITY.md](../SECURITY.md) for private reporting.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear description of what's broken.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Exact steps, commands, or inputs.
+      placeholder: "1. ...\n2. ...\n3. ..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, runtime, stack version, template phase.
+      placeholder: "macOS 15, node 20, Phase 2"
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / evidence
+      description: Relevant output, screenshots, or stack traces. No secrets.
+      render: shell
+    validations:
+      required: false

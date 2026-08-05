@@ -1,0 +1,37 @@
+# Dependabot configuration (spec §17).
+version: 2
+updates:
+  # GitHub Actions — keep workflows current.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      actions-patch-minor:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Docker base images — only relevant once a containerfile exists.
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+
+# Note: enable ecosystem entries (npm, pip, etc.) once a stack is adopted.

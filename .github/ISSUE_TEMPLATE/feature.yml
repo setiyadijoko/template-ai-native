@@ -1,0 +1,50 @@
+name: Feature request
+description: Propose a new capability or enhancement
+title: "[feature]: "
+labels: ["feature"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What business or user problem motivates this feature?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should happen? Keep it focused.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Measurable, testable outcomes.
+      placeholder: "- [ ] ...\n- [ ] ..."
+    validations:
+      required: false
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Estimated impact
+      options:
+        - Low
+        - Medium
+        - High
+    validations:
+      required: false
+  - type: textarea
+    id: scope
+    attributes:
+      label: Out of scope
+      description: What this feature explicitly does NOT include.
+    validations:
+      required: false

@@ -1,0 +1,60 @@
+# Pull Request Labeler — path-based labels (used by actions/labeler).
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "docs/**"
+          - "CONTRIBUTING.md"
+          - "SECURITY.md"
+          - "CODE_OF_CONDUCT.md"
+          - "CHANGELOG.md"
+
+github-actions:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".github/actions/**"
+
+ai:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "prompts/**"
+          - "evals/**"
+          - "docs/ai/**"
+
+infrastructure:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "infrastructure/**"
+          - "deployment/**"
+          - "observability/**"
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/package.json"
+          - "**/package-lock.json"
+          - "**/requirements.txt"
+          - "**/Pipfile"
+          - "**/Pipfile.lock"
+          - "**/pyproject.toml"
+          - "**/go.mod"
+          - "**/go.sum"
+          - "**/pom.xml"
+          - "**/build.gradle"
+          - ".github/dependabot.yml"
+
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "SECURITY.md"
+          - "docs/security/**"
+          - ".github/workflows/secret-scan.yml"
+          - ".github/workflows/codeql.yml"
+          - ".github/workflows/action-security.yml"
+
+source:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/**"
+          - "tests/**"
