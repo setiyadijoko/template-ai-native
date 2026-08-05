@@ -1,7 +1,7 @@
 # template-ai-native
 
-`![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)`
-`![Status: Template](https://img.shields.io/badge/Status-Template-2ea44f)`
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+![Status: Template](https://img.shields.io/badge/Status-Template-2ea44f)
 
 **Status:** Template baseline — adapt to your project.
 

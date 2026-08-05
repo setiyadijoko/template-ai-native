@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Known limitations (Phase 1)
-- Phase-1 workflows pin some third-party GitHub Actions by tag pending commit-SHA pinning (tracked as TD-0001 in `docs/plans/technical-debt.md`).
+- Phase-1 workflows pin all third-party GitHub Actions to immutable commit SHAs (TD-0001 closed — see `docs/plans/technical-debt.md`).
 - Quality, security-scan, AI-evaluation, and deploy workflows arrive in Phases 2–6.
 - Stack is not committed; `make` targets no-op until a consumer adopts one.
 

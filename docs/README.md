@@ -49,6 +49,12 @@ Architecture Decision Records — traceable, dated, reversible decisions.
 - [adr/README.md](adr/README.md) — process & index
 - [adr/0001-record-architecture-decisions.md](adr/0001-record-architecture-decisions.md)
 
-## More (added in Task 8)
+## Other documentation
 
-- `api/`, `security/`, `ai/`, `development/`, `operations/`, `templates/`, `plans/`
+- `api/` — API guidelines, error model, authn/authz, versioning, OpenAPI skeleton
+- `security/` — threat model, data classification, secrets, incident response, privacy
+- `ai/` — AI system design, model/prompt management, evaluation, safety, guardrails
+- `development/` — setup, coding standards, branching, PR process, testing, DoR/DoD
+- `operations/` — deployment, environments, observability, monitoring, alerting, runbook, rollback
+- `templates/` — feature-design, implementation-plan, ADR, threat-model, incident, postmortem, release-checklist templates
+- `plans/` — active/completed feature designs + technical-debt log
