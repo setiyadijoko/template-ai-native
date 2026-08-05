@@ -59,6 +59,7 @@ jobs:
 
       - name: Upload SARIF
         if: github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true  # advisory in Phase 1; fails harmlessly if Code Scanning isn't enabled on a fresh repo
         uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
         with:
           sarif_file: zizmor.sarif

@@ -47,15 +47,16 @@ jobs:
             README.md docs
           fail: true
 
-      - name: Scan for TBD/TODO/FIXME in docs (allowed only in docs/plans/)
+      - name: Scan for TBD/TODO/FIXME in docs (allowed only in plans/internal docs)
         shell: python
         run: |
           import glob, re, sys
           pattern = re.compile(r"\b(TBD|TODO|FIXME)\b")
           offenders = []
           for f in glob.glob("docs/**/*.md", recursive=True):
-              if f.startswith("docs/plans/"):
-                  continue  # plans may legitimately carry TODOs
+              # plans and internal working specs may legitimately carry TODOs
+              if f.startswith("docs/plans/") or f.startswith("docs/superpowers/"):
+                  continue
               for i, line in enumerate(open(f, encoding="utf-8"), 1):
                   if pattern.search(line):
                       offenders.append(f"{f}:{i}: {line.strip()}")
