@@ -12,7 +12,7 @@ The template targets AI-enabled enterprise applications, AI agents and agentic w
 
 ## Documentation hierarchy
 
-```
+```text
 PRODUCT.md        → WHY   (vision, problem, users, metrics, scope)
       ↓
 DESIGN.md         → WHAT  (approved system design: requirements, flows, model, acceptance criteria)
@@ -49,7 +49,7 @@ When instructions conflict, follow the higher-precedence source; do not silently
 
 ## Setup, test, build, and security commands
 
-```
+```text
 make setup            # project bootstrap (no-op until a stack is wired)
 make dev              # run locally
 make test             # all tests

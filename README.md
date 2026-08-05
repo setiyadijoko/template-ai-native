@@ -15,7 +15,7 @@ This is a **template repository** ("Use this template"). Consumers create a new 
 
 Enable a development team and AI coding agents to produce code that is business-aligned, easy to understand, focused, secure, testable, maintainable, observable, deployable, reversible, auditable, and production-ready — governing the complete lifecycle:
 
-```
+```text
 Business Problem → Product Requirements → System Design → Architecture Decision
 → Implementation Plan → Development → Automated Testing → Security Validation
 → Code Review → Build → Deployment → Production Monitoring → Incident Management

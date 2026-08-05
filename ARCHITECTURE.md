@@ -59,7 +59,7 @@ Rationale for each choice is captured in ADRs as the project adopts specifics. S
 
 ## C4 system context (textual)
 
-```
+```text
 [ Consumer Engineer ]  -->  [ template-ai-native repo ]
 [ AI Coding Agent   ]  -->   (docs + AGENTS.md + CI)
                                  |

@@ -42,6 +42,7 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
+      actions: read           # codeql-action/upload-sarif telemetry reads workflow-run metadata
       security-events: write  # to upload SARIF on non-fork runs
     steps:
       - name: Checkout
