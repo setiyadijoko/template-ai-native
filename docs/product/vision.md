@@ -2,7 +2,7 @@
 
 **Status:** Adapt to your project.
 
-Describe the long-term vision of your product. What world does it create for its users, and why does it matter? Tie this to [../PRODUCT.md](../PRODUCT.md).
+Describe the long-term vision of your product. What world does it create for its users, and why does it matter? Tie this to [../../PRODUCT.md](../../PRODUCT.md).
 
 ## Vision statement
 

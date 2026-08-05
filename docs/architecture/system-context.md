@@ -2,7 +2,7 @@
 
 **Status:** Adapt to your project.
 
-Describe the system and its external actors/dependencies at the highest level (C4 Level 1). See [../ARCHITECTURE.md](../ARCHITECTURE.md) for a textual version.
+Describe the system and its external actors/dependencies at the highest level (C4 Level 1). See [../../ARCHITECTURE.md](../../ARCHITECTURE.md) for a textual version.
 
 ## In scope
 

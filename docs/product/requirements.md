@@ -8,4 +8,4 @@ List functional requirements with stable IDs so design and tests can reference t
 |----|-------------|----------|----------------------|
 | FR-1 | <!-- ... --> | Must | <!-- measurable outcome --> |
 
-See [../DESIGN.md](../DESIGN.md) for the approved design.
+See [../../DESIGN.md](../../DESIGN.md) for the approved design.

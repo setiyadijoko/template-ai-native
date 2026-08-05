@@ -1,7 +1,7 @@
 # Implementation Plan: <feature>
 
 **Goal:** <one sentence>
-**Reference design:** [../../plans/active/<design>.md](../plans/active/<design>.md)
+**Reference design:** docs/plans/active/YYYY-MM-DD-&lt;feature&gt;-design.md (link once created)
 
 ## Tasks
 For each: files to create/modify, tests, verification commands, commit.
