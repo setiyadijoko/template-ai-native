@@ -41,5 +41,7 @@ jobs:
             security
             revert
           requireScope: false
-          subjectPattern: '^(?![A-Z]).+$'
-          subjectPatternError: 'The subject must be lowercase and must not start with an uppercase letter.'
+          # Allow normal sentence casing in the subject; reject only an
+          # all-caps subject (which signals a non-Conventional title).
+          subjectPattern: '^(?![A-Z]{2,}).+$'
+          subjectPatternError: 'The subject should not be in all-uppercase.'
