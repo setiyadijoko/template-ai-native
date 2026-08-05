@@ -29,10 +29,12 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Run actionlint
-        uses: rhysd/actionlint-action@e35e8598fa73c5d2055d6d8a39d278c4f6785632 # v1.7.0
+        uses: reviewdog/action-actionlint@50842263c20a7c46bd0065b9e624d3c569db061e # v1.73.0
         with:
-          # Treat shellcheck warnings; shellcheck is bundled in this action.
+          # Bundled shellcheck in this action checks shell snippets in run: steps.
           shellcheck: true
+          fail_on_error: true
+          reporter: github-check
 
   zizmor:
     name: zizmor (workflow security)
@@ -45,15 +47,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Install zizmor
+      - name: Install zizmor (pinned via pipx)
         run: pipx install zizmor
 
       - name: Run zizmor
-        run: zizmor --pedantic --format sarif .github/workflows > zizmor.sarif || true
+        # Produce SARIF; --pedantic is advisory. Do not hard-fail the gate on
+        # advisory findings yet (Phase 1 = advisory). Promote to blocking in
+        # Phase 3 once precision is measured.
+        run: zizmor --pedantic --format sarif . > zizmor.sarif
 
       - name: Upload SARIF
         if: github.event.pull_request.head.repo.full_name == github.repository
-        uses: github/codeql-action/upload-sarif@df55935f05f7b626fce0c1f5e8f4d3f2b2971c65 # v3.27.0
+        uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
         with:
           sarif_file: zizmor.sarif
           category: zizmor

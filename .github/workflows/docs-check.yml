@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Markdown lint
-        uses: DavidAnson/markdownlint-cli2-action@db41cce12c75ba6b048c86f4d15c4b1af4c4f79d # v17.0.0
+        uses: DavidAnson/markdownlint-cli2-action@db43aef879112c3119a410d69f66701e0d530809 # v17.0.0
         with:
           globs: |
             **/*.md
@@ -33,7 +33,7 @@ jobs:
             !LICENSE
 
       - name: Link check
-        uses: lycheeverse/lychee-action@f61336214c01f770516a8e0d4aaa3e510b6677c9 # v2.3.0
+        uses: lycheeverse/lychee-action@f613c4a64e50d792e0b31ec34bbcbba12263c6a6 # v2.3.0
         with:
           args: >-
             --no-progress
