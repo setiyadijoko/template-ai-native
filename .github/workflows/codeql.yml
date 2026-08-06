@@ -1,7 +1,12 @@
 name: codeql
 
+# CodeQL SAST. Not run on pull requests because (a) the empty template has no
+# source for CodeQL to recognize, and (b) result storage requires GitHub
+# Advanced Security (GHAS) which is not enabled on this private personal repo.
+# Runs on push to main + weekly schedule. Every step is continue-on-error so
+# the workflow never fails the branch; enable GHAS (or make the repo public)
+# for full Code Scanning storage (TD-0006).
 on:
-  pull_request:
   push:
     branches: [main]
   schedule:
@@ -13,7 +18,7 @@ permissions:
   security-events: write   # required to upload SARIF (no-op if Code Scanning off)
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  group: ${{ github.workflow }}
   cancel-in-progress: true
 
 jobs:
@@ -21,20 +26,17 @@ jobs:
     name: CodeQL (graceful-degrade)
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Graceful-degrade: on an empty/private-no-GHAS repo the init step fails
-    # (no recognized languages) and analyze fails (no Code Scanning). Treating
-    # the whole job as continue-on-error keeps the PR green until GHAS is
-    # enabled or the repo has source for CodeQL to scan.
-    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Initialize CodeQL
+        continue-on-error: true
         uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
         with:
           languages: autodetect
       - name: Autobuild
+        continue-on-error: true
         uses: github/codeql-action/autobuild@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
       - name: Perform CodeQL Analysis
+        continue-on-error: true
         uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
-        continue-on-error: true   # graceful-degrade when GHAS/Code Scanning is not enabled (private repo)
