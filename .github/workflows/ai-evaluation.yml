@@ -24,16 +24,20 @@ jobs:
     name: AI evaluation (advisory skeleton)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      # Expose the secret to step `if:` conditions (secrets context is not
+      # allowed in `if:` — only in env/with/run).
+      AI_EVAL_API_KEY: ${{ secrets.AI_EVAL_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Skip (no AI_EVAL_API_KEY)
-        if: ${{ secrets.AI_EVAL_API_KEY == '' }}
+        if: ${{ env.AI_EVAL_API_KEY == '' }}
         run: echo "AI-eval skipped — set the AI_EVAL_API_KEY secret and add evals/run-evals.sh to activate."
 
       - name: Run AI evaluations
-        if: ${{ secrets.AI_EVAL_API_KEY != '' }}
+        if: ${{ env.AI_EVAL_API_KEY != '' }}
         run: |
           echo "AI eval runner not configured — implement evals/run-evals.sh (uses AI_EVAL_API_KEY) to run real evaluations."
           # Consumer: replace the line above with: sh evals/run-evals.sh
