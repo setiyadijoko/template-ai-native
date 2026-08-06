@@ -51,3 +51,30 @@ prompts:
         date: 2026-08-05
         change: "Initial example entry."
     deprecation_status: active
+
+  - id: example-structured-extractor
+    name: Example Structured Extractor
+    purpose: >-
+      EXAMPLE. Extract structured fields (title, summary, entities) from a
+      document and validate the output against a JSON schema before trust.
+      Replace with a real prompt before use.
+    version: 0.1.0
+    owner: "@setiyadijoko"
+    input:
+      schema_ref: schemas/extractor-input.json
+      description: A document of up to ~4000 tokens.
+    output:
+      schema_ref: schemas/extractor-output.json
+      description: "Object: { title, summary, entities[] } — validated before trust (§7.3)."
+    model_compatibility:
+      - gpt-4o-mini
+      - claude-3-5-sonnet
+    safety_constraints:
+      - "Refuse if the document contains disallowed content."
+      - "Do not include PII in the response."
+    evaluation_dataset: evals/golden/extractor-golden.jsonl
+    changelog:
+      - version: 0.1.0
+        date: 2026-08-06
+        change: "Initial example entry demonstrating structured-output validation."
+    deprecation_status: active
