@@ -100,3 +100,4 @@ See [docs/assumptions.md](docs/assumptions.md) and the spec's assumptions sectio
 - No production target.
 - All Make targets no-op cleanly until a stack is wired.
 - Workflows follow least-privilege, SHA-pinned-Actions security rules.
+
