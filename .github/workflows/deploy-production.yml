@@ -1,0 +1,32 @@
+name: deploy-production
+
+# SKELETON. Production is HUMAN-GATED: the `production` GitHub Environment
+# must have Required Reviewers enabled (Settings → Environments → production).
+# Per AGENTS.md/spec §2.6, AI agents must not deploy to production without
+# Environment approval + human + verified artifact + documented rollback.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false   # never cancel an in-flight production deploy
+
+jobs:
+  deploy:
+    name: Deploy to production (skeleton, human-gated)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production   # required reviewers enabled in Settings
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # --- Consumer wires deploy below ---
+      # VERIFY: artifact digest matches the staging artifact (spec §16, same artifact promoted).
+      # AUTH: OIDC (no long-lived cloud credentials).
+      # DOCUMENT: rollback procedure before deploying.
+      - name: Not configured
+        run: echo "Production deploy target not configured. Wire OIDC + deploy + verify artifact digest matches staging. Ensure the \`production\` Environment has Required Reviewers enabled."

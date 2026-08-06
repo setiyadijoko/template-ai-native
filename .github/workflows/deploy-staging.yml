@@ -1,0 +1,27 @@
+name: deploy-staging
+
+# SKELETON. Wire your staging platform + OIDC. Create a `staging` GitHub
+# Environment and enable required reviewers for protection.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to staging (skeleton)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: staging
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # --- Consumer wires deploy + artifact-digest verification below ---
+      - name: Not configured
+        run: echo "Deploy target not configured — implement deploy steps + verify the artifact digest matches development/staging. See docs/operations/deployment-guide.md."

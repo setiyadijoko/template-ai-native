@@ -1,0 +1,28 @@
+name: smoke-test
+
+# SKELETON. Consumer wires their health endpoint (e.g. GET /healthz). Callable
+# after a deploy via workflow_call, or run manually.
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Post-deploy smoke test (skeleton)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # --- Consumer wires smoke checks below ---
+      # - name: Health check
+      #   run: curl -fsS https://<your-app>/healthz
+      - name: Not configured
+        run: echo "Smoke target not configured — wire your health endpoint. See docs/operations/runbook.md."
