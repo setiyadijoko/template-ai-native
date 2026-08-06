@@ -62,6 +62,8 @@ make docs-check       # markdown lint + link check + TBD/TODO scan
 
 These no-op cleanly until a stack is detected in `src/`. `make ci` and `make docs-check` always run (they validate the template itself).
 
+> CI runs these via the `ci.yml` dispatcher, which detects the stack once and calls the `ci-quality` / `ci-test` / `build` reusable workflows. The per-stack tool commands live in `scripts/stack-tools.sh` (single source of truth) — change a tool there, not in each workflow. `make test-scripts` runs the shell tests for the detection/mapper scripts.
+
 ## Directory boundaries
 
 | Directory | Owner | Can AI agents modify? |
