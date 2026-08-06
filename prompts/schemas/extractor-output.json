@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-ai-native/prompts/schemas/extractor-output.json",
+  "title": "Extractor output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "summary", "entities"],
+  "properties": {
+    "title": { "type": "string", "maxLength": 200 },
+    "summary": { "type": "string", "maxLength": 1000 },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "type"],
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string", "enum": ["person", "org", "date", "location", "other"] }
+        }
+      }
+    }
+  }
+}

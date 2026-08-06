@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-ai-native/prompts/schemas/extractor-input.json",
+  "title": "Extractor input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["document"],
+  "properties": {
+    "document": {
+      "type": "string",
+      "description": "A document of up to ~4000 tokens to extract fields from."
+    }
+  }
+}

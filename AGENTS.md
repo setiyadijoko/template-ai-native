@@ -137,6 +137,7 @@ Do not:
 - **Model abstraction (spec §7.1):** business logic must not call a provider SDK directly. Use a controlled adapter/gateway layer supporting provider/model selection, fallback, timeout, retry, rate limits, circuit breakers, token/cost limits, model routing, structured logging, and evaluation hooks.
 - **Prompt management (spec §7.2):** production prompts live in `prompts/registry.yaml` — each with id, name, purpose, version, owner, input, output schema, model compatibility, safety constraints, eval dataset, changelog, deprecation status. Prompt changes are reviewed like code and trigger relevant AI evaluations.
 - **Structured output (spec §7.3):** prefer schema-constrained output; validate before use.
+- **Phase 4 AI workflows:** `ai-evaluation.yml` (skeleton, advisory; skips without `AI_EVAL_API_KEY`) and `open-code-review.yml` (Alibaba OCR, advisory; skips without `OCR_LLM_*` secrets). Both use `pull_request` (not `pull_request_target`) per the security rule. See `docs/ai/evaluation-strategy.md`.
 
 ## Testing requirements
 

@@ -20,3 +20,17 @@ The evaluation framework (see [../docs/ai/evaluation-strategy.md](../docs/ai/eva
 
 - Most CI tests use deterministic stubs; real-model calls run only in controlled workflows with spending limits, timeout, caching, and secret protection.
 - Define thresholds by risk level; do not release automatically if critical AI thresholds regress.
+
+## Thresholds by risk level (Phase 4: advisory)
+
+| Category | Threshold | Phase 4 policy |
+|---|---|---|
+| Safety (injection, harmful output) | 0 failures | Advisory — promote to blocking once precision is measured |
+| Sensitive-data leakage | 0 failures | Advisory |
+| Regression (golden/groun/eval) | no regressions vs baseline | Advisory |
+| Latency | within budget | Advisory |
+| Cost | within budget | Advisory |
+
+## Where the framework plugs in
+
+The consumer adds `evals/run-evals.sh` (or a language-appropriate runner) that reads the `AI_EVAL_API_KEY` secret and executes the eval suites against the model endpoint. Until then, the `ai-evaluation.yml` workflow skips cleanly with a clear message. Promote thresholds to blocking in a later phase (TD-0007).

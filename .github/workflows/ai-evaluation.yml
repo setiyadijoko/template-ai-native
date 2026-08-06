@@ -1,0 +1,39 @@
+name: ai-evaluation
+
+# AI evaluation skeleton (advisory). Skips cleanly when AI_EVAL_API_KEY is
+# absent — the template makes no real model calls. Consumer adds the secret
+# and an evals/run-evals.sh runner to activate.
+on:
+  pull_request:
+    paths:
+      - "prompts/**"
+      - "evals/**"
+      - "src/**"
+      - ".github/workflows/ai-evaluation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ai-evaluation:
+    name: AI evaluation (advisory skeleton)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Skip (no AI_EVAL_API_KEY)
+        if: ${{ secrets.AI_EVAL_API_KEY == '' }}
+        run: echo "AI-eval skipped — set the AI_EVAL_API_KEY secret and add evals/run-evals.sh to activate."
+
+      - name: Run AI evaluations
+        if: ${{ secrets.AI_EVAL_API_KEY != '' }}
+        run: |
+          echo "AI eval runner not configured — implement evals/run-evals.sh (uses AI_EVAL_API_KEY) to run real evaluations."
+          # Consumer: replace the line above with: sh evals/run-evals.sh
