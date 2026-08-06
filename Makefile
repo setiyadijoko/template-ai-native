@@ -24,9 +24,6 @@ test-coverage:    ; @echo "[skip] no stack detected — wire src/ to enable test
 eval:             ; @echo "[skip] no stack detected — wire src/ to enable eval"
 eval-regression:  ; @echo "[skip] no stack detected — wire src/ to enable eval-regression"
 eval-safety:      ; @echo "[skip] no stack detected — wire src/ to enable eval-safety"
-dependency-scan:  ; @echo "[skip] no stack detected — wire src/ to enable dependency-scan"
-container-scan:   ; @echo "[skip] no stack detected — wire src/ to enable container-scan"
-iac-scan:         ; @echo "[skip] no stack detected — wire src/ to enable iac-scan"
 build:            ; @echo "[skip] no stack detected — wire src/ to enable build"
 run:              ; @echo "[skip] no stack detected — wire src/ to enable run"
 smoke-test:       ; @echo "[skip] no stack detected — wire src/ to enable smoke-test"
@@ -48,16 +45,16 @@ test-coverage:    ; @sh -c "$$(sh scripts/stack-tools.sh coverage)"
 eval:             ; @echo "configure AI eval for $(STACK)"
 eval-regression:  ; @echo "configure eval-regression"
 eval-safety:      ; @echo "configure eval-safety"
-dependency-scan:  ; @echo "[stub] dependency-review runs in CI"
-container-scan:   ; @echo "[stub] trivy runs in CI when containers exist"
-iac-scan:         ; @echo "[stub] checkov runs in CI when IaC exists"
 build:            ; @sh -c "$$(sh scripts/stack-tools.sh build)"
 run:              ; @echo "configure run for $(STACK)"
 smoke-test:       ; @echo "configure smoke-test"
 endif
 
 # These targets always run (they validate the template itself or run in CI).
-secret-scan:      ; @echo "[stub] gitleaks runs in CI (.github/workflows/secret-scan.yml)"
+secret-scan:      ; @command -v gitleaks >/dev/null 2>&1 && gitleaks detect --source . --no-banner || echo "[stub] gitleaks runs in CI (.github/workflows/secret-scan.yml)"
+dependency-scan:  ; @echo "[stub] dependency-review + dependency-audit run in CI (.github/workflows/dependency-review.yml, dependency-audit.yml)"
+container-scan:   ; @echo "[stub] trivy runs in CI when containers exist"
+iac-scan:         ; @echo "[stub] checkov runs in CI when IaC exists"
 security: secret-scan dependency-scan container-scan iac-scan
 docs-check:       ; @sh scripts/ci-local.sh
 test-scripts:     ; @sh scripts/test/test-stack-detection.sh
