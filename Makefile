@@ -5,10 +5,9 @@ STACK := $(shell sh scripts/detect-stack.sh)
         test test-unit test-contract test-integration test-e2e test-coverage \
         eval eval-regression eval-safety \
         security secret-scan dependency-scan container-scan iac-scan \
-        build run smoke-test docs-check ci
+        build run smoke-test docs-check ci test-scripts
 
 # When no stack is detected, targets that need a toolchain no-op cleanly.
-# Define real commands by overriding these in a stack-specific include.
 ifeq ($(STACK),unknown)
 setup:            ; @echo "[skip] no stack detected — wire src/ to enable setup"
 dev:              ; @echo "[skip] no stack detected — wire src/ to enable dev"
@@ -32,33 +31,35 @@ build:            ; @echo "[skip] no stack detected — wire src/ to enable buil
 run:              ; @echo "[skip] no stack detected — wire src/ to enable run"
 smoke-test:       ; @echo "[skip] no stack detected — wire src/ to enable smoke-test"
 else
-# Replace these stubs with real commands for your detected stack.
-setup:            ; @echo "TODO: configure setup for $(STACK)"
-dev:              ; @echo "TODO: configure dev server for $(STACK)"
-format:           ; @echo "TODO: configure formatter for $(STACK)"
-format-check:     ; @echo "TODO: configure format-check for $(STACK)"
-lint:             ; @echo "TODO: configure linter for $(STACK)"
-typecheck:        ; @echo "TODO: configure typecheck for $(STACK)"
-test:             ; @echo "TODO: configure test for $(STACK)"
-test-unit:        ; @echo "TODO: configure test-unit for $(STACK)"
-test-contract:    ; @echo "TODO: configure test-contract for $(STACK)"
-test-integration: ; @echo "TODO: configure test-integration for $(STACK)"
-test-e2e:         ; @echo "TODO: configure test-e2e for $(STACK)"
-test-coverage:    ; @echo "TODO: configure test-coverage for $(STACK)"
-eval:             ; @echo "TODO: configure AI eval for $(STACK)"
-eval-regression:  ; @echo "TODO: configure eval-regression"
-eval-safety:      ; @echo "TODO: configure eval-safety"
-dependency-scan:  ; @echo "TODO: configure dependency-scan for $(STACK)"
-container-scan:   ; @echo "TODO: configure container-scan"
-iac-scan:         ; @echo "TODO: configure iac-scan"
-build:            ; @echo "TODO: configure build for $(STACK)"
-run:              ; @echo "TODO: configure run for $(STACK)"
-smoke-test:       ; @echo "TODO: configure smoke-test"
+# Real commands for the detected stack, resolved via scripts/stack-tools.sh.
+# Swap a tool by editing scripts/stack-tools.sh (single source of truth).
+setup:            ; @echo "setup ready for $(STACK) (configure bootstrap as needed)"
+dev:              ; @echo "configure dev server for $(STACK)"
+format:           ; @sh -c "$$(sh scripts/stack-tools.sh format)"
+format-check:     ; @sh -c "$$(sh scripts/stack-tools.sh format-check)"
+lint:             ; @sh -c "$$(sh scripts/stack-tools.sh lint)"
+typecheck:        ; @sh -c "$$(sh scripts/stack-tools.sh typecheck)"
+test:             ; @sh -c "$$(sh scripts/stack-tools.sh test-unit)"
+test-unit:        ; @sh -c "$$(sh scripts/stack-tools.sh test-unit)"
+test-contract:    ; @sh -c "$$(sh scripts/stack-tools.sh test-integration)"
+test-integration: ; @sh -c "$$(sh scripts/stack-tools.sh test-integration)"
+test-e2e:         ; @sh -c "$$(sh scripts/stack-tools.sh test-e2e)"
+test-coverage:    ; @sh -c "$$(sh scripts/stack-tools.sh coverage)"
+eval:             ; @echo "configure AI eval for $(STACK)"
+eval-regression:  ; @echo "configure eval-regression"
+eval-safety:      ; @echo "configure eval-safety"
+dependency-scan:  ; @echo "[stub] dependency-review runs in CI"
+container-scan:   ; @echo "[stub] trivy runs in CI when containers exist"
+iac-scan:         ; @echo "[stub] checkov runs in CI when IaC exists"
+build:            ; @sh -c "$$(sh scripts/stack-tools.sh build)"
+run:              ; @echo "configure run for $(STACK)"
+smoke-test:       ; @echo "configure smoke-test"
 endif
 
 # These targets always run (they validate the template itself or run in CI).
 secret-scan:      ; @echo "[stub] gitleaks runs in CI (.github/workflows/secret-scan.yml)"
 security: secret-scan dependency-scan container-scan iac-scan
 docs-check:       ; @sh scripts/ci-local.sh
-ci: format-check lint docs-check
+test-scripts:     ; @sh scripts/test/test-stack-detection.sh
+ci: format-check lint docs-check test-scripts
 	@echo "[ci] local gate (best-effort) complete"

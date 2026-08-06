@@ -24,6 +24,14 @@ run "link-check"   lychee --no-progress --exclude-loopback README.md docs
 run "yaml-lint"    yamllint -d "{extends: default, rules: {line-length: disable, document-start: disable}}" .github 2>/dev/null || true
 run "actionlint"   actionlint
 
+# Run per-stack format-check + lint when a stack is detected.
+if [ "$(sh scripts/detect-stack.sh)" != "unknown" ]; then
+  printf '%s\n' ":: per-stack format-check ::"
+  sh -c "$(sh scripts/stack-tools.sh format-check)" || fail=1
+  printf '%s\n' ":: per-stack lint ::"
+  sh -c "$(sh scripts/stack-tools.sh lint)" || fail=1
+fi
+
 echo
 if [ "$fail" -eq 0 ]; then echo "ci-local: OK (best-effort)"; else echo "ci-local: FAILURES"; fi
 exit "$fail"
