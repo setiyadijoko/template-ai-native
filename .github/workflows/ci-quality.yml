@@ -1,0 +1,81 @@
+name: ci-quality
+
+on:
+  workflow_call:
+    inputs:
+      stack:
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      stack:
+        description: "Stack to run for (python|node|go|java|dotnet)"
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: ${{ inputs.stack }} format/lint/typecheck/unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # --- per-stack toolchain setup ---
+      - name: Setup Python
+        if: inputs.stack == 'python'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install Python dev deps
+        if: inputs.stack == 'python'
+        run: pip install ruff mypy pytest pytest-cov build
+
+      - name: Setup Node
+        if: inputs.stack == 'node'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "lts/*"
+          cache: npm
+      - name: Install Node dev deps
+        if: inputs.stack == 'node'
+        run: if [ -f package.json ]; then npm ci; fi
+
+      - name: Setup Go
+        if: inputs.stack == 'go'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Setup Java
+        if: inputs.stack == 'java'
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Setup .NET
+        if: inputs.stack == 'dotnet'
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: "8.0.x"
+
+      # --- quality gates via the stack mapper ---
+      - name: format-check
+        run: sh -c "$(sh scripts/stack-tools.sh format-check)"
+      - name: lint
+        run: sh -c "$(sh scripts/stack-tools.sh lint)"
+      - name: typecheck
+        run: sh -c "$(sh scripts/stack-tools.sh typecheck)"
+      - name: test-unit
+        run: sh -c "$(sh scripts/stack-tools.sh test-unit)"
