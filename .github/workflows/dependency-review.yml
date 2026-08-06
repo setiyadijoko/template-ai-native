@@ -1,7 +1,12 @@
 name: dependency-review
 
+# Uses osv-scanner (GHAS-free) instead of actions/dependency-review-action,
+# which requires GitHub Advanced Security + Dependency graph. osv-scanner
+# scans lockfiles/manifests against the OSV database and blocks when a
+# vulnerability is introduced.
 on:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,16 +16,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  dependency-review:
-    name: Dependency Review (block on critical/high)
+  osv-scan:
+    name: osv-scanner (block on vulnerable dependency)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Dependency Review
-        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+      - name: Run osv-scanner (reusable PR workflow)
+        # Compares the PR branch against the base; fails if new vulnerabilities
+        # are introduced. No GHAS required — scans manifests/lockfiles directly.
+        uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@9a498708959aeaef5ef730655706c5a1df1edbc2 # v2.3.8
         with:
-          fail-on-severity: high
-          comment-verbosity: verbose
-          # License policy is handled by license-check.yml (advisory in Phase 3).
+          scan-args: |-
+            ./
