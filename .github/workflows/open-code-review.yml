@@ -23,12 +23,16 @@ jobs:
     name: OpenCodeReview (advisory)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # Expose the secret to step `if:` conditions (secrets context is not
+      # allowed in `if:` — only in env/with/run).
+      OCR_LLM_AUTH_TOKEN: ${{ secrets.OCR_LLM_AUTH_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: OpenCodeReview
-        if: ${{ secrets.OCR_LLM_AUTH_TOKEN != '' }}
+        if: ${{ env.OCR_LLM_AUTH_TOKEN != '' }}
         uses: alibaba/open-code-review@cbdd77e92ea4e3484f4f1439054c6f03f0665699 # v1.8.9
         with:
           llm_url: ${{ secrets.OCR_LLM_URL }}
@@ -37,5 +41,5 @@ jobs:
           llm_use_anthropic: ${{ secrets.OCR_LLM_USE_ANTHROPIC }}
 
       - name: Skip (no OCR secret)
-        if: ${{ secrets.OCR_LLM_AUTH_TOKEN == '' }}
+        if: ${{ env.OCR_LLM_AUTH_TOKEN == '' }}
         run: echo "OpenCodeReview skipped — set OCR_LLM_* secrets to activate."

@@ -1,0 +1,36 @@
+name: deploy-development
+
+# SKELETON. The template has no deployment target. Wire your platform's OIDC
+# auth + deploy action (e.g. aws-actions/configure-aws-credentials + deploy,
+# flyctl-actions/flyctl-deploy, cloudrun, etc.). Create a `development`
+# GitHub Environment (Settings → Environments) for env-specific secrets.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write   # for OIDC to your cloud (no long-lived credentials)
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to development (skeleton)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: development
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # --- Consumer wires deploy below ---
+      # - name: Configure cloud credentials (OIDC)
+      #   uses: aws-actions/configure-aws-credentials@<sha>
+      #   with:
+      #     role-to-assume: arn:aws:iam::<account>:role/<role>
+      #     aws-region: <region>
+      # - name: Deploy
+      #   run: <your deploy command>
+      - name: Not configured
+        run: echo "Deploy target not configured — implement deploy steps for your platform. See AGENTS.md and docs/operations/deployment-guide.md."
