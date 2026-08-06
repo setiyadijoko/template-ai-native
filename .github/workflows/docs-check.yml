@@ -66,3 +66,5 @@ jobs:
                   print(" -", o)
               sys.exit(1)
           print("No unresolved TBD/TODO/FIXME markers outside docs/plans/.")
+
+# Workflow registered.
