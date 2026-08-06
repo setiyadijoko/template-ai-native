@@ -1,0 +1,33 @@
+name: license-check
+
+on:
+  pull_request:
+    paths:
+      - "**/package.json"
+      - "**/requirements*.txt"
+      - "**/pyproject.toml"
+      - "**/go.mod"
+      - "**/pom.xml"
+      - "**/*.csproj"
+      - "scripts/license-check.sh"
+      - ".github/workflows/license-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  license-check:
+    name: License policy (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Run license-check.sh
+        run: sh scripts/license-check.sh
+      # Advisory in Phase 3: always exits 0. Promote to blocking in a later phase.
