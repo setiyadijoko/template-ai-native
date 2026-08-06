@@ -123,6 +123,7 @@ Do not:
 - Validate AI output before trust (see API compatibility).
 - Pin third-party GitHub Actions to immutable commit SHA (document the release tag).
 - Scan secrets (gitleaks), code (CodeQL), dependencies, containers, and IaC per `.github/workflows/`.
+- **Phase 3 security scans:** `secret-scan` (gitleaks) and `dependency-review` (critical/high) are BLOCKING; `dependency-audit`, `license-check`, `codeql`, and `scorecard` are advisory or graceful-degrade. CodeQL/Scorecard SARIF uploads use `continue-on-error` on this private repo (no GHAS); they become fully functional when the repo is public or GHAS-enabled. See `docs/security/`.
 - See `docs/security/` for the full threat model, data classification, access control, and incident response.
 
 ## Secrets rules
