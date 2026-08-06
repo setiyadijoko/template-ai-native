@@ -29,3 +29,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Quality, security-scan, AI-evaluation, and deploy workflows arrive in Phases 2–6.
 - Stack is not committed; `make` targets no-op until a consumer adopts one.
 
+
