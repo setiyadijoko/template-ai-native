@@ -1,0 +1,41 @@
+name: open-code-review
+
+# Alibaba OpenCodeReview (advisory, secret-gated). Uses `pull_request` (NOT
+# pull_request_target) per the template's security rule (§15.6). Forked PRs
+# skip OCR review. Consumer adds OCR_LLM_* secrets to activate.
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - ".github/workflows/open-code-review.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write   # OCR posts review comments
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  open-code-review:
+    name: OpenCodeReview (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: OpenCodeReview
+        if: ${{ secrets.OCR_LLM_AUTH_TOKEN != '' }}
+        uses: alibaba/open-code-review@cbdd77e92ea4e3484f4f1439054c6f03f0665699 # v1.8.9
+        with:
+          llm_url: ${{ secrets.OCR_LLM_URL }}
+          llm_auth_token: ${{ secrets.OCR_LLM_AUTH_TOKEN }}
+          llm_model: ${{ secrets.OCR_LLM_MODEL }}
+          llm_use_anthropic: ${{ secrets.OCR_LLM_USE_ANTHROPIC }}
+
+      - name: Skip (no OCR secret)
+        if: ${{ secrets.OCR_LLM_AUTH_TOKEN == '' }}
+        run: echo "OpenCodeReview skipped — set OCR_LLM_* secrets to activate."
