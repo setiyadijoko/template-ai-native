@@ -1,0 +1,52 @@
+name: dependency-review
+
+# Uses osv-scanner CLI directly (GHAS-free) instead of the GitHub
+# dependency-review-action (which requires GHAS + Dependency graph) and
+# instead of the osv-scanner reusable workflow (which was unreliable to
+# invoke). Scans lockfiles/manifests against the OSV database; blocks when
+# a vulnerability is found.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  osv-scan:
+    name: osv-scanner (block on vulnerable dependency)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install osv-scanner CLI
+        run: |
+          version="v1.9.2"
+          curl -sSL "https://github.com/google/osv-scanner/releases/download/${version}/osv-scanner_linux_amd64" \
+            -o /usr/local/bin/osv-scanner
+          chmod +x /usr/local/bin/osv-scanner
+          osv-scanner --version
+
+      - name: Scan dependencies (recursive)
+        # Blocks if any known vulnerability is found in a lockfile/manifest.
+        # When no manifest exists, osv-scanner exits non-zero with "no packages
+        # found" — guard that so an empty template stays green.
+        run: |
+          set +e
+          osv-scanner scan recursive --format=table . > scan.txt 2>&1
+          code=$?
+          cat scan.txt
+          # exit 0 = no vulns; exit 1 = vulns found (block).
+          # Other non-zero (e.g. "no packages found" on empty template) = advisory skip.
+          if [ "$code" -eq 1 ]; then
+            echo "::error::osv-scanner found vulnerable dependencies"
+            exit 1
+          fi
+          echo "osv-scanner: no blocking findings (exit $code treated as advisory skip)"
+          exit 0

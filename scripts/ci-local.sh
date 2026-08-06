@@ -32,6 +32,9 @@ if [ "$(sh scripts/detect-stack.sh)" != "unknown" ]; then
   sh -c "$(sh scripts/stack-tools.sh lint)" || fail=1
 fi
 
+# Best-effort secret scan when gitleaks is installed.
+run "gitleaks" gitleaks detect --source . --no-banner
+
 echo
 if [ "$fail" -eq 0 ]; then echo "ci-local: OK (best-effort)"; else echo "ci-local: FAILURES"; fi
 exit "$fail"
