@@ -1,0 +1,43 @@
+# Environment files are ignored except `.env.example`.
+.env
+.env.*
+!.env.example
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Editors ---
+*.swp
+.idea/
+.vscode/
+# Allow VS Code recommended-extensions sharing (keep allow-lists minimal).
+!.vscode/extensions.json
+
+# --- Node ---
+node_modules/
+
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# --- Build artifacts ---
+dist/
+build/
+
+# --- Logs ---
+*.log
+
+# --- Test / type-check caches ---
+.coverage
+.pytest_cache/
+.mypy_cache/
+
+# --- Terraform ---
+.terraform/
+*.tfstate*
+
+# --- AI provider secrets / local scratch ---
+*.local

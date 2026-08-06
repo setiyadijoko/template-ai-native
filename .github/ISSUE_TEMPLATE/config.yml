@@ -1,0 +1,9 @@
+# Issue template chooser configuration.
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/setiyadijoko/template-ai-native/security/advisories/new
+    about: Report vulnerabilities PRIVATELY via a Security Advisory (see SECURITY.md). Do not use public issues for security reports.
+  - name: Read CONTRIBUTING.md
+    url: https://github.com/setiyadijoko/template-ai-native/blob/main/CONTRIBUTING.md
+    about: Contribution process, branching, and PR requirements.

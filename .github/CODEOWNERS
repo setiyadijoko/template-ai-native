@@ -1,0 +1,16 @@
+# CODEOWNERS
+# Replace @setiyadijoko with the appropriate team/user for your project.
+# Sensitive paths require owner review per the governance policy.
+
+# Default owner for everything in the repo.
+*                           @setiyadijoko
+
+# Sensitive paths (spec §10.1).
+/.github/                   @setiyadijoko
+/infrastructure/            @setiyadijoko
+/deployment/                @setiyadijoko
+/prompts/                   @setiyadijoko
+/evals/                     @setiyadijoko
+/AGENTS.md                  @setiyadijoko
+/SECURITY.md                @setiyadijoko
+/.github/CODEOWNERS         @setiyadijoko

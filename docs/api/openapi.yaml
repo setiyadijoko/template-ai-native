@@ -1,0 +1,39 @@
+# Minimal OpenAPI 3.0 skeleton. Expand with your API.
+openapi: 3.0.3
+info:
+  title: template-ai-native API
+  version: 0.1.0
+  description: |
+    Skeleton OpenAPI document for a project created from the template-ai-native
+    template. Replace with your API definition.
+  license:
+    name: MIT
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+paths: {}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            request_id:
+              type: string
+              format: uuid
+            details:
+              type: object
+              additionalProperties: true

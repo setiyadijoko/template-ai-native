@@ -1,0 +1,23 @@
+{
+  // markdownlint-cli2 configuration for template-ai-native.
+  // Kept lenient on stylistic blank-line rules (MD022/MD031/MD032) because the
+  // template ships many compact scaffolding docs; meaningful rules stay enabled.
+  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint/main/schema/markdownlint-config-schema.json",
+  "default": true,
+  "MD013": false,            // line length
+  "MD022": false,            // blanks around headings
+  "MD031": false,            // blanks around fences/lists
+  "MD032": false,            // blanks around lists
+  "MD024": { "siblings_only": true },
+  "MD025": false,            // multiple top-level headings
+  "MD033": false,            // inline HTML (badges, collapsible sections, HTML comments)
+  "MD041": false,            // first line must be H1 (PR template + others start with HTML comments)
+  "ignores": [
+    "node_modules/**",
+    "CHANGELOG.md",
+    "LICENSE",
+    ".github/pull_request_template.md",
+    ".github/ISSUE_TEMPLATE/**",
+    "docs/superpowers/**"    // internal working specs/plans (not consumer docs)
+  ]
+}

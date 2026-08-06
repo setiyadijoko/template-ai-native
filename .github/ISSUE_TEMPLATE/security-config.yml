@@ -1,0 +1,35 @@
+name: Security configuration / question
+description: Ask about security configuration, threat model, or policy (NOT for vulnerabilities)
+title: "[security]: "
+labels: ["security"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for security **configuration questions or policy** discussions only.
+        **Do not report vulnerabilities here.** Report vulnerabilities privately per [SECURITY.md](../SECURITY.md).
+  - type: textarea
+    id: question
+    attributes:
+      label: Question / concern
+      description: What security configuration or policy question do you have?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Relevant docs/controls already reviewed (e.g. docs/security/).
+    validations:
+      required: false
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Perceived risk level
+      options:
+        - Informational
+        - Low
+        - Medium
+        - High
+    validations:
+      required: false

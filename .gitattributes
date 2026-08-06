@@ -1,0 +1,13 @@
+# Default text handling: normalize line endings to LF on commit.
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF.
+*.bat text eol=crlf
+
+# POSIX scripts use LF.
+*.sh text eol=lf
+
+# Binary assets — never normalize.
+*.png binary
+*.jpg binary
+*.pdf binary

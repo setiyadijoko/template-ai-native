@@ -1,0 +1,40 @@
+#!/usr/bin/env sh
+# Prints recommended gh CLI commands to configure branch protection + a
+# production Environment for a consumer repo created from this template.
+# Use --apply to execute the branch-protection API call (the Environment
+# requires UI configuration afterwards). Requires: gh CLI authenticated,
+# repo created on GitHub.
+#
+# Usage: scripts/setup-branch-protection.sh [branch] [--apply]
+set -eu
+BRANCH="${1:-main}"
+REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || echo "<owner>/<repo>")"
+
+require_approvals="gh api -X PUT repos/${REPO}/branches/${BRANCH}/protection \
+  -H 'Accept: application/vnd.github+json' \
+  -f required_status_checks[strict]=true \
+  -f required_status_checks[contexts][]='pr-title / PR Title Check' \
+  -f required_status_checks[contexts][]='validate-metadata / validate-metadata' \
+  -f required_status_checks[contexts][]='docs-check / docs-check' \
+  -f required_status_checks[contexts][]='action-security / action-security' \
+  -f enforce_admins=true \
+  -f required_pull_request_reviews[required_approving_review_count]=1 \
+  -f required_pull_request_reviews[dismiss_stale_reviews]=true \
+  -f restrictions= \
+  -f required_linear_history=true \
+  -f allow_force_pushes=false \
+  -f allow_deletions=false"
+
+echo "# Recommended branch protection for ${REPO} @ ${BRANCH}"
+echo "${require_approvals}"
+echo
+echo "# Create a 'production' GitHub Environment requiring manual approval:"
+echo "gh api -X PUT repos/${REPO}/environments/production"
+echo "  # then in the UI: Settings > Environments > production > Required reviewers + OIDC"
+
+if [ "${2:-}" = "--apply" ]; then
+  echo "Applying branch protection..."
+  sh -c "${require_approvals}" || { echo "apply failed"; exit 1; }
+else
+  echo "(dry-run; pass --apply as 2nd arg to execute the branch-protection call)"
+fi
