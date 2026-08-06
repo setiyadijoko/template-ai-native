@@ -109,3 +109,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Trunk-based development, all changes via
 ## Current project status
 
 **Phase 1 (Repository governance): in progress.** Phases 2–6 (code-quality baseline, security baseline, AI-native capability, delivery pipeline, production readiness) are planned — see `docs/superpowers/specs/2026-08-05-template-ai-native-design.md` and `docs/superpowers/plans/2026-08-05-phase1-repository-governance.md`.
+test line
