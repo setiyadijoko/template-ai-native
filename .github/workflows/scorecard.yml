@@ -26,10 +26,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run Scorecard
+        continue-on-error: true   # advisory; scorecard is designed for public repos and may fail on private
         uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
         with:
           results_format: sarif
-          results_path: scorecard.sarif
+          results_file: scorecard.sarif
           publish_results: true
       - name: Upload SARIF
         continue-on-error: true   # private repo without GHAS: upload fails gracefully
