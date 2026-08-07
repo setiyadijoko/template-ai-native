@@ -29,6 +29,7 @@ Business Problem → Product Requirements → System Design → Architecture Dec
 - Stack-detecting CI that no-ops cleanly until a stack is wired.
 - Quality gates (format, lint, typecheck, tests, coverage).
 - Security controls (secret scan, SAST, dependency review, workflow security, license).
+- Advisory local-first graph-aware PR review with fork-safe report publication (see [`docs/ai/code-review-graph.md`](docs/ai/code-review-graph.md)).
 - AI-native scaffolding (prompt registry, eval framework, model-abstraction guidance, AI observability).
 - Supply-chain controls (SBOM, artifact attestation, OpenSSF Scorecard).
 - Phased CI/CD with human-gated production deployment and rollback.

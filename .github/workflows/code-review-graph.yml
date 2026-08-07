@@ -1,0 +1,55 @@
+name: Code Review Graph
+
+# Unprivileged analysis workflow. The report is published by the separate
+# workflow_run workflow so fork pull requests never execute PR-controlled code
+# with a write-capable token.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Graph-aware PR review (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run code-review-graph
+        id: review
+        uses: tirth8205/code-review-graph@6a1ee1c7063cc35cfa5ff12b8198c29360f3e4ad # v2.3.7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment: "false"
+          fail-on-risk: none
+
+      - name: Stage report artifact
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/crg-report
+          COMMENT_FILE: ${{ steps.review.outputs.comment-file }}
+          PR_NUMBER: ${{ github.event.pull_request.number || 0 }}
+        run: |
+          set -euo pipefail
+          rm -rf -- "${ARTIFACT_DIR}"
+          mkdir -p -- "${ARTIFACT_DIR}"
+          cp -- "${COMMENT_FILE}" "${ARTIFACT_DIR}/crg-comment.md"
+          printf '%s\n' "${PR_NUMBER}" > "${ARTIFACT_DIR}/pr-number.txt"
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: crg-report
+          path: ${{ runner.temp }}/crg-report/
+          if-no-files-found: error
+          retention-days: 1
