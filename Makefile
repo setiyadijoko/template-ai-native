@@ -64,5 +64,6 @@ test-scripts:
 	@sh scripts/test/test-security-workflows.sh
 	@sh scripts/test/test-production-readiness.sh
 	@sh scripts/test/test-code-review-graph.sh
+	@sh scripts/test/test-graphify-integration.sh
 ci: format-check lint docs-check readiness-check test-scripts
 	@echo "[ci] local gate (best-effort) complete"

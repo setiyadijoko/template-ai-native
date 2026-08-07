@@ -37,7 +37,10 @@ This is a **template repository** ("Use this template"). Consumers create a new 
 7. Use the advisory `code-review-graph` report to inspect change impact and
    test gaps. Promote it to a merge gate only after measuring false positives
    and recording the decision in an ADR.
-8. When the application has a deployment target, wire the development,
+8. Optionally build a local Graphify knowledge graph to explore repository-wide
+   relationships; follow [`docs/ai/graphify.md`](docs/ai/graphify.md) and keep
+   generated output out of version control.
+9. When the application has a deployment target, wire the development,
    staging, production, smoke-test, observability, and rollback skeletons to
    that platform. Keep production protected by GitHub Environment approval and
    promote the exact artifact validated in staging.
@@ -66,6 +69,7 @@ Business Problem → Product Requirements → System Design → Architecture Dec
 - Security controls (secret scan, SAST, dependency review, workflow security, license).
 - Advisory local-first graph-aware PR review with fork-safe report publication (see [`docs/ai/code-review-graph.md`](docs/ai/code-review-graph.md)).
 - Optional Alibaba semantic review complements the graph report; see [`docs/ai/integrated-code-review.md`](docs/ai/integrated-code-review.md).
+- Optional Graphify codebase knowledge complements both review layers; see [`docs/ai/graphify.md`](docs/ai/graphify.md).
 - AI-native scaffolding (prompt registry, eval framework, model-abstraction guidance, AI observability).
 - Supply-chain controls (SBOM, artifact attestation, OpenSSF Scorecard).
 - Phased CI/CD with human-gated production deployment and rollback.

@@ -13,6 +13,11 @@ text. Both cover application and AI-behavior changes, both remain advisory, and
 their comments are intentionally separate so structural evidence is not
 confused with model-generated judgment.
 
+For repository-wide exploration outside a pull request, the optional
+[Graphify codebase knowledge graph](graphify.md) complements these layers. It
+does not replace either workflow, and its generated graph is not application
+runtime or user/session memory.
+
 ## Data and security boundary
 
 Code Review Graph runs without a model-provider key and keeps its graph on the

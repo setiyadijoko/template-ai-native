@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Documented optional Graphify codebase knowledge integration without changing
+  the existing Code Review Graph or Alibaba review workflows.
 - Coordinated the local graph review and optional Alibaba semantic review under a shared advisory PR-review policy and code/AI change scope.
 - Added advisory local-first `code-review-graph` PR review with fork-safe report validation and sticky comment publication.
 - Added the Phase 6 vendor-neutral production-readiness contract, read-only readiness workflow, fail-closed manual rollback skeleton, executable validation tests, and operational observability/recovery baseline. Validation is approval-neutral and always reports `production_ready=false`; platform activation remains tracked by TD-0011.
