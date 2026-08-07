@@ -211,7 +211,7 @@ End the test with `report`. Add this line after the current security test in
 `make test-scripts`:
 
 ```make
-	@sh scripts/test/test-production-readiness.sh
+    @sh scripts/test/test-production-readiness.sh
 ```
 
 Run:
