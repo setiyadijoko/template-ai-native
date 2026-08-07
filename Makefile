@@ -60,5 +60,6 @@ docs-check:       ; @sh scripts/ci-local.sh
 test-scripts:
 	@sh scripts/test/test-stack-detection.sh
 	@sh scripts/test/test-delivery-workflows.sh
+	@sh scripts/test/test-security-workflows.sh
 ci: format-check lint docs-check test-scripts
 	@echo "[ci] local gate (best-effort) complete"
