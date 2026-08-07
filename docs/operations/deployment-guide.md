@@ -10,7 +10,7 @@ Environments: local → test (CI) → development → staging → production. De
 |---|---|---|
 | `sbom.yml` | Active | Generates an SPDX SBOM on pushes to `main`; release also generates the SBOM attached to a version tag. |
 | `artifact-attestation.yml` | Active | Reusable, fail-closed provenance for the packaged artifact in the same successful push-to-`main` CI run; empty templates skip explicitly. |
-| `release.yml` | Active | On `v*`, requires a successful exact-SHA `ci.yml` push run and publishes its packaged artifact without rebuilding, plus SBOM and digests. |
+| `release.yml` | Active | On `v*`, requires a successful exact-SHA `ci.yml` push run and creates a draft release from its packaged artifact without rebuilding, plus SBOM and digests. |
 | `deploy-development.yml` | Skeleton | Wire your dev platform + OIDC; create the `development` Environment. |
 | `deploy-staging.yml` | Skeleton | Wire staging; create + protect the `staging` Environment. |
 | `deploy-production.yml` | Skeleton (human-gated) | Wire production OIDC; the `production` Environment MUST have Required Reviewers. Verify the artifact digest matches staging (same artifact promoted, spec §16). |

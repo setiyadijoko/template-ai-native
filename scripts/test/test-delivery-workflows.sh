@@ -38,6 +38,32 @@ assert_not_contains() {
   fi
 }
 
+assert_text_contains() {
+  label="$1"
+  value="$2"
+  pattern="$3"
+
+  if printf '%s\n' "$value" | grep -Eq "$pattern"; then
+    PASS=$((PASS+1))
+  else
+    FAIL=$((FAIL+1))
+    printf 'FAIL %s\n     missing pattern: %s\n' "$label" "$pattern" >&2
+  fi
+}
+
+assert_text_not_contains() {
+  label="$1"
+  value="$2"
+  pattern="$3"
+
+  if printf '%s\n' "$value" | grep -Eq "$pattern"; then
+    FAIL=$((FAIL+1))
+    printf 'FAIL %s\n     forbidden pattern: %s\n' "$label" "$pattern" >&2
+  else
+    PASS=$((PASS+1))
+  fi
+}
+
 assert_action_pins() {
   label="$1"
   shift
@@ -82,6 +108,18 @@ assert_not_contains "attestation has no fabricated unknown artifact" "$ATTEST" '
 assert_not_contains "attestation has no integrity bypass" "$ATTEST" 'continue-on-error:'
 
 # --- release.yml: exact-SHA promotion without rebuild or manual bypass ---
+# shellcheck disable=SC2016 # `$asset` is the literal workflow contract.
+asset_block="$(sed -n '/asset="template-ai-native-/,/echo "path=\$asset"/p' "$RELEASE")"
+unknown_asset_block="$(
+  printf '%s\n' "$asset_block" |
+    sed -n '/^[[:space:]]*unknown)/,/^[[:space:]]*;;/p'
+)"
+known_asset_block="$(
+  printf '%s\n' "$asset_block" |
+    sed -n '/^[[:space:]]*python|node|go|java|dotnet)/,/^[[:space:]]*;;/p'
+)"
+release_files="$(sed -n '/^[[:space:]]*files: |$/,$p' "$RELEASE" | sed '1d')"
+
 assert_not_contains "release has no manual bypass" "$RELEASE" 'workflow_dispatch:'
 assert_contains "release reads Actions evidence" "$RELEASE" 'actions: read'
 assert_contains "release queries ci workflow" "$RELEASE" 'actions/workflows/ci\.yml/runs'
@@ -93,8 +131,18 @@ assert_contains "release maps artifact to stack" "$RELEASE" 'expected_artifact="
 assert_contains "release downloads prior run" "$RELEASE" 'run-id:.*steps\..*\.outputs\.run-id'
 assert_contains "release authorizes prior-run download" "$RELEASE" 'github-token:.*github\.token'
 assert_contains "release permits unknown source archive" "$RELEASE" 'git archive'
+assert_text_contains "source fallback is inside unknown branch" "$unknown_asset_block" 'git archive'
+assert_text_not_contains "known stack never creates source archive" "$known_asset_block" 'git archive'
+assert_text_contains "known stack uses exact downloaded package" "$known_asset_block" 'source="downloaded-artifact/template-ai-native-build-\$\{STACK\}\.tar\.gz"'
+# shellcheck disable=SC2016 # `$source` and `$asset` are literal contracts.
+assert_text_contains "known stack preserves package bytes" "$known_asset_block" 'mv "\$source" "\$asset"'
 assert_contains "release creates digest manifest" "$RELEASE" 'digests\.txt'
 assert_contains "release publishes versioned package" "$RELEASE" 'template-ai-native-.*\.tar\.gz'
+assert_contains "release publishes resolved package" "$RELEASE" '^[[:space:]]+\$\{\{ steps\.asset\.outputs\.path \}\}$'
+assert_contains "release publishes SBOM" "$RELEASE" '^[[:space:]]+sbom\.spdx\.json$'
+assert_contains "release publishes digest manifest" "$RELEASE" '^[[:space:]]+digests\.txt$'
+assert_eq "release publishes exactly three assets" "$(printf '%s\n' "$release_files" | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' ')" "3"
+assert_contains "release remains a human-reviewed draft" "$RELEASE" '^[[:space:]]+draft: true$'
 assert_not_contains "release does not rebuild" "$RELEASE" 'stack-tools\.sh build'
 assert_not_contains "release does not request OIDC" "$RELEASE" 'id-token: write'
 
