@@ -118,7 +118,33 @@ is_nonnegative_integer() {
 
 is_availability() {
   awk -v value="$1" 'BEGIN {
-    exit !(value ~ /^[0-9]+([.][0-9]+)?$/ && value + 0 > 0 && value + 0 <= 100)
+    if (value !~ /^[0-9]+([.][0-9]+)?$/) {
+      exit 1
+    }
+
+    decimal_point = index(value, ".")
+    if (decimal_point > 0) {
+      whole = substr(value, 1, decimal_point - 1)
+      fraction = substr(value, decimal_point + 1)
+    } else {
+      whole = value
+      fraction = ""
+    }
+
+    sub(/^0+/, "", whole)
+    if (whole == "") {
+      whole = "0"
+    }
+    if (whole == "0" && fraction !~ /[1-9]/) {
+      exit 1
+    }
+    if (length(whole) < 3) {
+      exit 0
+    }
+    if (length(whole) > 3 || whole != "100") {
+      exit 1
+    }
+    exit !(fraction == "" || fraction ~ /^0+$/)
   }'
 }
 

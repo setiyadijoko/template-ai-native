@@ -196,6 +196,35 @@ run_validator "$manifest"
 assert_nonzero "availability above 100 is rejected"
 assert_output_contains "availability above 100 has diagnostic" 'SLO_AVAILABILITY_PERCENT'
 
+new_fixture availability-boundary-integer
+write_active_manifest yes
+manifest="$FIXTURE/observability/production-readiness.conf"
+set_value "$manifest" SLO_AVAILABILITY_PERCENT 100
+run_validator "$manifest"
+assert_eq "availability boundary 100 is accepted" "$RUN_STATUS" "0"
+
+new_fixture availability-boundary-decimal
+write_active_manifest yes
+manifest="$FIXTURE/observability/production-readiness.conf"
+set_value "$manifest" SLO_AVAILABILITY_PERCENT 100.0
+run_validator "$manifest"
+assert_eq "availability boundary 100.0 is accepted" "$RUN_STATUS" "0"
+
+new_fixture availability-boundary-leading-zeros
+write_active_manifest yes
+manifest="$FIXTURE/observability/production-readiness.conf"
+set_value "$manifest" SLO_AVAILABILITY_PERCENT 000100.0
+run_validator "$manifest"
+assert_eq "availability boundary with leading zeros is accepted" "$RUN_STATUS" "0"
+
+new_fixture availability-long-precision-overflow
+write_active_manifest yes
+manifest="$FIXTURE/observability/production-readiness.conf"
+set_value "$manifest" SLO_AVAILABILITY_PERCENT 100.0000000000000000000000000000000001
+run_validator "$manifest"
+assert_nonzero "long precision availability above 100 is rejected"
+assert_output_contains "long precision availability above 100 has diagnostic" 'SLO_AVAILABILITY_PERCENT'
+
 new_fixture invalid-latency
 write_active_manifest yes
 manifest="$FIXTURE/observability/production-readiness.conf"
