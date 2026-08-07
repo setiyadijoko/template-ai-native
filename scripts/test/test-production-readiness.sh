@@ -133,6 +133,16 @@ assert_file_contains_fixed() {
   fi
 }
 
+assert_file_has_exact_line() {
+  label="$1" file="$2" text="$3"
+  if [ -f "$file" ] && grep -Fxq "$text" "$file"; then
+    PASS=$((PASS+1))
+  else
+    FAIL=$((FAIL+1))
+    printf 'FAIL %s\n     missing file or exact line: %s\n' "$label" "$text" >&2
+  fi
+}
+
 assert_file_not_contains() {
   label="$1" file="$2" pattern="$3"
   if [ ! -f "$file" ]; then
@@ -162,26 +172,48 @@ extract_yaml_block() {
   ' "$source_file" > "$output_file"
 }
 
-extract_run_bodies() {
+extract_run_nodes() {
   source_file="$1" output_file="$2"
   rm -f "$output_file"
   [ -f "$source_file" ] || return 0
   awk '
-    /^[ ]*run: \|[ ]*$/ {
-      in_run = 1
+    /^[ ]*(-[ ]+)?run:[ ]*/ {
       run_indent = match($0, /[^ ]/) - 1
       print
+      scalar = $0
+      sub(/^[ ]*(-[ ]+)?run:[ ]*/, "", scalar)
+      in_block = scalar ~ /^[|>][+-]?[ ]*(#.*)?$/
       next
     }
-    in_run {
+    in_block {
       if ($0 !~ /^[[:space:]]*$/) {
         current_indent = match($0, /[^ ]/) - 1
         if (current_indent <= run_indent) {
-          in_run = 0
+          in_block = 0
           next
         }
       }
       print
+    }
+  ' "$source_file" > "$output_file"
+}
+
+extract_executable_lines() {
+  source_file="$1" output_file="$2"
+  rm -f "$output_file"
+  [ -f "$source_file" ] || return 0
+  awk '
+    /^[ ]*(-[ ]+)?run:[ ]*/ {
+      line = $0
+      sub(/^[ ]*(-[ ]+)?run:[ ]*/, "", line)
+      in_block = line ~ /^[|>][+-]?[ ]*(#.*)?$/
+      if (!in_block && line !~ /^[[:space:]]*($|#)/) print line
+      next
+    }
+    in_block {
+      line = $0
+      sub(/^[ ]*/, "", line)
+      if (line !~ /^[[:space:]]*($|#)/) print line
     }
   ' "$source_file" > "$output_file"
 }
@@ -196,10 +228,41 @@ direct_yaml_keys() {
         line = substr($0, indent + 1)
         sub(/:.*/, "", line)
         print line
+      } else if (index($0, prefix) == 1 && substr($0, indent + 1) ~ /^["\047][^"\047]+["\047]:/) {
+        line = substr($0, indent + 1)
+        sub(/:.*/, "", line)
+        print line
       }
     }
   ' "$file"
 }
+
+# Exercise every supported run scalar form so a future extractor regression
+# cannot hide direct GitHub input interpolation from the workflow contract.
+RUN_SCALAR_FIXTURE="$TMP_ROOT/run-scalars.yml"
+RUN_SCALAR_NODES="$TMP_ROOT/run-scalar-nodes.yml"
+RUN_SCALAR_EXECUTABLE="$TMP_ROOT/run-scalar-executable.txt"
+printf '%s\n' \
+  'jobs:' \
+  '  verify:' \
+  '    steps:' \
+  '      - run: echo "${{ inputs.inline }}"' \
+  '      - run: |' \
+  '          echo "${{ inputs.literal }}"' \
+  '      - run: |-' \
+  '          # COMMENT_ONLY_VALIDATION' \
+  '          echo "${{ inputs.literal_strip }}"' \
+  '      - run: >' \
+  '          echo "${{ inputs.folded }}"' \
+  '      - run: >-' \
+  '          echo "${{ inputs.folded_strip }}"' \
+  > "$RUN_SCALAR_FIXTURE"
+extract_run_nodes "$RUN_SCALAR_FIXTURE" "$RUN_SCALAR_NODES"
+extract_executable_lines "$RUN_SCALAR_NODES" "$RUN_SCALAR_EXECUTABLE"
+run_input_count="$(grep -Fc '${{ inputs.' "$RUN_SCALAR_NODES" || true)"
+assert_eq "run extractor covers inline and four block scalar forms" "$run_input_count" '5'
+assert_file_not_contains "executable extraction drops comment-only lines" "$RUN_SCALAR_EXECUTABLE" 'COMMENT_ONLY_VALIDATION'
+assert_file_has_exact_line "executable extraction preserves inline commands" "$RUN_SCALAR_EXECUTABLE" 'echo "${{ inputs.inline }}"'
 
 # The committed template remains a valid but not production-ready contract.
 run_validator "$ROOT/observability/production-readiness.conf"
@@ -460,20 +523,24 @@ READINESS_PR="$TMP_ROOT/readiness-pull-request.yml"
 READINESS_PUSH="$TMP_ROOT/readiness-push.yml"
 READINESS_PERMISSIONS="$TMP_ROOT/readiness-permissions.yml"
 READINESS_CONCURRENCY="$TMP_ROOT/readiness-concurrency.yml"
+READINESS_JOBS="$TMP_ROOT/readiness-jobs.yml"
 READINESS_JOB="$TMP_ROOT/readiness-job.yml"
 READINESS_CHECKOUT="$TMP_ROOT/readiness-checkout.yml"
 READINESS_VALIDATE="$TMP_ROOT/readiness-validate.yml"
-READINESS_RUNS="$TMP_ROOT/readiness-runs.yml"
+READINESS_RUN_NODES="$TMP_ROOT/readiness-run-nodes.yml"
+READINESS_EXECUTABLE="$TMP_ROOT/readiness-executable.txt"
 
 extract_yaml_block "$READINESS_WORKFLOW" "$READINESS_ON" 'on:' 0
 extract_yaml_block "$READINESS_ON" "$READINESS_PR" '  pull_request:' 2
 extract_yaml_block "$READINESS_ON" "$READINESS_PUSH" '  push:' 2
 extract_yaml_block "$READINESS_WORKFLOW" "$READINESS_PERMISSIONS" 'permissions:' 0
 extract_yaml_block "$READINESS_WORKFLOW" "$READINESS_CONCURRENCY" 'concurrency:' 0
+extract_yaml_block "$READINESS_WORKFLOW" "$READINESS_JOBS" 'jobs:' 0
 extract_yaml_block "$READINESS_WORKFLOW" "$READINESS_JOB" '  readiness:' 2
 extract_yaml_block "$READINESS_JOB" "$READINESS_CHECKOUT" '      - name: Checkout' 6
 extract_yaml_block "$READINESS_JOB" "$READINESS_VALIDATE" '      - name: Validate production-readiness contract' 6
-extract_run_bodies "$READINESS_VALIDATE" "$READINESS_RUNS"
+extract_run_nodes "$READINESS_VALIDATE" "$READINESS_RUN_NODES"
+extract_executable_lines "$READINESS_RUN_NODES" "$READINESS_EXECUTABLE"
 
 assert_file_exists "production-readiness workflow exists" "$READINESS_WORKFLOW"
 assert_file_contains "readiness pull_request targets main" "$READINESS_PR" '^    branches: \[main\]$'
@@ -487,14 +554,18 @@ readiness_permission_keys="$(direct_yaml_keys "$READINESS_PERMISSIONS" 2)"
 assert_eq "readiness workflow permission keys are exact" "$readiness_permission_keys" 'contents'
 assert_file_contains "readiness workflow permissions are read-only" "$READINESS_PERMISSIONS" '^  contents: read$'
 assert_file_not_contains "readiness workflow has no write permission" "$READINESS_PERMISSIONS" ':[[:space:]]*write$'
+assert_file_not_contains "readiness has no write permission anywhere" "$READINESS_WORKFLOW" '^[[:space:]]*(permissions|contents|actions|checks|deployments|discussions|id-token|issues|models|packages|pages|pull-requests|security-events|statuses|attestations):.*write(-all)?'
+readiness_job_names="$(direct_yaml_keys "$READINESS_JOBS" 2)"
+assert_eq "readiness has exactly one approved job" "$readiness_job_names" 'readiness'
+assert_file_not_contains "readiness job cannot override workflow permissions" "$READINESS_JOB" '^    permissions:'
 assert_file_contains_fixed "readiness concurrency isolates PR or ref" "$READINESS_CONCURRENCY" 'github.event.pull_request.number || github.ref'
 assert_file_contains "readiness concurrency cancels superseded runs" "$READINESS_CONCURRENCY" '^  cancel-in-progress: true$'
 assert_file_contains "readiness job has contract check name" "$READINESS_JOB" '^    name: Production-readiness contract$'
 assert_file_contains "readiness job timeout is bounded" "$READINESS_JOB" '^    timeout-minutes: 10$'
 assert_file_contains_fixed "readiness checkout is SHA pinned" "$READINESS_CHECKOUT" 'uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1'
 assert_file_contains "readiness checkout does not persist credentials" "$READINESS_CHECKOUT" '^          persist-credentials: false$'
-assert_file_contains_fixed "readiness validation runs canonical Make target" "$READINESS_RUNS" 'make readiness-check'
-assert_file_contains_fixed "readiness validation writes step summary" "$READINESS_RUNS" 'GITHUB_STEP_SUMMARY'
+assert_file_has_exact_line "readiness validation runs canonical Make target" "$READINESS_EXECUTABLE" 'result="$(make readiness-check)"'
+assert_file_has_exact_line "readiness validation writes step summary" "$READINESS_EXECUTABLE" '} >> "$GITHUB_STEP_SUMMARY"'
 assert_file_not_contains "readiness does not suppress failures" "$READINESS_WORKFLOW" '^[[:space:]]*continue-on-error:'
 
 ROLLBACK_ON="$TMP_ROOT/rollback-on.yml"
@@ -508,14 +579,17 @@ ROLLBACK_CONFIRM_INPUT="$TMP_ROOT/rollback-confirm-input.yml"
 ROLLBACK_OPTIONS="$TMP_ROOT/rollback-environment-options.yml"
 ROLLBACK_PERMISSIONS="$TMP_ROOT/rollback-permissions.yml"
 ROLLBACK_CONCURRENCY="$TMP_ROOT/rollback-concurrency.yml"
+ROLLBACK_JOBS="$TMP_ROOT/rollback-jobs.yml"
 ROLLBACK_JOB="$TMP_ROOT/rollback-job.yml"
 ROLLBACK_JOB_PERMISSIONS="$TMP_ROOT/rollback-job-permissions.yml"
 ROLLBACK_VALIDATE="$TMP_ROOT/rollback-validate.yml"
 ROLLBACK_ENV="$TMP_ROOT/rollback-env.yml"
-ROLLBACK_VALIDATE_RUNS="$TMP_ROOT/rollback-validate-runs.yml"
+ROLLBACK_VALIDATE_RUN_NODES="$TMP_ROOT/rollback-validate-run-nodes.yml"
+ROLLBACK_VALIDATE_EXECUTABLE="$TMP_ROOT/rollback-validate-executable.txt"
 ROLLBACK_UNWIRED="$TMP_ROOT/rollback-unwired.yml"
-ROLLBACK_UNWIRED_RUNS="$TMP_ROOT/rollback-unwired-runs.yml"
-ROLLBACK_ALL_RUNS="$TMP_ROOT/rollback-all-runs.yml"
+ROLLBACK_UNWIRED_RUN_NODES="$TMP_ROOT/rollback-unwired-run-nodes.yml"
+ROLLBACK_UNWIRED_EXECUTABLE="$TMP_ROOT/rollback-unwired-executable.txt"
+ROLLBACK_ALL_RUN_NODES="$TMP_ROOT/rollback-all-run-nodes.yml"
 
 extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_ON" 'on:' 0
 extract_yaml_block "$ROLLBACK_ON" "$ROLLBACK_DISPATCH" '  workflow_dispatch:' 2
@@ -528,14 +602,17 @@ extract_yaml_block "$ROLLBACK_INPUTS" "$ROLLBACK_CONFIRM_INPUT" '      confirm:'
 extract_yaml_block "$ROLLBACK_ENVIRONMENT_INPUT" "$ROLLBACK_OPTIONS" '        options:' 8
 extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_PERMISSIONS" 'permissions:' 0
 extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_CONCURRENCY" 'concurrency:' 0
+extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_JOBS" 'jobs:' 0
 extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_JOB" '  rollback:' 2
 extract_yaml_block "$ROLLBACK_JOB" "$ROLLBACK_JOB_PERMISSIONS" '    permissions:' 4
 extract_yaml_block "$ROLLBACK_JOB" "$ROLLBACK_VALIDATE" '      - name: Validate rollback request' 6
 extract_yaml_block "$ROLLBACK_VALIDATE" "$ROLLBACK_ENV" '        env:' 8
-extract_run_bodies "$ROLLBACK_VALIDATE" "$ROLLBACK_VALIDATE_RUNS"
+extract_run_nodes "$ROLLBACK_VALIDATE" "$ROLLBACK_VALIDATE_RUN_NODES"
+extract_executable_lines "$ROLLBACK_VALIDATE_RUN_NODES" "$ROLLBACK_VALIDATE_EXECUTABLE"
 extract_yaml_block "$ROLLBACK_JOB" "$ROLLBACK_UNWIRED" '      - name: Refuse unwired rollback' 6
-extract_run_bodies "$ROLLBACK_UNWIRED" "$ROLLBACK_UNWIRED_RUNS"
-extract_run_bodies "$ROLLBACK_WORKFLOW" "$ROLLBACK_ALL_RUNS"
+extract_run_nodes "$ROLLBACK_UNWIRED" "$ROLLBACK_UNWIRED_RUN_NODES"
+extract_executable_lines "$ROLLBACK_UNWIRED_RUN_NODES" "$ROLLBACK_UNWIRED_EXECUTABLE"
+extract_run_nodes "$ROLLBACK_WORKFLOW" "$ROLLBACK_ALL_RUN_NODES"
 
 assert_file_exists "rollback workflow exists" "$ROLLBACK_WORKFLOW"
 rollback_triggers="$(direct_yaml_keys "$ROLLBACK_ON" 2)"
@@ -553,6 +630,9 @@ assert_file_contains "rollback confirm input is required" "$ROLLBACK_CONFIRM_INP
 rollback_permission_keys="$(direct_yaml_keys "$ROLLBACK_PERMISSIONS" 2)"
 assert_eq "rollback workflow permission keys are exact" "$rollback_permission_keys" 'contents'
 assert_file_contains "rollback workflow permissions are read-only" "$ROLLBACK_PERMISSIONS" '^  contents: read$'
+assert_file_not_contains "rollback has no write permission anywhere" "$ROLLBACK_WORKFLOW" '^[[:space:]]*(permissions|contents|actions|checks|deployments|discussions|id-token|issues|models|packages|pages|pull-requests|security-events|statuses|attestations):.*write(-all)?'
+rollback_job_names="$(direct_yaml_keys "$ROLLBACK_JOBS" 2)"
+assert_eq "rollback has exactly one approved job" "$rollback_job_names" 'rollback'
 rollback_job_permission_keys="$(direct_yaml_keys "$ROLLBACK_JOB_PERMISSIONS" 6)"
 assert_eq "rollback job permission keys are exact" "$rollback_job_permission_keys" 'contents'
 assert_file_contains "rollback job permissions are read-only" "$ROLLBACK_JOB_PERMISSIONS" '^      contents: read$'
@@ -560,6 +640,8 @@ assert_file_contains_fixed "rollback job binds selected environment" "$ROLLBACK_
 assert_file_contains_fixed "rollback concurrency is per environment" "$ROLLBACK_CONCURRENCY" 'inputs.environment'
 assert_file_contains "rollback concurrency does not cancel requests" "$ROLLBACK_CONCURRENCY" '^  cancel-in-progress: false$'
 assert_file_contains "rollback job timeout is bounded" "$ROLLBACK_JOB" '^    timeout-minutes: 5$'
+assert_file_not_contains "rollback job and steps are unconditional" "$ROLLBACK_JOB" '^[[:space:]]*if:'
+assert_file_not_contains "rollback sentinel step is unconditional" "$ROLLBACK_UNWIRED" '^[[:space:]]*if:'
 assert_file_not_contains "rollback has no id-token permission" "$ROLLBACK_WORKFLOW" '^[[:space:]]*id-token:'
 assert_file_not_contains "rollback has no attestations permission" "$ROLLBACK_WORKFLOW" '^[[:space:]]*attestations:'
 assert_file_not_contains "rollback has no security-events permission" "$ROLLBACK_WORKFLOW" '^[[:space:]]*security-events:'
@@ -573,13 +655,13 @@ assert_file_contains_fixed "rollback maps release_ref input through step env" "$
 assert_file_contains_fixed "rollback maps artifact_digest input through step env" "$ROLLBACK_ENV" 'ROLLBACK_ARTIFACT_DIGEST: ${{ inputs.artifact_digest }}'
 assert_file_contains_fixed "rollback maps reason input through step env" "$ROLLBACK_ENV" 'ROLLBACK_REASON: ${{ inputs.reason }}'
 assert_file_contains_fixed "rollback maps confirm input through step env" "$ROLLBACK_ENV" 'ROLLBACK_CONFIRM: ${{ inputs.confirm }}'
-assert_file_not_contains "rollback run blocks do not interpolate inputs" "$ROLLBACK_ALL_RUNS" '\$\{\{[[:space:]]*inputs\.'
-assert_file_contains_fixed "rollback validates confirmation token" "$ROLLBACK_VALIDATE_RUNS" '[ "$ROLLBACK_CONFIRM" = ROLLBACK ]'
-assert_file_contains_fixed "rollback validates approved release grammar" "$ROLLBACK_VALIDATE_RUNS" "grep -Eq '^([0-9a-f]{40}|v[0-9][0-9A-Za-z._-]*)$'"
-assert_file_contains_fixed "rollback validates lowercase sha256 digest" "$ROLLBACK_VALIDATE_RUNS" "grep -Eq '^sha256:[0-9a-f]{64}$'"
-assert_file_contains_fixed "rollback rejects whitespace-only reason" "$ROLLBACK_VALIDATE_RUNS" '*[![:space:]]*) ;;'
-assert_file_contains_fixed "rollback unwired step emits error annotation" "$ROLLBACK_UNWIRED_RUNS" '::error::Rollback target is not configured.'
-assert_file_contains "rollback unwired step exits non-zero" "$ROLLBACK_UNWIRED_RUNS" '^[[:space:]]*exit 1$'
+assert_file_not_contains "rollback run nodes do not interpolate inputs" "$ROLLBACK_ALL_RUN_NODES" '\$\{\{[[:space:]]*inputs\.'
+assert_file_has_exact_line "rollback validates confirmation token" "$ROLLBACK_VALIDATE_EXECUTABLE" '[ "$ROLLBACK_CONFIRM" = ROLLBACK ] || {'
+assert_file_has_exact_line "rollback validates approved release grammar" "$ROLLBACK_VALIDATE_EXECUTABLE" "grep -Eq '^([0-9a-f]{40}|v[0-9][0-9A-Za-z._-]*)$' || {"
+assert_file_has_exact_line "rollback validates lowercase sha256 digest" "$ROLLBACK_VALIDATE_EXECUTABLE" "grep -Eq '^sha256:[0-9a-f]{64}$' || {"
+assert_file_has_exact_line "rollback rejects whitespace-only reason" "$ROLLBACK_VALIDATE_EXECUTABLE" '*[![:space:]]*) ;;'
+assert_file_has_exact_line "rollback unwired step emits error annotation" "$ROLLBACK_UNWIRED_EXECUTABLE" "echo '::error::Rollback target is not configured. Wire artifact verification, platform authentication, rollback execution, and recovery verification through an approved design.'"
+assert_file_has_exact_line "rollback unwired step exits non-zero" "$ROLLBACK_UNWIRED_EXECUTABLE" 'exit 1'
 assert_file_not_contains "rollback does not suppress failures" "$ROLLBACK_WORKFLOW" '^[[:space:]]*continue-on-error:'
 assert_file_not_contains "rollback pull_request_target is absent" "$ROLLBACK_ON" '^  pull_request_target:'
 
