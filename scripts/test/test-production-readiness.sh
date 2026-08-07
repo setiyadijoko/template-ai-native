@@ -143,6 +143,31 @@ assert_file_has_exact_line() {
   fi
 }
 
+assert_file_content_equals() {
+  label="$1" file="$2" expected="$3"
+  if [ -f "$file" ]; then
+    actual="$(cat "$file")"
+  else
+    actual=''
+  fi
+  if [ -f "$file" ] && [ "$actual" = "$expected" ]; then
+    PASS=$((PASS+1))
+  else
+    FAIL=$((FAIL+1))
+    printf 'FAIL %s\n     missing file or unexpected normalized body\n' "$label" >&2
+  fi
+}
+
+assert_file_content_not_equals() {
+  label="$1" file="$2" forbidden="$3"
+  if [ -f "$file" ] && [ "$(cat "$file")" != "$forbidden" ]; then
+    PASS=$((PASS+1))
+  else
+    FAIL=$((FAIL+1))
+    printf 'FAIL %s\n     mutation incorrectly matched approved body\n' "$label" >&2
+  fi
+}
+
 assert_file_not_contains() {
   label="$1" file="$2" pattern="$3"
   if [ ! -f "$file" ]; then
@@ -218,6 +243,52 @@ extract_executable_lines() {
   ' "$source_file" > "$output_file"
 }
 
+normalize_yaml_mapping_keys() {
+  source_file="$1" output_file="$2"
+  rm -f "$output_file"
+  [ -f "$source_file" ] || return 0
+  awk '
+    {
+      line = $0
+      match(line, /^[ ]*/)
+      indent = substr(line, 1, RLENGTH)
+      rest = substr(line, RLENGTH + 1)
+      quote = substr(rest, 1, 1)
+      if (quote == "\"" || quote == sprintf("%c", 39)) {
+        tail = substr(rest, 2)
+        closing = index(tail, quote)
+        if (closing > 0) {
+          key = substr(tail, 1, closing - 1)
+          suffix = substr(tail, closing + 1)
+          if (suffix ~ /^[ ]*:/) {
+            sub(/^[ ]*:/, ":", suffix)
+            print indent key suffix
+            next
+          }
+        }
+      } else if (match(rest, /^[A-Za-z_][A-Za-z0-9_-]*[ ]*:/)) {
+        key = substr(rest, 1, RLENGTH)
+        sub(/[ ]*:$/, "", key)
+        print indent key ":" substr(rest, RLENGTH + 1)
+        next
+      }
+      print line
+    }
+  ' "$source_file" > "$output_file"
+}
+
+WRITE_PERMISSION_PATTERN='^[[:space:]]*(permissions|contents|actions|checks|deployments|discussions|id-token|issues|models|packages|pages|pull-requests|security-events|statuses|attestations):.*write(-all)?'
+
+assert_file_has_write_permission() {
+  label="$1" file="$2"
+  if [ -f "$file" ] && grep -Eq "$WRITE_PERMISSION_PATTERN" "$file"; then
+    PASS=$((PASS+1))
+  else
+    FAIL=$((FAIL+1))
+    printf 'FAIL %s\n     write permission mutation was not detected\n' "$label" >&2
+  fi
+}
+
 direct_yaml_keys() {
   file="$1" indent="$2"
   [ -f "$file" ] || return 0
@@ -263,6 +334,43 @@ run_input_count="$(grep -Fc '${{ inputs.' "$RUN_SCALAR_NODES" || true)"
 assert_eq "run extractor covers inline and four block scalar forms" "$run_input_count" '5'
 assert_file_not_contains "executable extraction drops comment-only lines" "$RUN_SCALAR_EXECUTABLE" 'COMMENT_ONLY_VALIDATION'
 assert_file_has_exact_line "executable extraction preserves inline commands" "$RUN_SCALAR_EXECUTABLE" 'echo "${{ inputs.inline }}"'
+
+SENTINEL_EXPECTED="$(printf '%s\n' \
+  "echo '::error::Rollback target is not configured. Wire artifact verification, platform authentication, rollback execution, and recovery verification through an approved design.'" \
+  'exit 1')"
+SENTINEL_MUTATION="$TMP_ROOT/sentinel-shell-control.yml"
+SENTINEL_MUTATION_NODES="$TMP_ROOT/sentinel-shell-control-nodes.yml"
+SENTINEL_MUTATION_EXECUTABLE="$TMP_ROOT/sentinel-shell-control-executable.txt"
+printf '%s\n' \
+  'run: |' \
+  '  if false; then' \
+  "    echo '::error::Rollback target is not configured. Wire artifact verification, platform authentication, rollback execution, and recovery verification through an approved design.'" \
+  '    exit 1' \
+  '  fi' \
+  > "$SENTINEL_MUTATION"
+extract_run_nodes "$SENTINEL_MUTATION" "$SENTINEL_MUTATION_NODES"
+extract_executable_lines "$SENTINEL_MUTATION_NODES" "$SENTINEL_MUTATION_EXECUTABLE"
+assert_file_content_not_equals "sentinel shell-control mutation is rejected" "$SENTINEL_MUTATION_EXECUTABLE" "$SENTINEL_EXPECTED"
+
+QUOTED_PERMISSION_MUTATION="$TMP_ROOT/quoted-permission-mutation.yml"
+QUOTED_PERMISSION_NORMALIZED="$TMP_ROOT/quoted-permission-normalized.yml"
+SPACED_PERMISSION_MUTATION="$TMP_ROOT/spaced-permission-mutation.yml"
+SPACED_PERMISSION_NORMALIZED="$TMP_ROOT/spaced-permission-normalized.yml"
+printf '%s\n' \
+  'jobs:' \
+  '  readiness:' \
+  '    "permissions" :' \
+  "      'contents' : write" \
+  > "$QUOTED_PERMISSION_MUTATION"
+printf '%s\n' \
+  'permissions :' \
+  '  "actions" : write-all' \
+  > "$SPACED_PERMISSION_MUTATION"
+normalize_yaml_mapping_keys "$QUOTED_PERMISSION_MUTATION" "$QUOTED_PERMISSION_NORMALIZED"
+normalize_yaml_mapping_keys "$SPACED_PERMISSION_MUTATION" "$SPACED_PERMISSION_NORMALIZED"
+assert_file_contains "quoted readiness job permission key is normalized" "$QUOTED_PERMISSION_NORMALIZED" '^    permissions:$'
+assert_file_has_write_permission "single-quoted contents write is detected" "$QUOTED_PERMISSION_NORMALIZED"
+assert_file_has_write_permission "spaced permission and quoted write-all are detected" "$SPACED_PERMISSION_NORMALIZED"
 
 # The committed template remains a valid but not production-ready contract.
 run_validator "$ROOT/observability/production-readiness.conf"
@@ -525,6 +633,8 @@ READINESS_PERMISSIONS="$TMP_ROOT/readiness-permissions.yml"
 READINESS_CONCURRENCY="$TMP_ROOT/readiness-concurrency.yml"
 READINESS_JOBS="$TMP_ROOT/readiness-jobs.yml"
 READINESS_JOB="$TMP_ROOT/readiness-job.yml"
+READINESS_NORMALIZED="$TMP_ROOT/readiness-normalized.yml"
+READINESS_JOB_NORMALIZED="$TMP_ROOT/readiness-job-normalized.yml"
 READINESS_CHECKOUT="$TMP_ROOT/readiness-checkout.yml"
 READINESS_VALIDATE="$TMP_ROOT/readiness-validate.yml"
 READINESS_RUN_NODES="$TMP_ROOT/readiness-run-nodes.yml"
@@ -537,6 +647,8 @@ extract_yaml_block "$READINESS_WORKFLOW" "$READINESS_PERMISSIONS" 'permissions:'
 extract_yaml_block "$READINESS_WORKFLOW" "$READINESS_CONCURRENCY" 'concurrency:' 0
 extract_yaml_block "$READINESS_WORKFLOW" "$READINESS_JOBS" 'jobs:' 0
 extract_yaml_block "$READINESS_WORKFLOW" "$READINESS_JOB" '  readiness:' 2
+normalize_yaml_mapping_keys "$READINESS_WORKFLOW" "$READINESS_NORMALIZED"
+normalize_yaml_mapping_keys "$READINESS_JOB" "$READINESS_JOB_NORMALIZED"
 extract_yaml_block "$READINESS_JOB" "$READINESS_CHECKOUT" '      - name: Checkout' 6
 extract_yaml_block "$READINESS_JOB" "$READINESS_VALIDATE" '      - name: Validate production-readiness contract' 6
 extract_run_nodes "$READINESS_VALIDATE" "$READINESS_RUN_NODES"
@@ -554,10 +666,10 @@ readiness_permission_keys="$(direct_yaml_keys "$READINESS_PERMISSIONS" 2)"
 assert_eq "readiness workflow permission keys are exact" "$readiness_permission_keys" 'contents'
 assert_file_contains "readiness workflow permissions are read-only" "$READINESS_PERMISSIONS" '^  contents: read$'
 assert_file_not_contains "readiness workflow has no write permission" "$READINESS_PERMISSIONS" ':[[:space:]]*write$'
-assert_file_not_contains "readiness has no write permission anywhere" "$READINESS_WORKFLOW" '^[[:space:]]*(permissions|contents|actions|checks|deployments|discussions|id-token|issues|models|packages|pages|pull-requests|security-events|statuses|attestations):.*write(-all)?'
+assert_file_not_contains "readiness has no write permission anywhere" "$READINESS_NORMALIZED" "$WRITE_PERMISSION_PATTERN"
 readiness_job_names="$(direct_yaml_keys "$READINESS_JOBS" 2)"
 assert_eq "readiness has exactly one approved job" "$readiness_job_names" 'readiness'
-assert_file_not_contains "readiness job cannot override workflow permissions" "$READINESS_JOB" '^    permissions:'
+assert_file_not_contains "readiness job cannot override workflow permissions" "$READINESS_JOB_NORMALIZED" '^    permissions:'
 assert_file_contains_fixed "readiness concurrency isolates PR or ref" "$READINESS_CONCURRENCY" 'github.event.pull_request.number || github.ref'
 assert_file_contains "readiness concurrency cancels superseded runs" "$READINESS_CONCURRENCY" '^  cancel-in-progress: true$'
 assert_file_contains "readiness job has contract check name" "$READINESS_JOB" '^    name: Production-readiness contract$'
@@ -581,6 +693,7 @@ ROLLBACK_PERMISSIONS="$TMP_ROOT/rollback-permissions.yml"
 ROLLBACK_CONCURRENCY="$TMP_ROOT/rollback-concurrency.yml"
 ROLLBACK_JOBS="$TMP_ROOT/rollback-jobs.yml"
 ROLLBACK_JOB="$TMP_ROOT/rollback-job.yml"
+ROLLBACK_NORMALIZED="$TMP_ROOT/rollback-normalized.yml"
 ROLLBACK_JOB_PERMISSIONS="$TMP_ROOT/rollback-job-permissions.yml"
 ROLLBACK_VALIDATE="$TMP_ROOT/rollback-validate.yml"
 ROLLBACK_ENV="$TMP_ROOT/rollback-env.yml"
@@ -604,6 +717,7 @@ extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_PERMISSIONS" 'permissions:' 0
 extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_CONCURRENCY" 'concurrency:' 0
 extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_JOBS" 'jobs:' 0
 extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_JOB" '  rollback:' 2
+normalize_yaml_mapping_keys "$ROLLBACK_WORKFLOW" "$ROLLBACK_NORMALIZED"
 extract_yaml_block "$ROLLBACK_JOB" "$ROLLBACK_JOB_PERMISSIONS" '    permissions:' 4
 extract_yaml_block "$ROLLBACK_JOB" "$ROLLBACK_VALIDATE" '      - name: Validate rollback request' 6
 extract_yaml_block "$ROLLBACK_VALIDATE" "$ROLLBACK_ENV" '        env:' 8
@@ -630,7 +744,7 @@ assert_file_contains "rollback confirm input is required" "$ROLLBACK_CONFIRM_INP
 rollback_permission_keys="$(direct_yaml_keys "$ROLLBACK_PERMISSIONS" 2)"
 assert_eq "rollback workflow permission keys are exact" "$rollback_permission_keys" 'contents'
 assert_file_contains "rollback workflow permissions are read-only" "$ROLLBACK_PERMISSIONS" '^  contents: read$'
-assert_file_not_contains "rollback has no write permission anywhere" "$ROLLBACK_WORKFLOW" '^[[:space:]]*(permissions|contents|actions|checks|deployments|discussions|id-token|issues|models|packages|pages|pull-requests|security-events|statuses|attestations):.*write(-all)?'
+assert_file_not_contains "rollback has no write permission anywhere" "$ROLLBACK_NORMALIZED" "$WRITE_PERMISSION_PATTERN"
 rollback_job_names="$(direct_yaml_keys "$ROLLBACK_JOBS" 2)"
 assert_eq "rollback has exactly one approved job" "$rollback_job_names" 'rollback'
 rollback_job_permission_keys="$(direct_yaml_keys "$ROLLBACK_JOB_PERMISSIONS" 6)"
@@ -660,8 +774,7 @@ assert_file_has_exact_line "rollback validates confirmation token" "$ROLLBACK_VA
 assert_file_has_exact_line "rollback validates approved release grammar" "$ROLLBACK_VALIDATE_EXECUTABLE" "grep -Eq '^([0-9a-f]{40}|v[0-9][0-9A-Za-z._-]*)$' || {"
 assert_file_has_exact_line "rollback validates lowercase sha256 digest" "$ROLLBACK_VALIDATE_EXECUTABLE" "grep -Eq '^sha256:[0-9a-f]{64}$' || {"
 assert_file_has_exact_line "rollback rejects whitespace-only reason" "$ROLLBACK_VALIDATE_EXECUTABLE" '*[![:space:]]*) ;;'
-assert_file_has_exact_line "rollback unwired step emits error annotation" "$ROLLBACK_UNWIRED_EXECUTABLE" "echo '::error::Rollback target is not configured. Wire artifact verification, platform authentication, rollback execution, and recovery verification through an approved design.'"
-assert_file_has_exact_line "rollback unwired step exits non-zero" "$ROLLBACK_UNWIRED_EXECUTABLE" 'exit 1'
+assert_file_content_equals "rollback sentinel body is exact and unconditional" "$ROLLBACK_UNWIRED_EXECUTABLE" "$SENTINEL_EXPECTED"
 assert_file_not_contains "rollback does not suppress failures" "$ROLLBACK_WORKFLOW" '^[[:space:]]*continue-on-error:'
 assert_file_not_contains "rollback pull_request_target is absent" "$ROLLBACK_ON" '^  pull_request_target:'
 
