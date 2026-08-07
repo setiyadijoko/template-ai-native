@@ -26,6 +26,7 @@ venv/
 # --- Build artifacts ---
 dist/
 build/
+graphify-out/
 
 # --- Logs ---
 *.log
