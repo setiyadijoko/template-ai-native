@@ -372,6 +372,33 @@ assert_file_contains "quoted readiness job permission key is normalized" "$QUOTE
 assert_file_has_write_permission "single-quoted contents write is detected" "$QUOTED_PERMISSION_NORMALIZED"
 assert_file_has_write_permission "spaced permission and quoted write-all are detected" "$SPACED_PERMISSION_NORMALIZED"
 
+READINESS_JOB_KEY_MUTATION="$TMP_ROOT/readiness-job-key-mutation.yml"
+READINESS_JOB_KEY_NORMALIZED="$TMP_ROOT/readiness-job-key-normalized.yml"
+READINESS_JOB_KEY_BLOCK="$TMP_ROOT/readiness-job-key-block.yml"
+ROLLBACK_JOB_KEY_MUTATION="$TMP_ROOT/rollback-job-key-mutation.yml"
+ROLLBACK_JOB_KEY_NORMALIZED="$TMP_ROOT/rollback-job-key-normalized.yml"
+ROLLBACK_JOB_KEY_BLOCK="$TMP_ROOT/rollback-job-key-block.yml"
+printf '%s\n' \
+  'jobs:' \
+  '  readiness:' \
+  '    "nested" :' \
+  '  "shadow" :' \
+  > "$READINESS_JOB_KEY_MUTATION"
+printf '%s\n' \
+  'jobs:' \
+  '  rollback:' \
+  "    'nested' :" \
+  "  'shadow' :" \
+  > "$ROLLBACK_JOB_KEY_MUTATION"
+normalize_yaml_mapping_keys "$READINESS_JOB_KEY_MUTATION" "$READINESS_JOB_KEY_NORMALIZED"
+normalize_yaml_mapping_keys "$ROLLBACK_JOB_KEY_MUTATION" "$ROLLBACK_JOB_KEY_NORMALIZED"
+extract_yaml_block "$READINESS_JOB_KEY_NORMALIZED" "$READINESS_JOB_KEY_BLOCK" 'jobs:' 0
+extract_yaml_block "$ROLLBACK_JOB_KEY_NORMALIZED" "$ROLLBACK_JOB_KEY_BLOCK" 'jobs:' 0
+readiness_mutated_jobs="$(direct_yaml_keys "$READINESS_JOB_KEY_BLOCK" 2)"
+rollback_mutated_jobs="$(direct_yaml_keys "$ROLLBACK_JOB_KEY_BLOCK" 2)"
+assert_eq "double-quoted spaced extra readiness job is exposed" "$readiness_mutated_jobs" "$(printf '%s\n' readiness shadow)"
+assert_eq "single-quoted spaced extra rollback job is exposed" "$rollback_mutated_jobs" "$(printf '%s\n' rollback shadow)"
+
 # The committed template remains a valid but not production-ready contract.
 run_validator "$ROOT/observability/production-readiness.conf"
 assert_eq "template manifest exits zero" "$RUN_STATUS" "0"
@@ -632,6 +659,7 @@ READINESS_PUSH="$TMP_ROOT/readiness-push.yml"
 READINESS_PERMISSIONS="$TMP_ROOT/readiness-permissions.yml"
 READINESS_CONCURRENCY="$TMP_ROOT/readiness-concurrency.yml"
 READINESS_JOBS="$TMP_ROOT/readiness-jobs.yml"
+READINESS_JOBS_NORMALIZED="$TMP_ROOT/readiness-jobs-normalized.yml"
 READINESS_JOB="$TMP_ROOT/readiness-job.yml"
 READINESS_NORMALIZED="$TMP_ROOT/readiness-normalized.yml"
 READINESS_JOB_NORMALIZED="$TMP_ROOT/readiness-job-normalized.yml"
@@ -646,6 +674,7 @@ extract_yaml_block "$READINESS_ON" "$READINESS_PUSH" '  push:' 2
 extract_yaml_block "$READINESS_WORKFLOW" "$READINESS_PERMISSIONS" 'permissions:' 0
 extract_yaml_block "$READINESS_WORKFLOW" "$READINESS_CONCURRENCY" 'concurrency:' 0
 extract_yaml_block "$READINESS_WORKFLOW" "$READINESS_JOBS" 'jobs:' 0
+normalize_yaml_mapping_keys "$READINESS_JOBS" "$READINESS_JOBS_NORMALIZED"
 extract_yaml_block "$READINESS_WORKFLOW" "$READINESS_JOB" '  readiness:' 2
 normalize_yaml_mapping_keys "$READINESS_WORKFLOW" "$READINESS_NORMALIZED"
 normalize_yaml_mapping_keys "$READINESS_JOB" "$READINESS_JOB_NORMALIZED"
@@ -667,7 +696,7 @@ assert_eq "readiness workflow permission keys are exact" "$readiness_permission_
 assert_file_contains "readiness workflow permissions are read-only" "$READINESS_PERMISSIONS" '^  contents: read$'
 assert_file_not_contains "readiness workflow has no write permission" "$READINESS_PERMISSIONS" ':[[:space:]]*write$'
 assert_file_not_contains "readiness has no write permission anywhere" "$READINESS_NORMALIZED" "$WRITE_PERMISSION_PATTERN"
-readiness_job_names="$(direct_yaml_keys "$READINESS_JOBS" 2)"
+readiness_job_names="$(direct_yaml_keys "$READINESS_JOBS_NORMALIZED" 2)"
 assert_eq "readiness has exactly one approved job" "$readiness_job_names" 'readiness'
 assert_file_not_contains "readiness job cannot override workflow permissions" "$READINESS_JOB_NORMALIZED" '^    permissions:'
 assert_file_contains_fixed "readiness concurrency isolates PR or ref" "$READINESS_CONCURRENCY" 'github.event.pull_request.number || github.ref'
@@ -692,6 +721,7 @@ ROLLBACK_OPTIONS="$TMP_ROOT/rollback-environment-options.yml"
 ROLLBACK_PERMISSIONS="$TMP_ROOT/rollback-permissions.yml"
 ROLLBACK_CONCURRENCY="$TMP_ROOT/rollback-concurrency.yml"
 ROLLBACK_JOBS="$TMP_ROOT/rollback-jobs.yml"
+ROLLBACK_JOBS_NORMALIZED="$TMP_ROOT/rollback-jobs-normalized.yml"
 ROLLBACK_JOB="$TMP_ROOT/rollback-job.yml"
 ROLLBACK_NORMALIZED="$TMP_ROOT/rollback-normalized.yml"
 ROLLBACK_JOB_PERMISSIONS="$TMP_ROOT/rollback-job-permissions.yml"
@@ -716,6 +746,7 @@ extract_yaml_block "$ROLLBACK_ENVIRONMENT_INPUT" "$ROLLBACK_OPTIONS" '        op
 extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_PERMISSIONS" 'permissions:' 0
 extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_CONCURRENCY" 'concurrency:' 0
 extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_JOBS" 'jobs:' 0
+normalize_yaml_mapping_keys "$ROLLBACK_JOBS" "$ROLLBACK_JOBS_NORMALIZED"
 extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_JOB" '  rollback:' 2
 normalize_yaml_mapping_keys "$ROLLBACK_WORKFLOW" "$ROLLBACK_NORMALIZED"
 extract_yaml_block "$ROLLBACK_JOB" "$ROLLBACK_JOB_PERMISSIONS" '    permissions:' 4
@@ -745,7 +776,7 @@ rollback_permission_keys="$(direct_yaml_keys "$ROLLBACK_PERMISSIONS" 2)"
 assert_eq "rollback workflow permission keys are exact" "$rollback_permission_keys" 'contents'
 assert_file_contains "rollback workflow permissions are read-only" "$ROLLBACK_PERMISSIONS" '^  contents: read$'
 assert_file_not_contains "rollback has no write permission anywhere" "$ROLLBACK_NORMALIZED" "$WRITE_PERMISSION_PATTERN"
-rollback_job_names="$(direct_yaml_keys "$ROLLBACK_JOBS" 2)"
+rollback_job_names="$(direct_yaml_keys "$ROLLBACK_JOBS_NORMALIZED" 2)"
 assert_eq "rollback has exactly one approved job" "$rollback_job_names" 'rollback'
 rollback_job_permission_keys="$(direct_yaml_keys "$ROLLBACK_JOB_PERMISSIONS" 6)"
 assert_eq "rollback job permission keys are exact" "$rollback_job_permission_keys" 'contents'
