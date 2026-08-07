@@ -41,3 +41,4 @@ build/
 
 # --- AI provider secrets / local scratch ---
 *.local
+.worktrees/
