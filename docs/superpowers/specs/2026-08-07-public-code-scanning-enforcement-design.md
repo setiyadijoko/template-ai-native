@@ -54,8 +54,8 @@ This reduces false assurance before Phase 6 production-readiness work begins.
 - Preserve Scorecard findings as advisory.
 - Add POSIX shell contract tests for the two workflow policies.
 - Update Phase 3 security documentation, assumptions, changelog, and TD-0006.
-- Verify the CodeQL pull-request run and a manually dispatched Scorecard run
-  from the feature branch.
+- Verify the CodeQL pull-request run before merge and the first Scorecard run
+  from the default branch after merge.
 
 ### Out of scope
 
@@ -63,8 +63,8 @@ This reduces false assurance before Phase 6 production-readiness work begins.
 - Making a Scorecard score or individual Scorecard finding block a merge.
 - Changing dependency-audit or license-check advisory policy (TD-0004).
 - Adding container or infrastructure-as-code scanning (TD-0005).
-- Selecting a runtime stack or replacing CodeQL autodetection with a language
-  matrix.
+- Selecting a runtime stack or replacing CodeQL's implicit language detection
+  with a language matrix.
 - Wiring deployment, smoke tests, or Phase 6 production-readiness controls.
 - Adding a public Scorecard badge to `README.md`.
 
@@ -94,7 +94,7 @@ push to main ------------+--> CodeQL init -> autobuild -> analyze/upload
 weekly/manual -----------+          any execution/storage error -> FAIL
 
 push to main ------------+
-weekly/manual -----------+--> Scorecard -> publish result -> upload SARIF
+weekly/manual on main ---+--> Scorecard -> publish result -> upload SARIF
                                   low score/finding -> ADVISORY
                                   execution/storage error -> FAIL
 ```
@@ -117,8 +117,9 @@ their existing immutable Action pins.
 - Grant the CodeQL job only `contents: read` and `security-events: write`, with
   explanatory comments for each non-default capability.
 - Rename the job from graceful-degrade wording to `CodeQL (blocking)`.
-- Retain `languages: autodetect` and the existing initialize, autobuild, and
-  analyze sequence.
+- Omit the `languages` input so CodeQL performs its supported implicit language
+  detection; `autodetect` is not a valid CodeQL language identifier.
+- Retain the existing initialize, autobuild, and analyze sequence.
 - Disable checkout credential persistence.
 - Remove every `continue-on-error` from the CodeQL integrity path.
 - Keep every third-party Action pinned to an immutable commit SHA with its
@@ -144,6 +145,9 @@ their existing immutable Action pins.
   or job-level `env` or `defaults`; no job-level environment, services, or
   container; no shell `run` steps; and no Actions outside `actions/checkout`,
   `ossf/scorecard-action`, and `github/codeql-action/upload-sarif`.
+- Treat Scorecard runtime publication as a default-branch acceptance check.
+  The action rejects feature-branch runs even when `workflow_dispatch` is
+  available, so such a run is not valid pre-merge evidence.
 
 ## Failure semantics
 
@@ -190,6 +194,8 @@ The contract test asserts:
 - CodeQL concurrency is isolated by PR number or ref;
 - CodeQL has job-scoped `security-events: write` and no workflow-level write;
 - the CodeQL job is described as blocking;
+- CodeQL leaves the `languages` input unset for implicit supported-language
+  detection;
 - no CodeQL step contains `continue-on-error`;
 - Scorecard keeps trusted-event triggers and does not add `pull_request`;
 - both checkout steps disable credential persistence;
@@ -244,8 +250,10 @@ the existing TD-0006 resolution without selecting a new architecture.
 9. `make ci`, `make docs-check`, `actionlint`, `shellcheck`, `zizmor`, Action pin
    checks, and `git diff --check` pass where the corresponding local tool exists.
 10. A PR CodeQL run succeeds and stores its analysis.
-11. A feature-branch Scorecard `workflow_dispatch` succeeds, publishes an
-    authenticated result, and stores category `scorecard` SARIF.
+11. The first default-branch Scorecard push run after merge, or a manual
+    dispatch against `main`, succeeds, publishes an authenticated result, and
+    stores category `scorecard` SARIF. This is explicitly a post-merge
+    acceptance check because the action rejects feature-branch publication.
 12. TD-0006 is closed and no affected current-state document still claims that
     this repository is private or lacks Code Scanning storage.
 
@@ -267,12 +275,15 @@ git diff --check
 After pushing the feature branch:
 
 1. open a draft pull request and verify the CodeQL pull-request run;
-2. dispatch `scorecard.yml` against the feature branch;
-3. require both workflow executions to complete successfully;
-4. query GitHub Code Scanning analyses to confirm stored results for the
-   relevant refs and categories; and
-5. report any skipped local optional tool honestly rather than substituting a
+2. query GitHub Code Scanning analyses to confirm the PR CodeQL result is
+   stored; and
+3. report any skipped local optional tool honestly rather than substituting a
    remote result.
+
+After merge, require the Scorecard push run on `main` (or dispatch the workflow
+against `main`) to succeed, then confirm authenticated publication and stored
+SARIF category `scorecard`. Do not use a feature-branch dispatch as acceptance
+evidence because the Scorecard action rejects non-default refs.
 
 ## Rollback
 

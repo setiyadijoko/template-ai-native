@@ -12,7 +12,9 @@
 
 - The repository remains stack-agnostic; do not add a runtime, framework, dependency, or source file under `src/`.
 - CodeQL uses `pull_request`, never `pull_request_target`.
-- CodeQL retains `languages: autodetect` and its pinned v4.37.6 Actions.
+- CodeQL omits the `languages` input so the pinned v4.37.6 Action performs
+  supported implicit language detection; `autodetect` is not a valid language
+  identifier.
 - CodeQL execution and result-storage errors fail the workflow.
 - Scorecard findings remain advisory; Scorecard execution, publication, and SARIF upload errors fail the workflow.
 - Scorecard keeps `publish_results: true` and receives job-scoped `id-token: write` only.
@@ -219,7 +221,7 @@ assert_text_not_contains "codeql workflow has no write permission" "$codeql_work
 assert_text_contains "codeql job reads contents" "$codeql_job_permissions" '^      contents: read[[:space:]]+#'
 assert_text_contains "codeql job writes security events" "$codeql_job_permissions" '^      security-events: write[[:space:]]+#'
 assert_contains "codeql is labeled blocking" "$CODEQL" 'name: CodeQL \(blocking\)'
-assert_contains "codeql retains autodetection" "$CODEQL" 'languages: autodetect'
+assert_not_contains "codeql delegates language autodetection to the action" "$CODEQL" '^[[:space:]]+languages:'
 assert_not_contains "codeql has no error suppression" "$CODEQL" 'continue-on-error:'
 assert_contains "codeql retains timeout" "$CODEQL" 'timeout-minutes: 30'
 assert_checkout_credentials "codeql checkout disables credential persistence" "$CODEQL"
@@ -370,10 +372,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # Omitting languages lets CodeQL detect every supported language present.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
-        with:
-          languages: autodetect
       - name: Autobuild
         uses: github/codeql-action/autobuild@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
       - name: Perform CodeQL Analysis
@@ -582,7 +583,10 @@ Expected: one commit containing only the five current-state documentation files.
 **Interfaces:**
 - Consumes: all commits from Tasks 1-3.
 - Produces: a clean feature branch with local evidence ready for Draft PR publication.
-- Produces after the owner chooses PR publication: CodeQL PR result, manually dispatched feature-branch Scorecard result, and stored Code Scanning analysis evidence.
+- Produces after the owner chooses PR publication: CodeQL PR result and stored
+  Code Scanning analysis evidence.
+- Produces after merge: a default-branch Scorecard result with authenticated
+  publication and stored SARIF evidence.
 
 - [ ] **Step 1: Run every deterministic local verification command**
 
@@ -636,15 +640,20 @@ Wait for the PR check named `CodeQL (blocking)` and the separate Code Scanning r
 
 Expected: CodeQL initializes, autobuilds, analyzes the empty template, uploads results, and concludes success without `continue-on-error`.
 
-- [ ] **Step 6: Dispatch and verify Scorecard from the feature branch**
+- [ ] **Step 6: Verify Scorecard from the default branch after merge**
 
 ```bash
 gh workflow run scorecard.yml \
   --repo setiyadijoko/template-ai-native \
-  --ref security/public-code-scanning-enforcement
+  --ref main
 ```
 
-Watch the resulting run and require `OpenSSF Scorecard (advisory)` to conclude success. Confirm the action publishes through OIDC and the upload step stores SARIF category `scorecard`. A low score or finding is reported but does not fail the workflow.
+Run this only after the PR is merged, unless the merge-triggered push run already
+provides the evidence. Require `OpenSSF Scorecard (advisory)` to conclude
+success. Confirm the action publishes through OIDC and the upload step stores
+SARIF category `scorecard`. A low score or finding is reported but does not fail
+the workflow. Do not use a feature-branch dispatch as acceptance evidence: the
+Scorecard action rejects non-default refs.
 
 - [ ] **Step 7: Record final evidence and hand off the Draft PR**
 
@@ -655,7 +664,8 @@ Report:
 - local `make ci`, actionlint, shellcheck, zizmor, and diff results;
 - Draft PR URL and head SHA;
 - CodeQL PR run URL/conclusion;
-- Scorecard dispatch run URL/conclusion;
+- post-merge default-branch Scorecard run URL/conclusion, or mark it explicitly
+  pending while the PR remains unmerged;
 - Code Scanning storage confirmation;
 - optional local tools that were unavailable; and
 - that deploy/smoke-test skeletons remain unchanged.

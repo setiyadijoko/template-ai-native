@@ -344,8 +344,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Initialize CodeQL
         uses: github/codeql-action/init@<SHA> # <tag>
-        with:
-          languages: autodetect
+        # Omit languages so CodeQL detects supported languages present.
       - name: Autobuild
         uses: github/codeql-action/autobuild@<SHA> # <tag>
       - name: Perform CodeQL Analysis

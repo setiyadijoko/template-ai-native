@@ -158,7 +158,7 @@ assert_text_not_contains "codeql workflow has no write permission" "$codeql_work
 assert_text_contains "codeql job reads contents" "$codeql_job_permissions" '^      contents: read[[:space:]]+#'
 assert_text_contains "codeql job writes security events" "$codeql_job_permissions" '^      security-events: write[[:space:]]+#'
 assert_contains "codeql is labeled blocking" "$CODEQL" 'name: CodeQL \(blocking\)'
-assert_contains "codeql retains autodetection" "$CODEQL" 'languages: autodetect'
+assert_not_contains "codeql delegates language autodetection to the action" "$CODEQL" '^[[:space:]]+languages:'
 assert_not_contains "codeql has no error suppression" "$CODEQL" 'continue-on-error:'
 assert_contains "codeql retains timeout" "$CODEQL" 'timeout-minutes: 30'
 assert_checkout_credentials "codeql checkout disables credential persistence" "$CODEQL"
