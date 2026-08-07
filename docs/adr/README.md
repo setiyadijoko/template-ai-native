@@ -19,3 +19,4 @@ Use the template at [../templates/adr-template.md](../templates/adr-template.md)
 | ADR | Title | Status | Date |
 |-----|-------|--------|------|
 | [0001](0001-record-architecture-decisions.md) | Record architecture decisions | Accepted | 2026-08-05 |
+| [0002](0002-keep-readiness-validation-approval-neutral.md) | Keep readiness validation approval-neutral | Accepted | 2026-08-07 |

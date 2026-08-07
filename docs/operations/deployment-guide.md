@@ -1,8 +1,18 @@
 # Deployment Guide
 
-**Status:** Adapt to your project.
+**Status:** Delivery policy baseline; platform-specific deployment remains
+consumer-owned.
 
-Environments: local → test (CI) → development → staging → production. Dev deploys on merge to `main`; staging is manual/protected; production is human-gated (GitHub Environment approval + OIDC) and promotes the exact staging artifact (no rebuild). See [environment-strategy.md](environment-strategy.md) and [rollback.md](rollback.md).
+Target state after consumer platform activation: local → test (CI) →
+development → staging → production. In that target state, development deploys
+on merge to `main`; staging is manual and protected; production is manual,
+human-gated by GitHub Environment approvals, authenticates with job-scoped
+OIDC, and promotes the exact staging artifact without rebuilding. None of these
+development, staging, or production deployment behaviors, Environment approval
+controls, or OIDC authentication is active or proven until the consumer
+approves a platform design and wires the skeleton workflows. See
+[environment-strategy.md](environment-strategy.md) and
+[rollback.md](rollback.md).
 
 ## Phase 5 workflows
 
@@ -15,6 +25,29 @@ Environments: local → test (CI) → development → staging → production. De
 | `deploy-staging.yml` | Skeleton | Wire staging; create + protect the `staging` Environment. |
 | `deploy-production.yml` | Skeleton (human-gated) | Wire production OIDC; the `production` Environment MUST have Required Reviewers. Verify the artifact digest matches staging (same artifact promoted, spec §16). |
 | `smoke-test.yml` | Skeleton | Wire your health endpoint; callable after deploy. |
+
+The three deploy workflows and `smoke-test.yml` remain Phase 5 skeletons. They
+do not deploy or prove environment health until an approved platform design
+wires them with least-privilege OIDC, immutable artifact verification, and
+environment-specific recovery checks.
+
+## Phase 6 production-readiness controls
+
+| Control | Status | Meaning |
+|---|---|---|
+| `production-readiness.yml` | Active | Validates the contract; not production approval. |
+| `rollback.yml` | Skeleton, fail closed | Manual and environment-bound; performs no rollback. |
+| `production-readiness.conf` | Template | Contract-valid and explicitly not production-ready. |
+
+The readiness check separates contract validity from operational approval.
+Both valid manifest states report `readiness_contract_valid=true` and
+`production_ready=false`. Active status validates required values and
+repository-confined evidence-reference shape only; it does not verify human
+review, freshness, content approval, or production authorization. Those remain
+separate human and protected-environment controls. The rollback workflow remains manual,
+environment-bound, and deliberately fails at its unwired sentinel until that
+design adds verified artifact retrieval, job-scoped authentication, execution,
+and recovery verification.
 
 Promote the same artifact validated in staging to production — do NOT rebuild (spec §16).
 

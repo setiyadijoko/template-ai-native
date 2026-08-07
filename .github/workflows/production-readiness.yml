@@ -1,0 +1,38 @@
+name: production-readiness
+
+# Validates the repository contract; a green run is never production approval
+# and always reports production_ready=false.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  readiness:
+    name: Production-readiness contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate production-readiness contract
+        shell: sh
+        run: |
+          result="$(make readiness-check)"
+          printf '%s\n' "$result"
+          {
+            printf '%s\n' '## Production-readiness contract' '```text'
+            printf '%s\n' "$result"
+            printf '%s\n' '```'
+          } >> "$GITHUB_STEP_SUMMARY"

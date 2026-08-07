@@ -166,6 +166,16 @@ AI agents **must not** deploy to production without **all** of:
 
 **Phase 5 delivery pipeline:** `sbom.yml` (SPDX SBOM), `artifact-attestation.yml` (Sigstore build-provenance), and `release.yml` (on `v*` tag) are ACTIVE. The three `deploy-*.yml` workflows and `smoke-test.yml` are SKELETONS — wire them to your platform with OIDC when you adopt a deploy target. Production deploy points at the `production` GitHub Environment, which MUST have Required Reviewers enabled (human gate). See `docs/operations/deployment-guide.md`.
 
+Phase 6 production-readiness baseline: `production-readiness.yml` validates the
+vendor-neutral manifest. `template` and `active` status can be contract-valid,
+but the validator always reports `production_ready=false`; `active` additionally
+fails closed unless required SLO, alert, recovery, and rollback references are
+complete. It does not verify human review, evidence freshness, content approval,
+or production authorization; those remain separate human and platform controls.
+`rollback.yml` is manual, environment-bound, and
+must fail at the unwired sentinel until an approved platform-specific design
+adds artifact verification, authentication, execution, and recovery checks.
+
 ## Definition of Ready
 
 A feature is ready only when: business objective defined; target user identified; scope and out-of-scope defined; business rules documented; acceptance criteria testable; dependencies known; security, data, privacy, and AI-behavior impact assessed; design approved when required; unresolved blockers identified; rollback implications understood. See `docs/development/definition-of-ready.md`.
