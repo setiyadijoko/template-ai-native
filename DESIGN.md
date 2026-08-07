@@ -106,7 +106,12 @@ deployments, approvals, OIDC authentication, or health checks. See
 
 ## Observability
 
-OpenTelemetry recommended; structured logs with correlation IDs; RED metrics; AI telemetry. See [docs/operations/observability.md](docs/operations/observability.md).
+OpenTelemetry recommended; structured logs with correlation IDs; RED metrics;
+AI telemetry. The Phase 6 validator checks contract and evidence-reference
+shape only and always reports `production_ready=false`; human review, evidence
+freshness, content approval, and production authorization remain separate
+human/platform controls. See
+[docs/operations/observability.md](docs/operations/observability.md).
 
 ## Failure handling
 

@@ -4,7 +4,7 @@
 
 **Goal:** Add a vendor-neutral, machine-verifiable production-readiness contract and a manual rollback workflow that fails closed until a consumer wires a real platform.
 
-**Architecture:** A constrained `KEY=VALUE` manifest under `observability/` is parsed as data by a POSIX validator. Template mode proves only contract validity and reports `production_ready=false`; active mode fails unless ownership, SLO, alerting, recovery, and rollback evidence are complete. A read-only workflow runs the validator, while a separate manual rollback workflow validates immutable identity and audit inputs before deliberately failing at an unwired sentinel.
+**Architecture:** A constrained `KEY=VALUE` manifest under `observability/` is parsed as data by a POSIX validator. Template and active modes validate contract/reference shape only and always report `production_ready=false`; active mode additionally fails unless required ownership, SLO, alerting, recovery, and rollback references are complete. A read-only workflow runs the validator, while a separate manual rollback workflow validates immutable identity and audit inputs before deliberately failing at an unwired sentinel.
 
 **Tech Stack:** POSIX `sh`, standard `awk`/`grep`/`sed`, Make, GitHub Actions YAML, actionlint, shellcheck, zizmor, Markdown.
 
@@ -15,8 +15,10 @@
 - Do not modify any `deploy-*.yml` workflow or `smoke-test.yml`.
 - Do not add a runtime, package dependency, endpoint, OIDC permission, credential, secret, or production mutation.
 - Parse the manifest as data; never use `source`, `.`, `eval`, or generated shell.
-- Template status exits zero only with `production_ready=false`.
-- Active status exits zero only with `production_ready=true` and complete evidence.
+- Both valid statuses exit zero with `readiness_contract_valid=true` and
+  `production_ready=false`.
+- Active status validates required values and reference shape, never production
+  approval, human review, evidence freshness, or content approval.
 - Rollback remains `workflow_dispatch` only, uses `contents: read`, and fails at an explicit unwired sentinel.
 - Use `pull_request`, never `pull_request_target`; use no `continue-on-error` on integrity paths.
 - Disable checkout credential persistence and pin Actions to immutable SHAs with release-tag comments.
@@ -154,6 +156,7 @@ Assert the committed template exits zero with these exact lines:
 
 ```text
 readiness_status=template
+readiness_contract_valid=true
 production_ready=false
 ```
 
@@ -162,7 +165,8 @@ with:
 
 ```text
 readiness_status=active
-production_ready=true
+readiness_contract_valid=true
+production_ready=false
 ```
 
 - [ ] **Step 3: Add explicit failure cases**
@@ -315,7 +319,7 @@ and valid alert-policy, alert-runbook, and rollback-runbook paths.
 Template success prints exactly:
 
 ```sh
-printf '%s\n' 'readiness_status=template' 'production_ready=false'
+printf '%s\n' 'readiness_status=template' 'readiness_contract_valid=true' 'production_ready=false'
 ```
 
 Active mode rejects every `UNSET`; allows `NOT_APPLICABLE` only for RPO and the
@@ -328,7 +332,7 @@ to be exactly `NOT_APPLICABLE`.
 Active success prints exactly:
 
 ```sh
-printf '%s\n' 'readiness_status=active' 'production_ready=true'
+printf '%s\n' 'readiness_status=active' 'readiness_contract_valid=true' 'production_ready=false'
 ```
 
 - [ ] **Step 5: Add the Make interface**
@@ -660,8 +664,9 @@ zizmor, and diff check exit zero. No deploy/smoke workflow is staged.
 
 Replace adaptation-only content in `observability/README.md` and
 `docs/operations/observability.md`. State that the check validates a contract,
-not production approval; template always reports false; active requires
-reviewed evidence and a platform decision. Define logs with timestamp, level,
+not production approval; both valid statuses always report false; active
+validates required values and evidence-reference shape. Human review, evidence
+freshness, content approval, and platform authorization remain separate. Define logs with timestamp, level,
 service, environment, version, deploy id, correlation id, event, and safe error
 classification. Define RED/dependency/saturation/business/AI metrics,
 cross-boundary traces, and AI telemetry for provider/model/prompt version,
@@ -727,9 +732,11 @@ Phase 5 policy in `AGENTS.md`:
 
 ```text
 Phase 6 production-readiness baseline: `production-readiness.yml` validates the
-vendor-neutral manifest. `template` status is contract-valid but explicitly not
-production-ready; `active` status fails closed unless SLO, alert, recovery, and
-rollback evidence is complete. `rollback.yml` is manual, environment-bound, and
+vendor-neutral manifest. `template` and `active` can be contract-valid but both
+remain explicitly not production-ready; `active` additionally fails closed
+unless required SLO, alert, recovery, and rollback references are complete.
+The validator does not verify human review, freshness, or content approval.
+`rollback.yml` is manual, environment-bound, and
 must fail at the unwired sentinel until an approved platform-specific design
 adds artifact verification, authentication, execution, and recovery checks.
 ```
@@ -739,7 +746,7 @@ adds artifact verification, authentication, execution, and recovery checks.
 Append TD-0011 without editing TD-0009/TD-0010:
 
 ```markdown
-| TD-0011 | The Phase 6 readiness manifest ships in `template` status and the rollback workflow intentionally fails closed; no observability backend or rollback command exists until a consumer adopts a platform. | `observability/production-readiness.conf`, `.github/workflows/production-readiness.yml`, `.github/workflows/rollback.yml` | Open | Select the production platform and observability backend through approved designs, supply reviewed SLO/recovery/rollback evidence, change the manifest to `active`, and replace the rollback sentinel with verified artifact retrieval, job-scoped authentication, rollback execution, and recovery verification. |
+| TD-0011 | The Phase 6 readiness manifest ships in `template` status, validation is approval-neutral, and the rollback workflow intentionally fails closed; no observability backend or rollback command exists until a consumer adopts a platform. | `observability/production-readiness.conf`, `.github/workflows/production-readiness.yml`, `.github/workflows/rollback.yml` | Open | Select the production platform and observability backend through approved designs, supply and separately approve SLO/recovery/rollback evidence, change the manifest to `active` for contract validation, and replace the rollback sentinel with verified artifact retrieval, job-scoped authentication, rollback execution, and recovery verification. Human/environment approval remains external. |
 ```
 
 Add under `CHANGELOG.md` `Unreleased`:
@@ -854,6 +861,7 @@ Require `Production-readiness contract` to succeed and show:
 
 ```text
 readiness_status=template
+readiness_contract_valid=true
 production_ready=false
 ```
 

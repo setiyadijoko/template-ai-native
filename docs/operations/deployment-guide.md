@@ -39,10 +39,12 @@ environment-specific recovery checks.
 | `rollback.yml` | Skeleton, fail closed | Manual and environment-bound; performs no rollback. |
 | `production-readiness.conf` | Template | Contract-valid and explicitly not production-ready. |
 
-The readiness check separates contract validity from operational approval. The
-committed template can pass while reporting `production_ready=false`. Active
-status requires reviewed SLO, alert, recovery, and rollback evidence plus the
-consumer's approved platform decision. The rollback workflow remains manual,
+The readiness check separates contract validity from operational approval.
+Both valid manifest states report `readiness_contract_valid=true` and
+`production_ready=false`. Active status validates required values and
+repository-confined evidence-reference shape only; it does not verify human
+review, freshness, content approval, or production authorization. Those remain
+separate human and protected-environment controls. The rollback workflow remains manual,
 environment-bound, and deliberately fails at its unwired sentinel until that
 design adds verified artifact retrieval, job-scoped authentication, execution,
 and recovery verification.

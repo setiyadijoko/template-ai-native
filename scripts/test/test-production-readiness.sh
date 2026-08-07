@@ -83,6 +83,21 @@ run_validator() {
   set -e
 }
 
+run_validator_poisoned() {
+  manifest="$1" git_dir="$2" git_work_tree="$3"
+  set +e
+  RUN_OUTPUT="$(
+    GIT_DIR="$git_dir" \
+      GIT_WORK_TREE="$git_work_tree" \
+      GIT_COMMON_DIR="$git_dir" \
+      GIT_CEILING_DIRECTORIES="$git_work_tree" \
+      GIT_DISCOVERY_ACROSS_FILESYSTEM=1 \
+      sh "$VALIDATOR" "$manifest" 2>&1
+  )"
+  RUN_STATUS=$?
+  set -e
+}
+
 assert_output_contains() {
   label="$1" pattern="$2"
   if printf '%s\n' "$RUN_OUTPUT" | grep -Eq "$pattern"; then
@@ -90,6 +105,16 @@ assert_output_contains() {
   else
     FAIL=$((FAIL+1))
     printf 'FAIL %s\n     missing pattern: %s\n     output: %s\n' "$label" "$pattern" "$RUN_OUTPUT" >&2
+  fi
+}
+
+assert_output_not_contains() {
+  label="$1" pattern="$2"
+  if printf '%s\n' "$RUN_OUTPUT" | grep -Eq "$pattern"; then
+    FAIL=$((FAIL+1))
+    printf 'FAIL %s\n     forbidden pattern: %s\n     output: %s\n' "$label" "$pattern" "$RUN_OUTPUT" >&2
+  else
+    PASS=$((PASS+1))
   fi
 }
 
@@ -308,6 +333,12 @@ direct_yaml_keys() {
   ' "$file"
 }
 
+direct_step_names() {
+  file="$1"
+  [ -f "$file" ] || return 0
+  sed -n 's/^      - name: //p' "$file"
+}
+
 # Exercise every supported run scalar form so a future extractor regression
 # cannot hide direct GitHub input interpolation from the workflow contract.
 RUN_SCALAR_FIXTURE="$TMP_ROOT/run-scalars.yml"
@@ -351,6 +382,59 @@ printf '%s\n' \
 extract_run_nodes "$SENTINEL_MUTATION" "$SENTINEL_MUTATION_NODES"
 extract_executable_lines "$SENTINEL_MUTATION_NODES" "$SENTINEL_MUTATION_EXECUTABLE"
 assert_file_content_not_equals "sentinel shell-control mutation is rejected" "$SENTINEL_MUTATION_EXECUTABLE" "$SENTINEL_EXPECTED"
+
+ROLLBACK_VALIDATION_EXPECTED="$(printf '%s\n' \
+  'set -eu' \
+  '[ "$ROLLBACK_CONFIRM" = ROLLBACK ] || {' \
+  "echo '::error::Rollback confirmation must equal ROLLBACK.'" \
+  'exit 1' \
+  '}' \
+  'printf '\''%s\n'\'' "$ROLLBACK_RELEASE_REF" |' \
+  "grep -Eq '^([0-9a-f]{40}|v[0-9][0-9A-Za-z._-]*)$' || {" \
+  "echo '::error::Release ref must be a lowercase commit SHA or v-prefixed tag.'" \
+  'exit 1' \
+  '}' \
+  'printf '\''%s\n'\'' "$ROLLBACK_ARTIFACT_DIGEST" |' \
+  "grep -Eq '^sha256:[0-9a-f]{64}$' || {" \
+  "echo '::error::Artifact digest must be lowercase sha256.'" \
+  'exit 1' \
+  '}' \
+  'case "$ROLLBACK_REASON" in' \
+  '*[![:space:]]*) ;;' \
+  '*)' \
+  "echo '::error::Rollback reason must contain a non-whitespace character.'" \
+  'exit 1' \
+  ';;' \
+  'esac' \
+  'case "$ROLLBACK_ENVIRONMENT" in' \
+  'development|staging|production) ;;' \
+  '*)' \
+  "echo '::error::Unknown rollback environment.'" \
+  'exit 1' \
+  ';;' \
+  'esac')"
+
+ROLLBACK_STEPS_MUTATION="$TMP_ROOT/rollback-extra-step.yml"
+printf '%s\n' \
+  '    steps:' \
+  '      - name: Validate rollback request' \
+  '      - name: Execute production rollback' \
+  '      - name: Refuse unwired rollback' \
+  > "$ROLLBACK_STEPS_MUTATION"
+mutated_rollback_steps="$(direct_step_names "$ROLLBACK_STEPS_MUTATION")"
+assert_eq "extra production-action step is exposed" "$mutated_rollback_steps" "$(printf '%s\n' 'Validate rollback request' 'Execute production rollback' 'Refuse unwired rollback')"
+
+ROLLBACK_VALIDATION_MUTATION="$TMP_ROOT/rollback-validation-mutation.yml"
+ROLLBACK_VALIDATION_MUTATION_NODES="$TMP_ROOT/rollback-validation-mutation-nodes.yml"
+ROLLBACK_VALIDATION_MUTATION_EXECUTABLE="$TMP_ROOT/rollback-validation-mutation-executable.txt"
+printf '%s\n' \
+  'run: |' \
+  '  set -eu' \
+  '  echo "validation bypassed"' \
+  > "$ROLLBACK_VALIDATION_MUTATION"
+extract_run_nodes "$ROLLBACK_VALIDATION_MUTATION" "$ROLLBACK_VALIDATION_MUTATION_NODES"
+extract_executable_lines "$ROLLBACK_VALIDATION_MUTATION_NODES" "$ROLLBACK_VALIDATION_MUTATION_EXECUTABLE"
+assert_file_content_not_equals "altered rollback validation body is rejected" "$ROLLBACK_VALIDATION_MUTATION_EXECUTABLE" "$ROLLBACK_VALIDATION_EXPECTED"
 
 QUOTED_PERMISSION_MUTATION="$TMP_ROOT/quoted-permission-mutation.yml"
 QUOTED_PERMISSION_NORMALIZED="$TMP_ROOT/quoted-permission-normalized.yml"
@@ -403,16 +487,19 @@ assert_eq "single-quoted spaced extra rollback job is exposed" "$rollback_mutate
 run_validator "$ROOT/observability/production-readiness.conf"
 assert_eq "template manifest exits zero" "$RUN_STATUS" "0"
 assert_output_contains "template reports template status" '^readiness_status=template$'
+assert_output_contains "template reports valid readiness contract" '^readiness_contract_valid=true$'
 assert_output_contains "template reports not production ready" '^production_ready=false$'
 
-# Both valid active recovery variants may claim production readiness.
+# Both valid active recovery variants validate the contract without approval.
 new_fixture active-stateful
 write_active_manifest yes
 manifest="$FIXTURE/observability/production-readiness.conf"
 run_validator "$manifest"
 assert_eq "active stateful manifest exits zero" "$RUN_STATUS" "0"
 assert_output_contains "active stateful reports active status" '^readiness_status=active$'
-assert_output_contains "active stateful reports production ready" '^production_ready=true$'
+assert_output_contains "active stateful reports valid readiness contract" '^readiness_contract_valid=true$'
+assert_output_contains "active stateful reports not production ready" '^production_ready=false$'
+assert_output_not_contains "active stateful cannot report production ready" '^production_ready=true$'
 
 new_fixture active-stateless
 write_active_manifest no
@@ -420,7 +507,17 @@ manifest="$FIXTURE/observability/production-readiness.conf"
 run_validator "$manifest"
 assert_eq "active stateless manifest exits zero" "$RUN_STATUS" "0"
 assert_output_contains "active stateless reports active status" '^readiness_status=active$'
-assert_output_contains "active stateless reports production ready" '^production_ready=true$'
+assert_output_contains "active stateless reports valid readiness contract" '^readiness_contract_valid=true$'
+assert_output_contains "active stateless reports not production ready" '^production_ready=false$'
+assert_output_not_contains "active stateless cannot report production ready" '^production_ready=true$'
+
+new_fixture poisoned-valid-manifest
+write_active_manifest yes
+manifest="$FIXTURE/observability/production-readiness.conf"
+root_git_dir="$(git -C "$ROOT" rev-parse --absolute-git-dir)"
+run_validator_poisoned "$manifest" "$root_git_dir" "$ROOT"
+assert_eq "valid manifest ignores poisoned Git repository selection" "$RUN_STATUS" "0"
+assert_output_contains "poisoned valid manifest reports active status" '^readiness_status=active$'
 
 # Parser trust boundary: each malformed or ambiguous contract is rejected.
 new_fixture duplicate-service-owner
@@ -643,13 +740,20 @@ assert_output_contains "external rollback evidence symlink has diagnostic" 'ROLL
 
 new_fixture non-git-source
 write_active_manifest yes
-source_manifest="$FIXTURE/observability/production-readiness.conf"
 non_git_dir="$TMP_ROOT/non-git"
-mkdir -p "$non_git_dir"
-cp "$source_manifest" "$non_git_dir/production-readiness.conf"
-run_validator "$non_git_dir/production-readiness.conf"
+cp -R "$FIXTURE" "$non_git_dir"
+rm -rf "$non_git_dir/.git"
+run_validator "$non_git_dir/observability/production-readiness.conf"
 assert_nonzero "manifest outside a Git worktree is rejected"
 assert_output_contains "manifest outside a Git worktree has diagnostic" '(Git worktree|repository root)'
+
+poison_repo="$TMP_ROOT/poison-repo"
+mkdir -p "$poison_repo"
+git -C "$poison_repo" init -q
+poison_git_dir="$(git -C "$poison_repo" rev-parse --absolute-git-dir)"
+run_validator_poisoned "$non_git_dir/observability/production-readiness.conf" "$poison_git_dir" "$non_git_dir"
+assert_nonzero "non-Git manifest rejects poisoned Git repository selection"
+assert_output_contains "poisoned non-Git manifest has diagnostic" '(Git worktree|repository root)'
 
 # Workflow contracts are bounded to their owning YAML sections so unrelated
 # keys cannot satisfy security-sensitive assertions.
@@ -778,6 +882,8 @@ assert_file_contains "rollback workflow permissions are read-only" "$ROLLBACK_PE
 assert_file_not_contains "rollback has no write permission anywhere" "$ROLLBACK_NORMALIZED" "$WRITE_PERMISSION_PATTERN"
 rollback_job_names="$(direct_yaml_keys "$ROLLBACK_JOBS_NORMALIZED" 2)"
 assert_eq "rollback has exactly one approved job" "$rollback_job_names" 'rollback'
+rollback_step_names="$(direct_step_names "$ROLLBACK_JOB")"
+assert_eq "rollback has exactly two ordered validation and refusal steps" "$rollback_step_names" "$(printf '%s\n' 'Validate rollback request' 'Refuse unwired rollback')"
 rollback_job_permission_keys="$(direct_yaml_keys "$ROLLBACK_JOB_PERMISSIONS" 6)"
 assert_eq "rollback job permission keys are exact" "$rollback_job_permission_keys" 'contents'
 assert_file_contains "rollback job permissions are read-only" "$ROLLBACK_JOB_PERMISSIONS" '^      contents: read$'
@@ -805,6 +911,7 @@ assert_file_has_exact_line "rollback validates confirmation token" "$ROLLBACK_VA
 assert_file_has_exact_line "rollback validates approved release grammar" "$ROLLBACK_VALIDATE_EXECUTABLE" "grep -Eq '^([0-9a-f]{40}|v[0-9][0-9A-Za-z._-]*)$' || {"
 assert_file_has_exact_line "rollback validates lowercase sha256 digest" "$ROLLBACK_VALIDATE_EXECUTABLE" "grep -Eq '^sha256:[0-9a-f]{64}$' || {"
 assert_file_has_exact_line "rollback rejects whitespace-only reason" "$ROLLBACK_VALIDATE_EXECUTABLE" '*[![:space:]]*) ;;'
+assert_file_content_equals "rollback validation body is exact" "$ROLLBACK_VALIDATE_EXECUTABLE" "$ROLLBACK_VALIDATION_EXPECTED"
 assert_file_content_equals "rollback sentinel body is exact and unconditional" "$ROLLBACK_UNWIRED_EXECUTABLE" "$SENTINEL_EXPECTED"
 assert_file_not_contains "rollback does not suppress failures" "$ROLLBACK_WORKFLOW" '^[[:space:]]*continue-on-error:'
 assert_file_not_contains "rollback pull_request_target is absent" "$ROLLBACK_ON" '^  pull_request_target:'

@@ -27,7 +27,12 @@ if [ ! -f "$MANIFEST_PATH" ]; then
   fail 'manifest must be a regular file'
 fi
 
-REPO_ROOT_RAW="$(git -C "$MANIFEST_DIR" rev-parse --show-toplevel 2>/dev/null)" ||
+REPO_ROOT_RAW="$(
+  unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_OBJECT_DIRECTORY \
+    GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_INDEX_FILE \
+    GIT_CEILING_DIRECTORIES GIT_DISCOVERY_ACROSS_FILESYSTEM
+  git -C "$MANIFEST_DIR" rev-parse --show-toplevel 2>/dev/null
+)" ||
   fail 'manifest is not inside a Git worktree'
 REPO_ROOT="$(cd "$REPO_ROOT_RAW" 2>/dev/null && pwd -P)" ||
   fail 'could not canonicalize repository root'
@@ -246,7 +251,10 @@ if [ "$readiness_status" = template ]; then
       fail "$template_key must not be NOT_APPLICABLE in template mode"
     fi
   done
-  printf '%s\n' 'readiness_status=template' 'production_ready=false'
+  printf '%s\n' \
+    'readiness_status=template' \
+    'readiness_contract_valid=true' \
+    'production_ready=false'
   exit 0
 fi
 
@@ -320,4 +328,7 @@ case "$recovery_required" in
   *) fail 'DATA_RECOVERY_REQUIRED must be yes or no' ;;
 esac
 
-printf '%s\n' 'readiness_status=active' 'production_ready=true'
+printf '%s\n' \
+  'readiness_status=active' \
+  'readiness_contract_valid=true' \
+  'production_ready=false'

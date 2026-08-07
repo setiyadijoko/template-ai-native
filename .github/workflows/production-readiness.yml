@@ -1,7 +1,7 @@
 name: production-readiness
 
-# Validates the repository contract; a green template-mode run is not a
-# production approval and still reports production_ready=false.
+# Validates the repository contract; a green run is never production approval
+# and always reports production_ready=false.
 on:
   pull_request:
     branches: [main]

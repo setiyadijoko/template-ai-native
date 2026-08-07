@@ -6,9 +6,12 @@ required for activation.
 Observability exists to make customer impact, unsafe AI behavior, deployment
 regressions, dependency failures, and recovery status visible to accountable
 humans. A green readiness check validates the repository contract; it does not
-approve production. The committed `template` state is valid but always reports
-`production_ready=false`. `active` requires a reviewed platform decision,
-named ownership, and complete SLO, alert, recovery, and rollback evidence.
+approve production. Both valid `template` and `active` states report
+`readiness_contract_valid=true` and `production_ready=false`. Active status
+requires populated ownership and complete SLO, alert, recovery, and rollback
+references, but the validator does not verify human review, evidence freshness,
+or content approval. Production authorization remains a separate human and
+platform control.
 
 ## Ownership and evidence
 

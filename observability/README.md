@@ -6,16 +6,18 @@ alert rules, SLO definitions, and evidence references.
 
 ## Readiness lifecycle
 
-`production-readiness.conf` starts in `template` status. In that state the
-contract can be structurally valid while it always reports
-`production_ready=false`; a successful check is not production approval.
+`production-readiness.conf` starts in `template` status. Both valid `template`
+and `active` states report `readiness_contract_valid=true` and
+`production_ready=false`; a successful check is never production approval.
 
 A consumer may change the status to `active` only after an approved platform
 decision identifies the production environment and observability backend, and
 the service owner has supplied reviewed SLO, alert, recovery, restore when
 applicable, and rollback evidence. Active status fails closed when any required
-field, policy, or evidence reference is incomplete. Human change authority and
-the protected production Environment remain responsible for approval.
+field, policy, or evidence reference is incomplete. The validator does not
+verify human review, evidence freshness, or content approval. Human change
+authority and the protected production Environment remain responsible for
+approval.
 
 Validate the committed contract locally with either interface:
 

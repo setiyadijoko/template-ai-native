@@ -12,11 +12,11 @@ receive a strict readiness manifest, a dependency-free validator, a read-only
 GitHub Actions check, and a manual rollback workflow that fails closed until a
 real rollback integration exists.
 
-The baseline distinguishes contract validity from operational readiness. The
-template ships in `template` status and reports `production_ready=false` while
-remaining green out of the box. A consumer may set the status to `active` only
-after ownership, SLOs, alerting, recovery objectives, operational evidence, and
-rollback evidence are complete.
+The baseline distinguishes contract validity from production approval. Both
+`template` and `active` can be contract-valid, but the validator always reports
+`production_ready=false`. Active status means required values and evidence
+references satisfy the contract shape; it does not verify human review,
+evidence freshness, evidence content approval, or production authorization.
 
 ## Problem statement
 
@@ -34,15 +34,15 @@ template's explicit no-platform and no-runtime constraints.
 ## Business objective
 
 Give engineering, SRE, security, and audit stakeholders one machine-verifiable
-answer to two different questions:
+answer and one explicitly separate governance decision:
 
 1. Is the repository's production-readiness contract structurally valid?
-2. Has the consuming project supplied enough operational evidence to claim
-   production readiness?
+2. Has an authorized human and the protected platform control approved the
+   referenced evidence and the production change?
 
-The distinction reduces premature production approval, makes missing recovery
-controls visible in pull requests, and gives consumers a bounded path from a
-template baseline to an active operational control.
+The validator answers only the first question. The separation reduces
+premature production approval while keeping human review, evidence freshness,
+content approval, and environment protection outside repository automation.
 
 ## Scope
 
@@ -121,8 +121,8 @@ scripts/validate-production-readiness.sh
 make readiness-check     production-readiness.yml
         |
         v
-template -> valid contract, production_ready=false
-active   -> complete evidence required, production_ready=true
+template -> readiness_contract_valid=true, production_ready=false
+active   -> readiness_contract_valid=true, production_ready=false
 
 workflow_dispatch
         |
@@ -188,7 +188,8 @@ The parser must:
 
 - never use `source`, `.`, `eval`, or generated shell;
 - resolve the repository root from the manifest's Git worktree and reject a
-  manifest that is not inside a worktree;
+  manifest that is not inside a worktree, without trusting ambient Git
+  repository-selection environment variables;
 - reject malformed lines, duplicate keys, missing keys, unknown keys, empty
   values, unsupported schema versions, and unknown readiness states;
 - constrain referenced paths to regular files inside the repository after
@@ -202,6 +203,7 @@ Consumer-owned values may remain `UNSET`. Success prints:
 
 ```text
 readiness_status=template
+readiness_contract_valid=true
 production_ready=false
 ```
 
@@ -228,8 +230,14 @@ Success in active mode prints:
 
 ```text
 readiness_status=active
-production_ready=true
+readiness_contract_valid=true
+production_ready=false
 ```
+
+Active success validates field semantics and repository-confined reference
+shape only. It does not inspect whether a human approved the referenced
+content, determine whether evidence is fresh enough for a particular change,
+or authorize production. Those remain separate human and platform controls.
 
 Every validation defect produces a targeted error on standard error and a
 non-zero exit code.
@@ -247,8 +255,8 @@ Create `.github/workflows/production-readiness.yml` with:
   result to the GitHub step summary.
 
 The workflow name and documentation describe it as a contract check, not a
-production approval. A green template-mode run means the contract is valid and
-still reports `production_ready=false`.
+production approval. A green run in either valid state reports
+`readiness_contract_valid=true` and `production_ready=false`.
 
 ### Rollback workflow
 
@@ -291,9 +299,9 @@ validate the template's governance surface.
 
 | Condition | Result |
 |---|---|
-| Template manifest is structurally valid | Exit 0; `production_ready=false` |
+| Template manifest is structurally valid | Exit 0; contract valid, `production_ready=false` |
 | Template manifest has an invalid contract or path | Exit non-zero |
-| Active manifest is complete and internally consistent | Exit 0; `production_ready=true` |
+| Active manifest is complete and internally consistent | Exit 0; contract valid, `production_ready=false` |
 | Active manifest has a missing, generic, unsafe, or inconsistent value | Exit non-zero |
 | Rollback input is malformed or confirmation is absent | Workflow fails before the sentinel |
 | Rollback input is valid but platform integration is absent | Workflow fails at the unwired sentinel |
@@ -359,9 +367,9 @@ current state is unambiguous. Add TD-0011 for consumer activation of the
 manifest, observability backend, and real rollback command. GitHub Environment
 configuration remains tracked by TD-0009; TD-0009 and TD-0010 stay open.
 
-No ADR is required because this design implements the existing approved
-OpenTelemetry recommendation and production-control policy without selecting
-an observability or deployment platform.
+ADR-0002 records the approval-neutral output decision. It preserves the
+existing OpenTelemetry recommendation and production-control policy without
+selecting an observability or deployment platform.
 
 ## Test approach
 
@@ -371,8 +379,10 @@ derived fixtures.
 
 Behavioral cases include:
 
-1. committed template manifest succeeds and reports false readiness;
-2. complete active stateful manifest succeeds and reports true readiness;
+1. committed template manifest succeeds and reports a valid contract plus
+   false production readiness;
+2. complete active stateful manifest succeeds with the same approval-neutral
+   output and never reports true readiness;
 3. complete active stateless manifest succeeds with explicit recovery
    non-applicability;
 4. malformed, duplicate, unknown, missing, or empty keys fail;
@@ -381,7 +391,9 @@ Behavioral cases include:
 7. `UNSET` active values and inconsistent recovery fields fail;
 8. missing, generic, symlink-escaped, absolute, or parent-traversal document
    paths fail; and
-9. removing any required evidence field causes at least one fixture to fail.
+9. removing any required evidence field causes at least one fixture to fail;
+   and
+10. ambient Git repository-selection variables cannot redirect root discovery.
 
 Workflow contract cases include:
 
@@ -394,7 +406,8 @@ Workflow contract cases include:
 - absence of OIDC, secrets, checkout, services, containers, and third-party
   Actions in rollback;
 - safe input mapping and explicit validation; and
-- retention of the unwired non-zero sentinel.
+- exact rollback validation body, exact ordered two-step set, and retention of
+  the unwired non-zero sentinel.
 
 Validation commands:
 
@@ -419,7 +432,8 @@ wires a platform; the local contract proves the sentinel remains fail closed.
 1. The committed manifest is schema-complete, validates in template mode, and
    reports `production_ready=false`.
 2. Valid active stateful and stateless fixtures report
-   `production_ready=true`.
+   `readiness_contract_valid=true` and `production_ready=false`; active output
+   never reports true readiness.
 3. Every incomplete, unsafe, generic, or inconsistent active fixture fails.
 4. `make readiness-check` is always available and `make ci` runs it.
 5. The read-only production-readiness workflow runs for pull requests to
@@ -430,6 +444,10 @@ wires a platform; the local contract proves the sentinel remains fail closed.
    unpinned third-party Action.
 8. Operational documents define actionable vendor-neutral requirements and no
    longer consist only of adaptation placeholders.
+9. Ambient Git repository-selection variables cannot redirect validator root
+   discovery, and non-Git manifests remain rejected under a poisoned Git env.
+10. The rollback workflow has exactly the two approved ordered steps and the
+    exact validation body; added production-action steps are rejected by tests.
 9. TD-0011 records the consumer-owned activation work; TD-0009 and TD-0010
    remain open.
 10. Existing deploy and smoke-test workflow skeletons are unchanged.
