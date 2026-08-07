@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added advisory local-first `code-review-graph` PR review with fork-safe report validation and sticky comment publication.
 - Added the Phase 6 vendor-neutral production-readiness contract, read-only readiness workflow, fail-closed manual rollback skeleton, executable validation tests, and operational observability/recovery baseline. Validation is approval-neutral and always reports `production_ready=false`; platform activation remains tracked by TD-0011.
 - Phase 5 delivery pipeline: `sbom.yml` (SPDX), `artifact-attestation.yml` (same-run build provenance), `release.yml` (on `v*` tags with artifact + SBOM + digests), and `deploy-development/staging/production.yml` + `smoke-test.yml` skeletons (workflow_dispatch, OIDC-documented, production human-gated via GitHub Environment).
 - Phase 4 AI-native capability: `ai-evaluation.yml` (skeleton, advisory, secret-gated) and `open-code-review.yml` (Alibaba OCR, advisory, secret-gated) — both use `pull_request` (not `pull_request_target`) and skip cleanly without secrets. Plus `example-structured-extractor` prompt with JSON-schema output validation, `evals/README.md` threshold table, and cross-cutting docs.
