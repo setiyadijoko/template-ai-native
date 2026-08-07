@@ -3,7 +3,7 @@
 The template includes an advisory `code-review-graph` review on pull requests.
 It builds a local Tree-sitter code graph on the GitHub runner and posts one
 risk-scored sticky comment containing affected flows and test gaps. The action
-is pinned to `v2.3.6` by immutable commit SHA and has no model-provider or API
+is pinned to `v2.3.7` by immutable commit SHA and has no model-provider or API
 key dependency.
 
 ## Security model
@@ -23,4 +23,4 @@ database is runner-local and is not committed to the repository.
 Consumers may disable the workflow, change the path filters, or promote the
 risk threshold through an ADR after reviewing the action's limitations and
 their branch-protection policy. The action's upstream documentation is at
-<https://github.com/tirth8205/code-review-graph/blob/v2.3.6/docs/GITHUB_ACTION.md>.
+<https://github.com/tirth8205/code-review-graph/blob/v2.3.7/docs/GITHUB_ACTION.md>.

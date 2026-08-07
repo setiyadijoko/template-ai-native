@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Fixed
+- Fixed the graph-review report handoff by pinning the action version that exports `comment-file`; hardened the trusted `workflow_run` publisher to satisfy zizmor's permission and concurrency checks.
 - Repaired the Phase 5 build-to-release chain: same-run provenance attestation,
   exact-commit CI artifact promotion without rebuild, fail-closed artifact
   validation, and delivery workflow contract tests. Deploy and smoke-test

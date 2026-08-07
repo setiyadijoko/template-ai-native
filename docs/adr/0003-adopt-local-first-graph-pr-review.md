@@ -13,7 +13,7 @@ sending source code to a third-party review service.
 ## Decision
 
 Add `tirth8205/code-review-graph` as an advisory pull-request workflow. Pin the
-composite action to the immutable `v2.3.6` commit SHA. Run analysis in an
+composite action to the immutable `v2.3.7` commit SHA. Run analysis in an
 unprivileged `pull_request` workflow and publish its report from a separate
 `workflow_run` workflow after artifact and commit validation. Keep risk gating
 disabled until a consumer measures precision and false-positive rates.

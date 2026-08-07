@@ -8,7 +8,8 @@ without weakening the existing least-privilege or fork-safety rules.
 ## Scope
 
 - Run `tirth8205/code-review-graph` on `pull_request` with read-only access.
-- Pin every workflow action to an immutable commit SHA.
+- Pin every workflow action to an immutable commit SHA, including the
+  report-file output introduced by code-review-graph v2.3.7.
 - Publish the report only from a trusted `workflow_run` job after validating the
   artifact and analyzed commit.
 - Keep risk gating disabled until a consumer measures false-positive rates.
