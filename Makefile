@@ -57,6 +57,8 @@ container-scan:   ; @echo "[stub] trivy runs in CI when containers exist"
 iac-scan:         ; @echo "[stub] checkov runs in CI when IaC exists"
 security: secret-scan dependency-scan container-scan iac-scan
 docs-check:       ; @sh scripts/ci-local.sh
-test-scripts:     ; @sh scripts/test/test-stack-detection.sh
+test-scripts:
+	@sh scripts/test/test-stack-detection.sh
+	@sh scripts/test/test-delivery-workflows.sh
 ci: format-check lint docs-check test-scripts
 	@echo "[ci] local gate (best-effort) complete"

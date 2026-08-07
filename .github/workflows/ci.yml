@@ -54,3 +54,23 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       stack: ${{ needs.detect.outputs.stack }}
+
+  attest:
+    name: Attest build provenance
+    needs: [detect, build]
+    if: >-
+      always() &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      needs.detect.result == 'success' &&
+      (needs.build.result == 'success' ||
+      (needs.build.result == 'skipped' &&
+      needs.detect.outputs.stack == 'unknown'))
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/artifact-attestation.yml
+    with:
+      artifact-name: ${{ needs.build.outputs.artifact-name || '' }}
+      artifact-uploaded: ${{ needs.build.outputs.artifact-uploaded == 'true' }}

@@ -1,13 +1,18 @@
 name: artifact-attestation
 
-# Generates Sigstore build-provenance for the build artifact produced by
-# build.yml. Skips cleanly when no artifact exists (empty template / stack
-# unknown) via the hashFiles guard.
+# Attests the exact packaged artifact produced earlier in the same ci.yml run.
+# Empty templates call this workflow with artifact-uploaded=false and skip
+# explicitly without fabricating an artifact identity.
 on:
-  workflow_run:
-    workflows: [build]
-    types: [completed]
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      artifact-name:
+        type: string
+        required: false
+        default: ""
+      artifact-uploaded:
+        type: boolean
+        required: true
 
 permissions:
   contents: read
@@ -15,32 +20,56 @@ permissions:
   attestations: write  # required to write attestations
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.workflow_run.id || github.run_id }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.run_id }}
+  cancel-in-progress: false
 
 jobs:
   attest:
     name: Attest build provenance
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Skip empty template
+        if: ${{ !inputs.artifact-uploaded }}
+        run: echo "No build artifact exists because stack detection returned unknown."
+
+      - name: Validate artifact identity
+        if: ${{ inputs.artifact-uploaded }}
+        env:
+          ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        run: |
+          if [[ ! "$ARTIFACT_NAME" =~ ^build-(python|node|go|java|dotnet)$ ]]; then
+            echo "::error::Invalid build artifact name: $ARTIFACT_NAME"
+            exit 1
+          fi
 
       - name: Download build artifact
+        if: ${{ inputs.artifact-uploaded }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: build-unknown   # matches the upload name in build.yml (Phase 2)
+          name: ${{ inputs.artifact-name }}
           path: artifact
-        continue-on-error: true   # no artifact on empty template
 
-      - name: Skip (no build artifact)
-        if: hashFiles('artifact/**') == ''
-        run: echo "No build artifact to attest (empty template / stack unknown). Skipping."
+      - id: subject
+        name: Resolve attestation subject
+        if: ${{ inputs.artifact-uploaded }}
+        shell: bash
+        env:
+          ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        run: |
+          set -euo pipefail
+          subject="$GITHUB_WORKSPACE/artifact/template-ai-native-${ARTIFACT_NAME}.tar.gz"
+          count="$(find artifact -type f | wc -l | tr -d ' ')"
+
+          if [[ "$count" -ne 1 ]] || [[ ! -f "$subject" ]]; then
+            echo "::error::Expected exactly one packaged file named $(basename "$subject")"
+            exit 1
+          fi
+
+          echo "path=$subject" >> "$GITHUB_OUTPUT"
 
       - name: Attest build provenance
-        if: hashFiles('artifact/**') != ''
+        if: ${{ inputs.artifact-uploaded }}
         uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
         with:
-          subject-path: artifact/**
+          subject-path: ${{ steps.subject.outputs.path }}
