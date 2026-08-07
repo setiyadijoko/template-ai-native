@@ -11,6 +11,41 @@ A reusable, production-grade, **stack-agnostic** GitHub template for building AI
 
 This is a **template repository** ("Use this template"). Consumers create a new repo from it and select their stack; the template's CI adapts via `scripts/detect-stack.sh`. It targets AI-enabled enterprise applications, AI agents and agentic workflows, RAG applications, LLM gateways, document extraction and OCR, internal enterprise apps, API services, web apps, background workers, data-processing apps, integration platforms, and cloud-native or self-hosted systems.
 
+## How to use this template
+
+1. Select **Use this template** on GitHub and create a new repository for your
+   application. Do not build the application directly in this template repo.
+2. Clone the new repository, copy `.env.example` to `.env`, and keep real
+   credentials in the approved secret manager—not in Git.
+3. Define the business objective, users, scope, acceptance criteria, and
+   security/data impact in `PRODUCT.md` and `DESIGN.md`. Record architecture
+   choices in `docs/adr/` before implementing them.
+4. Adopt your runtime and framework under `src/`. The CI dispatcher detects
+   supported Python, Node.js, Go, Java, and .NET projects; it remains a clean
+   no-op while the template has no consumer stack.
+5. Run the local baseline and inspect the complete diff before opening a PR:
+
+   ```sh
+   make setup
+   make ci
+   make docs-check
+   ```
+
+6. Configure repository governance with
+   `scripts/setup-branch-protection.sh`, require the relevant checks on
+   `main`, and merge changes through reviewed pull requests.
+7. Use the advisory `code-review-graph` report to inspect change impact and
+   test gaps. Promote it to a merge gate only after measuring false positives
+   and recording the decision in an ADR.
+8. When the application has a deployment target, wire the development,
+   staging, production, smoke-test, observability, and rollback skeletons to
+   that platform. Keep production protected by GitHub Environment approval and
+   promote the exact artifact validated in staging.
+
+The template supplies governance and workflow contracts; the consumer remains
+responsible for application code, provider configuration, secrets, health
+endpoints, deployment commands, and production approvals.
+
 ## Business objective
 
 Enable a development team and AI coding agents to produce code that is business-aligned, easy to understand, focused, secure, testable, maintainable, observable, deployable, reversible, auditable, and production-ready — governing the complete lifecycle:
