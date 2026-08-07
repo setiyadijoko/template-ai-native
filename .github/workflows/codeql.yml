@@ -1,12 +1,10 @@
 name: codeql
 
-# CodeQL SAST. Not run on pull requests because (a) the empty template has no
-# source for CodeQL to recognize, and (b) result storage requires GitHub
-# Advanced Security (GHAS) which is not enabled on this private personal repo.
-# Runs on push to main + weekly schedule. Every step is continue-on-error so
-# the workflow never fails the branch; enable GHAS (or make the repo public)
-# for full Code Scanning storage (TD-0006).
+# CodeQL SAST for the public template repository. Scanner execution and result
+# storage fail closed; findings are surfaced through GitHub Code Scanning.
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
   schedule:
@@ -15,28 +13,28 @@ on:
 
 permissions:
   contents: read
-  security-events: write   # required to upload SARIF (no-op if Code Scanning off)
 
 concurrency:
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   codeql:
-    name: CodeQL (graceful-degrade)
+    name: CodeQL (blocking)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read          # checkout repository source and workflows
+      security-events: write  # upload CodeQL analysis to Code Scanning
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Initialize CodeQL
-        continue-on-error: true
-        uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
         with:
-          languages: autodetect
+          persist-credentials: false
+      # Omitting languages lets CodeQL detect every supported language present.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
       - name: Autobuild
-        continue-on-error: true
         uses: github/codeql-action/autobuild@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
       - name: Perform CodeQL Analysis
-        continue-on-error: true
         uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6

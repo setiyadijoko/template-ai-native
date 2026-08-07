@@ -29,9 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   exact-commit CI artifact promotion without rebuild, fail-closed artifact
   validation, and delivery workflow contract tests. Deploy and smoke-test
   workflows remain skeletons.
+- Activated public-repository security enforcement: CodeQL now scans pull requests and fails closed for execution/storage errors; Scorecard uses job-scoped OIDC and fails closed for publication/SARIF errors while findings remain advisory (TD-0006 closed).
 
 ### Known limitations (Phase 1)
 - Phase-1 workflows pin all third-party GitHub Actions to immutable commit SHAs (TD-0001 closed — see `docs/plans/technical-debt.md`).
 - Quality, security-scan, AI-evaluation, and deploy workflows arrive in Phases 2–6.
 - Stack is not committed; `make` targets no-op until a consumer adopts one.
-
