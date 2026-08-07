@@ -1,0 +1,91 @@
+name: rollback
+
+# SKELETON. Validates an audited rollback request, then fails closed until the
+# consumer wires artifact retrieval, verification, platform auth, and rollback.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment protected by the matching GitHub Environment
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      release_ref:
+        description: 40-char commit SHA or v-prefixed release tag
+        required: true
+        type: string
+      artifact_digest:
+        description: Immutable lowercase sha256 digest
+        required: true
+        type: string
+      reason:
+        description: Non-empty audit reason for rollback
+        required: true
+        type: string
+      confirm:
+        description: Type ROLLBACK to confirm the request
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    name: Rollback request validation (unwired)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+    steps:
+      - name: Validate rollback request
+        shell: sh
+        env:
+          ROLLBACK_ENVIRONMENT: ${{ inputs.environment }}
+          ROLLBACK_RELEASE_REF: ${{ inputs.release_ref }}
+          ROLLBACK_ARTIFACT_DIGEST: ${{ inputs.artifact_digest }}
+          ROLLBACK_REASON: ${{ inputs.reason }}
+          ROLLBACK_CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -eu
+          [ "$ROLLBACK_CONFIRM" = ROLLBACK ] || {
+            echo '::error::Rollback confirmation must equal ROLLBACK.'
+            exit 1
+          }
+          printf '%s\n' "$ROLLBACK_RELEASE_REF" |
+            grep -Eq '^([0-9a-f]{40}|v[0-9][0-9A-Za-z._-]*)$' || {
+              echo '::error::Release ref must be a lowercase commit SHA or v-prefixed tag.'
+              exit 1
+            }
+          printf '%s\n' "$ROLLBACK_ARTIFACT_DIGEST" |
+            grep -Eq '^sha256:[0-9a-f]{64}$' || {
+              echo '::error::Artifact digest must be lowercase sha256.'
+              exit 1
+            }
+          case "$ROLLBACK_REASON" in
+            *[![:space:]]*) ;;
+            *)
+              echo '::error::Rollback reason must contain a non-whitespace character.'
+              exit 1
+              ;;
+          esac
+          case "$ROLLBACK_ENVIRONMENT" in
+            development|staging|production) ;;
+            *)
+              echo '::error::Unknown rollback environment.'
+              exit 1
+              ;;
+          esac
+      - name: Refuse unwired rollback
+        shell: sh
+        run: |
+          echo '::error::Rollback target is not configured. Wire artifact verification, platform authentication, rollback execution, and recovery verification through an approved design.'
+          exit 1
