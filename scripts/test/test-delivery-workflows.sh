@@ -95,6 +95,9 @@ assert_contains "ci passes artifact name" "$CI" 'artifact-name:.*needs\.build\.o
 assert_contains "ci passes upload state" "$CI" 'artifact-uploaded:.*needs\.build\.outputs\.artifact-uploaded'
 assert_contains "ci limits attestation to push" "$CI" "github\.event_name == 'push'"
 assert_contains "ci limits attestation to main" "$CI" "github\.ref == 'refs/heads/main'"
+assert_contains "ci explains attestation contents permission" "$CI" '^[[:space:]]{6}contents: read[[:space:]]+#'
+assert_contains "ci explains attestation OIDC permission" "$CI" '^[[:space:]]{6}id-token: write[[:space:]]+#'
+assert_contains "ci explains provenance write permission" "$CI" '^[[:space:]]{6}attestations: write[[:space:]]+#'
 
 # --- artifact-attestation.yml: reusable, allowlisted, and fail closed ---
 assert_contains "attestation is reusable" "$ATTEST" 'workflow_call:'
@@ -119,9 +122,14 @@ known_asset_block="$(
     sed -n '/^[[:space:]]*python|node|go|java|dotnet)/,/^[[:space:]]*;;/p'
 )"
 release_files="$(sed -n '/^[[:space:]]*files: |$/,$p' "$RELEASE" | sed '1d')"
+release_workflow_permissions="$(sed -n '/^permissions:/,/^$/p' "$RELEASE")"
+release_job_permissions="$(sed -n '/^    permissions:/,/^$/p' "$RELEASE")"
 
 assert_not_contains "release has no manual bypass" "$RELEASE" 'workflow_dispatch:'
-assert_contains "release reads Actions evidence" "$RELEASE" 'actions: read'
+assert_text_contains "release workflow defaults to read-only" "$release_workflow_permissions" '^  contents: read([[:space:]]|$)'
+assert_text_not_contains "release workflow has no default write" "$release_workflow_permissions" 'contents: write'
+assert_text_contains "release job can create drafts" "$release_job_permissions" '^      contents: write[[:space:]]+#'
+assert_text_contains "release job reads Actions evidence" "$release_job_permissions" '^      actions: read[[:space:]]+#'
 assert_contains "release queries ci workflow" "$RELEASE" 'actions/workflows/ci\.yml/runs'
 assert_contains "release filters exact SHA" "$RELEASE" 'head_sha=.*GITHUB_SHA'
 assert_contains "release filters push event" "$RELEASE" 'event=push'

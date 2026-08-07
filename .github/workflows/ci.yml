@@ -67,9 +67,9 @@ jobs:
       (needs.build.result == 'skipped' &&
       needs.detect.outputs.stack == 'unknown'))
     permissions:
-      contents: read
-      id-token: write
-      attestations: write
+      contents: read       # resolve repository metadata for provenance
+      id-token: write      # request the OIDC identity used to sign provenance
+      attestations: write  # persist the build-provenance attestation
     uses: ./.github/workflows/artifact-attestation.yml
     with:
       artifact-name: ${{ needs.build.outputs.artifact-name || '' }}
