@@ -96,7 +96,13 @@ Stack-agnostic scaffolding: model abstraction via an adapter/gateway layer (no d
 
 ## Deployment model
 
-local → test (CI) → development (on merge) → staging (manual, protected) → production (manual, Environment approval + OIDC, promotes the same artifact). See [docs/operations/deployment-guide.md](docs/operations/deployment-guide.md).
+Target state after consumer platform activation: local → test (CI) →
+development (on merge) → staging (manual and protected) → production (manual,
+GitHub Environment approval and job-scoped OIDC, promoting the same artifact
+without rebuilding). The current `deploy-*.yml` and `smoke-test.yml` files
+remain skeletons; the template performs and proves none of those environment
+deployments, approvals, OIDC authentication, or health checks. See
+[docs/operations/deployment-guide.md](docs/operations/deployment-guide.md).
 
 ## Observability
 
@@ -104,7 +110,13 @@ OpenTelemetry recommended; structured logs with correlation IDs; RED metrics; AI
 
 ## Failure handling
 
-See [docs/operations/](docs/operations/). Production auto-stops/rolls back when thresholds are exceeded; runbooks linked from alerts.
+Alerts link responders to runbooks; the documented incident and change
+authority decides whether to stop, mitigate, or request rollback. The Phase 6
+rollback baseline is manual, environment-bound, and fail closed at its unwired
+sentinel, so it performs no rollback. Automated stop or rollback is a future
+consumer-wired target only after an approved platform-specific design defines
+thresholds, authority, execution, recovery verification, and reviewed evidence.
+See [docs/operations/](docs/operations/).
 
 ## Testing strategy
 

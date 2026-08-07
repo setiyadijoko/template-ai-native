@@ -3,7 +3,16 @@
 **Status:** Delivery policy baseline; platform-specific deployment remains
 consumer-owned.
 
-Environments: local → test (CI) → development → staging → production. Dev deploys on merge to `main`; staging is manual/protected; production is human-gated (GitHub Environment approval + OIDC) and promotes the exact staging artifact (no rebuild). See [environment-strategy.md](environment-strategy.md) and [rollback.md](rollback.md).
+Target state after consumer platform activation: local → test (CI) →
+development → staging → production. In that target state, development deploys
+on merge to `main`; staging is manual and protected; production is manual,
+human-gated by GitHub Environment approvals, authenticates with job-scoped
+OIDC, and promotes the exact staging artifact without rebuilding. None of these
+development, staging, or production deployment behaviors, Environment approval
+controls, or OIDC authentication is active or proven until the consumer
+approves a platform design and wires the skeleton workflows. See
+[environment-strategy.md](environment-strategy.md) and
+[rollback.md](rollback.md).
 
 ## Phase 5 workflows
 
