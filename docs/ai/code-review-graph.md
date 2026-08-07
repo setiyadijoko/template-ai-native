@@ -18,6 +18,8 @@ The report is advisory. `fail-on-risk` remains `none` until the consumer has
 measured false-positive rates and approved a merge-gate threshold. The graph
 database is runner-local and is not committed to the repository.
 
+For the complementary semantic layer, see [integrated code-review policy](integrated-code-review.md).
+
 ## Consumer controls
 
 Consumers may disable the workflow, change the path filters, or promote the

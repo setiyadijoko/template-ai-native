@@ -9,6 +9,7 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 
 REVIEW="$ROOT/.github/workflows/code-review-graph.yml"
 COMMENT="$ROOT/.github/workflows/code-review-graph-comment.yml"
+OCR="$ROOT/.github/workflows/open-code-review.yml"
 DOC="$ROOT/docs/ai/code-review-graph.md"
 ADR="$ROOT/docs/adr/0003-adopt-local-first-graph-pr-review.md"
 
@@ -48,6 +49,21 @@ assert_not_contains "comment forbids pull_request_target" "$COMMENT" 'pull_reque
 
 assert_contains "docs record advisory integration" "$DOC" 'advisory'
 assert_contains "adr records decision" "$ADR" 'local-first graph PR review'
+
+# Integrated review contract: graph analysis and OCR cover the same code-bearing
+# PR scope while retaining separate, explicitly scoped security boundaries.
+assert_contains "ocr reviews source changes" "$OCR" '^      - "src/'
+assert_contains "ocr reviews tests" "$OCR" '^      - "tests/'
+assert_contains "ocr reviews prompts" "$OCR" '^      - "prompts/'
+assert_contains "ocr reviews evals" "$OCR" '^      - "evals/'
+assert_contains "ocr has explicit empty workflow permissions" "$OCR" '^permissions: \{\}$'
+assert_contains "ocr job reads contents" "$OCR" '^      contents: read'
+assert_contains "ocr job writes pull requests" "$OCR" '^      pull-requests: write'
+assert_contains "ocr checkout disables credential persistence" "$OCR" 'persist-credentials: false'
+assert_contains "ocr uses sticky summary" "$OCR" 'sticky_summary: "true"'
+assert_contains "ocr uses incremental comments" "$OCR" 'incremental: "true"'
+assert_contains "ocr receives explicit github token" "$OCR" 'github_token:.*GITHUB_TOKEN'
+assert_not_contains "ocr forbids pull_request_target" "$OCR" 'pull_request_target:'
 
 invalid="$({ sed -n 's/^[[:space:]]*uses:[[:space:]]*//p' "$REVIEW" "$COMMENT" | grep -Ev '^[^[:space:]#]+@[0-9a-f]{40}[[:space:]]+#[[:space:]]+v[0-9]+(\.[0-9]+){1,2}([.+-][0-9A-Za-z.-]+)?$'; } || true)"
 if [ -z "$invalid" ]; then PASS=$((PASS+1)); else

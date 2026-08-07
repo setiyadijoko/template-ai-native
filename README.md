@@ -65,6 +65,7 @@ Business Problem → Product Requirements → System Design → Architecture Dec
 - Quality gates (format, lint, typecheck, tests, coverage).
 - Security controls (secret scan, SAST, dependency review, workflow security, license).
 - Advisory local-first graph-aware PR review with fork-safe report publication (see [`docs/ai/code-review-graph.md`](docs/ai/code-review-graph.md)).
+- Optional Alibaba semantic review complements the graph report; see [`docs/ai/integrated-code-review.md`](docs/ai/integrated-code-review.md).
 - AI-native scaffolding (prompt registry, eval framework, model-abstraction guidance, AI observability).
 - Supply-chain controls (SBOM, artifact attestation, OpenSSF Scorecard).
 - Phased CI/CD with human-gated production deployment and rollback.
