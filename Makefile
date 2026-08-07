@@ -61,5 +61,6 @@ test-scripts:
 	@sh scripts/test/test-stack-detection.sh
 	@sh scripts/test/test-delivery-workflows.sh
 	@sh scripts/test/test-security-workflows.sh
+	@sh scripts/test/test-production-readiness.sh
 ci: format-check lint docs-check test-scripts
 	@echo "[ci] local gate (best-effort) complete"
