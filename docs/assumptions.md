@@ -10,7 +10,7 @@
 4. **CodeQL Autobuild** works for common languages; the consumer adjusts for custom builds.
 5. **Branch protection/Rulesets** cannot be applied from a template file; delivered via `scripts/setup-branch-protection.sh`.
 6. **OpenCodeReview** requires a model endpoint + secret; shipped as advisory with safe placeholders.
-7. **Scorecard** works best on public repos; the workflow still runs (may be limited on private repos).
+7. **Scorecard publication:** the repository is public; Scorecard publishes authenticated results through GitHub OIDC and stores SARIF in Code Scanning.
 8. **MIT license** for the template; consumers may replace it.
 
 ## Project assumptions
