@@ -333,10 +333,21 @@ direct_yaml_keys() {
   ' "$file"
 }
 
-direct_step_names() {
+direct_step_entries() {
   file="$1"
   [ -f "$file" ] || return 0
-  sed -n 's/^      - name: //p' "$file"
+  awk '
+    /^      -([[:space:]]|$)/ {
+      entry = $0
+      sub(/^      -[[:space:]]*/, "", entry)
+      if (entry ~ /^name:[[:space:]]*/) {
+        sub(/^name:[[:space:]]*/, "", entry)
+      } else if (entry == "") {
+        entry = "<unnamed>"
+      }
+      print entry
+    }
+  ' "$file"
 }
 
 # Exercise every supported run scalar form so a future extractor regression
@@ -421,8 +432,18 @@ printf '%s\n' \
   '      - name: Execute production rollback' \
   '      - name: Refuse unwired rollback' \
   > "$ROLLBACK_STEPS_MUTATION"
-mutated_rollback_steps="$(direct_step_names "$ROLLBACK_STEPS_MUTATION")"
+mutated_rollback_steps="$(direct_step_entries "$ROLLBACK_STEPS_MUTATION")"
 assert_eq "extra production-action step is exposed" "$mutated_rollback_steps" "$(printf '%s\n' 'Validate rollback request' 'Execute production rollback' 'Refuse unwired rollback')"
+
+ROLLBACK_NAMELESS_STEP_MUTATION="$TMP_ROOT/rollback-nameless-extra-step.yml"
+printf '%s\n' \
+  '    steps:' \
+  '      - name: Validate rollback request' \
+  '      - run: curl -X POST https://production.invalid/rollback' \
+  '      - name: Refuse unwired rollback' \
+  > "$ROLLBACK_NAMELESS_STEP_MUTATION"
+mutated_nameless_rollback_steps="$(direct_step_entries "$ROLLBACK_NAMELESS_STEP_MUTATION")"
+assert_eq "nameless production-action step is exposed" "$mutated_nameless_rollback_steps" "$(printf '%s\n' 'Validate rollback request' 'run: curl -X POST https://production.invalid/rollback' 'Refuse unwired rollback')"
 
 ROLLBACK_VALIDATION_MUTATION="$TMP_ROOT/rollback-validation-mutation.yml"
 ROLLBACK_VALIDATION_MUTATION_NODES="$TMP_ROOT/rollback-validation-mutation-nodes.yml"
@@ -827,6 +848,7 @@ ROLLBACK_CONCURRENCY="$TMP_ROOT/rollback-concurrency.yml"
 ROLLBACK_JOBS="$TMP_ROOT/rollback-jobs.yml"
 ROLLBACK_JOBS_NORMALIZED="$TMP_ROOT/rollback-jobs-normalized.yml"
 ROLLBACK_JOB="$TMP_ROOT/rollback-job.yml"
+ROLLBACK_STEPS="$TMP_ROOT/rollback-steps.yml"
 ROLLBACK_NORMALIZED="$TMP_ROOT/rollback-normalized.yml"
 ROLLBACK_JOB_PERMISSIONS="$TMP_ROOT/rollback-job-permissions.yml"
 ROLLBACK_VALIDATE="$TMP_ROOT/rollback-validate.yml"
@@ -852,6 +874,7 @@ extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_CONCURRENCY" 'concurrency:' 0
 extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_JOBS" 'jobs:' 0
 normalize_yaml_mapping_keys "$ROLLBACK_JOBS" "$ROLLBACK_JOBS_NORMALIZED"
 extract_yaml_block "$ROLLBACK_WORKFLOW" "$ROLLBACK_JOB" '  rollback:' 2
+extract_yaml_block "$ROLLBACK_JOB" "$ROLLBACK_STEPS" '    steps:' 4
 normalize_yaml_mapping_keys "$ROLLBACK_WORKFLOW" "$ROLLBACK_NORMALIZED"
 extract_yaml_block "$ROLLBACK_JOB" "$ROLLBACK_JOB_PERMISSIONS" '    permissions:' 4
 extract_yaml_block "$ROLLBACK_JOB" "$ROLLBACK_VALIDATE" '      - name: Validate rollback request' 6
@@ -882,7 +905,7 @@ assert_file_contains "rollback workflow permissions are read-only" "$ROLLBACK_PE
 assert_file_not_contains "rollback has no write permission anywhere" "$ROLLBACK_NORMALIZED" "$WRITE_PERMISSION_PATTERN"
 rollback_job_names="$(direct_yaml_keys "$ROLLBACK_JOBS_NORMALIZED" 2)"
 assert_eq "rollback has exactly one approved job" "$rollback_job_names" 'rollback'
-rollback_step_names="$(direct_step_names "$ROLLBACK_JOB")"
+rollback_step_names="$(direct_step_entries "$ROLLBACK_STEPS")"
 assert_eq "rollback has exactly two ordered validation and refusal steps" "$rollback_step_names" "$(printf '%s\n' 'Validate rollback request' 'Refuse unwired rollback')"
 rollback_job_permission_keys="$(direct_yaml_keys "$ROLLBACK_JOB_PERMISSIONS" 6)"
 assert_eq "rollback job permission keys are exact" "$rollback_job_permission_keys" 'contents'

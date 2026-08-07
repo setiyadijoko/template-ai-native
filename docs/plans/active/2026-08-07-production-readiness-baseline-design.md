@@ -448,12 +448,12 @@ wires a platform; the local contract proves the sentinel remains fail closed.
    discovery, and non-Git manifests remain rejected under a poisoned Git env.
 10. The rollback workflow has exactly the two approved ordered steps and the
     exact validation body; added production-action steps are rejected by tests.
-9. TD-0011 records the consumer-owned activation work; TD-0009 and TD-0010
+11. TD-0011 records the consumer-owned activation work; TD-0009 and TD-0010
    remain open.
-10. Existing deploy and smoke-test workflow skeletons are unchanged.
-11. Local tests, documentation checks, workflow linters, security audit, and
+12. Existing deploy and smoke-test workflow skeletons are unchanged.
+13. Local tests, documentation checks, workflow linters, security audit, and
     diff checks pass with actual recorded evidence.
-12. No production deployment, rollback, data mutation, infrastructure change,
+14. No production deployment, rollback, data mutation, infrastructure change,
     or external message occurs.
 
 ## Rollout and migration
