@@ -119,6 +119,7 @@ their existing immutable Action pins.
 - Rename the job from graceful-degrade wording to `CodeQL (blocking)`.
 - Retain `languages: autodetect` and the existing initialize, autobuild, and
   analyze sequence.
+- Disable checkout credential persistence.
 - Remove every `continue-on-error` from the CodeQL integrity path.
 - Keep every third-party Action pinned to an immutable commit SHA with its
   release tag documented.
@@ -135,11 +136,14 @@ their existing immutable Action pins.
   - `id-token: write` to authenticate `publish_results: true` through OIDC.
 - Keep the job name explicitly advisory because the score does not gate a
   merge.
+- Disable checkout credential persistence.
 - Remove `continue-on-error` from both Scorecard execution and SARIF upload.
 - Keep `results_format: sarif`, `results_file: scorecard.sarif`,
   `publish_results: true`, and category `scorecard`.
-- Keep the job compatible with OpenSSF publication restrictions: no job-level
-  environment, services, container, or unapproved steps.
+- Keep the job compatible with OpenSSF publication restrictions: no top-level
+  or job-level `env` or `defaults`; no job-level environment, services, or
+  container; no shell `run` steps; and no Actions outside `actions/checkout`,
+  `ossf/scorecard-action`, and `github/codeql-action/upload-sarif`.
 
 ## Failure semantics
 
@@ -181,17 +185,24 @@ style and is written before the workflow changes.
 The contract test asserts:
 
 - CodeQL has `pull_request` and `push` restricted to `main`;
+- CodeQL explicitly excludes `pull_request_target`;
 - CodeQL retains schedule and manual dispatch;
 - CodeQL concurrency is isolated by PR number or ref;
 - CodeQL has job-scoped `security-events: write` and no workflow-level write;
 - the CodeQL job is described as blocking;
 - no CodeQL step contains `continue-on-error`;
 - Scorecard keeps trusted-event triggers and does not add `pull_request`;
+- both checkout steps disable credential persistence;
 - Scorecard has job-scoped `contents: read`, `security-events: write`, and
-  `id-token: write`;
+  exactly one `id-token: write`, with no workflow-level OIDC permission;
 - Scorecard retains `publish_results: true` and SARIF category `scorecard`;
 - no Scorecard step contains `continue-on-error`;
-- both workflows retain timeouts and immutable Action pins; and
+- Scorecard excludes top-level and job-level `env` and `defaults`, job-level
+  environment/container/services, shell `run` steps, and unapproved Actions;
+- the advisory job-label assertion is a naming and documentation contract,
+  while current-state policy assertions establish the findings policy;
+- both workflows retain timeouts and immutable Action pins with trailing
+  release-tag comments; and
 - TD-0006 and public-repository documentation are internally consistent.
 
 The initial test run must fail against the current graceful-degrade workflows.
@@ -225,7 +236,8 @@ the existing TD-0006 resolution without selecting a new architecture.
    job-scoped `security-events: write`.
 6. Scorecard scan and SARIF storage errors fail the workflow; Scorecard findings
    remain advisory.
-7. No secret, broad workflow-level write permission, or unpinned Action is
+7. No secret, persisted checkout credential, broad workflow-level write
+   permission, or Action without an immutable pin and release-tag comment is
    introduced.
 8. Security workflow contract tests are integrated into `make test-scripts` and
    demonstrate a red-before-green sequence.
@@ -248,7 +260,7 @@ make ci
 make docs-check
 actionlint .github/workflows/*.yml
 shellcheck -x scripts/test/test-security-workflows.sh
-zizmor .github/workflows/codeql.yml .github/workflows/scorecard.yml
+uvx zizmor --pedantic .github/workflows/codeql.yml .github/workflows/scorecard.yml
 git diff --check
 ```
 
