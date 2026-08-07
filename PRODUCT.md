@@ -82,12 +82,12 @@ Teams building AI-native applications repeatedly reinvent governance: documentat
 
 ## Roadmap
 
-- **Phase 1** — Repository governance (in progress).
-- **Phase 2** — Code-quality baseline.
-- **Phase 3** — Security baseline.
-- **Phase 4** — AI-native capability.
-- **Phase 5** — Delivery pipeline.
-- **Phase 6** — Production readiness.
+- **Phase 1** — Repository governance (baseline complete).
+- **Phase 2** — Code-quality baseline (baseline complete).
+- **Phase 3** — Security baseline (baseline complete).
+- **Phase 4** — AI-native capability (baseline complete; consumer evaluation remains advisory).
+- **Phase 5** — Delivery pipeline (baseline complete; deploy and smoke workflows remain skeletons).
+- **Phase 6** — Production readiness (baseline complete; consumer platform activation remains deferred).
 
 ## Assumptions
 

@@ -10,7 +10,7 @@
 
 ## Global constraints
 
-- Design source: `docs/plans/active/2026-08-07-production-readiness-baseline-design.md`.
+- Design source: `docs/plans/completed/2026-08-07-production-readiness-baseline-design.md`.
 - Keep the repository stack-, platform-, and observability-vendor-agnostic.
 - Do not modify any `deploy-*.yml` workflow or `smoke-test.yml`.
 - Do not add a runtime, package dependency, endpoint, OIDC permission, credential, secret, or production mutation.

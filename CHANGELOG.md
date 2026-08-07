@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Command interface: `Makefile` (clean no-op stubs until a stack is wired) + `scripts/{detect-stack,ci-local,setup-branch-protection}.sh`.
 - GitHub governance: `CODEOWNERS`, `dependabot.yml`, `labeler.yml`, `release.yml`, pull-request template, issue templates.
 - Phase-1 CI workflows: `pr-title`, `validate-metadata`, `docs-check`, `action-security` (least-privilege, pinned Actions) + `.markdownlint.jsonc`.
+
+### Changed
+- Archived the shipped Phase 6 design and implementation plan under `docs/plans/completed/` and synchronized the roadmap status through Phase 6.
 - Documentation tree: `docs/` (product, architecture, ADRs, API, security, AI, development, operations, templates, plans) + ADR-0001.
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
