@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added a beginner-friendly getting-started guide with quick-start steps,
+  required/optional control mapping, terminology, expected results, and
+  troubleshooting; linked it from the root README and documentation index.
 - Added the README-only `scripts/init-project.sh` initializer with explicit
   reconfiguration protection and contract tests; it updates only the marked
   consumer identity block and does not activate profile-aware controls.
