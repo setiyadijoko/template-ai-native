@@ -12,18 +12,18 @@ REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || echo 
 
 require_approvals="gh api -X PUT repos/${REPO}/branches/${BRANCH}/protection \
   -H 'Accept: application/vnd.github+json' \
-  -f required_status_checks[strict]=true \
-  -f required_status_checks[contexts][]='pr-title / PR Title Check' \
-  -f required_status_checks[contexts][]='validate-metadata / validate-metadata' \
-  -f required_status_checks[contexts][]='docs-check / docs-check' \
-  -f required_status_checks[contexts][]='action-security / action-security' \
-  -f enforce_admins=true \
-  -f required_pull_request_reviews[required_approving_review_count]=1 \
-  -f required_pull_request_reviews[dismiss_stale_reviews]=true \
-  -f restrictions= \
-  -f required_linear_history=true \
-  -f allow_force_pushes=false \
-  -f allow_deletions=false"
+  -F 'required_status_checks[strict]=true' \
+  -f 'required_status_checks[contexts][]=pr-title / PR Title Check' \
+  -f 'required_status_checks[contexts][]=validate-metadata / validate-metadata' \
+  -f 'required_status_checks[contexts][]=docs-check / docs-check' \
+  -f 'required_status_checks[contexts][]=action-security / action-security' \
+  -F 'enforce_admins=true' \
+  -F 'required_pull_request_reviews[required_approving_review_count]=1' \
+  -F 'required_pull_request_reviews[dismiss_stale_reviews]=true' \
+  -F 'restrictions=null' \
+  -F 'required_linear_history=true' \
+  -F 'allow_force_pushes=false' \
+  -F 'allow_deletions=false'"
 
 echo "# Recommended branch protection for ${REPO} @ ${BRANCH}"
 echo "${require_approvals}"
