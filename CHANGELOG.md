@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added an illustrative OpenAPI `/health` contract, global bearer-auth default,
+  and explicit guidance that consumers must implement and adapt the endpoint.
 - Added an SPDX license-header template and coding-standards guidance for
   consumer source files.
 - Added explicit `single`/`monorepo`/`undecided` layout selection, credential-free

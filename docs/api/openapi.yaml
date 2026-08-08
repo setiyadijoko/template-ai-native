@@ -11,7 +11,33 @@ info:
 servers:
   - url: https://api.example.com/v1
     description: Production
-paths: {}
+# Future operations require bearer authentication unless they explicitly opt
+# out. The health probe below is intentionally unauthenticated for monitoring.
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      summary: Service health probe (example)
+      description: |
+        Illustrative contract only. A consumer must implement this endpoint,
+        choose its dependency checks, and align the response with its runtime.
+      operationId: getHealth
+      tags: [system]
+      security: []
+      responses:
+        '200':
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503':
+          description: Service is unavailable or a required dependency is unhealthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
 components:
   securitySchemes:
     bearerAuth:
@@ -19,6 +45,16 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        version:
+          type: string
+          description: Optional build or release identifier; do not expose secrets.
     Error:
       type: object
       required: [error]
