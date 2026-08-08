@@ -36,8 +36,9 @@ jobs:
         if: ${{ env.AI_EVAL_API_KEY == '' }}
         run: echo "AI-eval skipped — set the AI_EVAL_API_KEY secret and add evals/run-evals.sh to activate."
 
-      - name: Run AI evaluations
+      - name: Run evaluation contract (provider-neutral stub)
         if: ${{ env.AI_EVAL_API_KEY != '' }}
         run: |
-          echo "AI eval runner not configured — implement evals/run-evals.sh (uses AI_EVAL_API_KEY) to run real evaluations."
-          # Consumer: replace the line above with: sh evals/run-evals.sh
+          sh evals/run-evals.sh --check
+          # Consumer: replace the provider-neutral stub with an adapter-backed
+          # runner that uses AI_EVAL_API_KEY under an approved data policy.

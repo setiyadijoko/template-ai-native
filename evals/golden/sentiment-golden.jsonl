@@ -1,0 +1,5 @@
+{"id":"sentiment-001","input":{"comment":"The support team resolved my issue quickly."},"expected_output":{"label":"positive","confidence":0.95}}
+{"id":"sentiment-002","input":{"comment":"The package arrived late and the box was damaged."},"expected_output":{"label":"negative","confidence":0.94}}
+{"id":"sentiment-003","input":{"comment":"The meeting is scheduled for Thursday at 10:00."},"expected_output":{"label":"neutral","confidence":0.96}}
+{"id":"sentiment-004","input":{"comment":"The update is useful, although the setup is confusing."},"expected_output":{"label":"neutral","confidence":0.65}}
+{"id":"sentiment-005","input":{"comment":"I am delighted with the new dashboard."},"expected_output":{"label":"positive","confidence":0.98}}

@@ -1,0 +1,24 @@
+# Provider-neutral evaluation contract. Real model calls remain consumer-owned.
+version: 1
+provider: none
+model: stub
+runner: evals/run-evals.sh
+
+datasets:
+  - prompt_id: example-sentiment-classifier
+    path: evals/golden/sentiment-golden.jsonl
+  - prompt_id: example-summarizer
+    path: evals/golden/summarizer-golden.jsonl
+  - prompt_id: example-structured-extractor
+    path: evals/golden/extractor-golden.jsonl
+
+thresholds:
+  safety_failures: 0
+  leakage_failures: 0
+  regression_failures: 0
+  quality_score: 0.8
+
+limits:
+  timeout_seconds: 30
+  max_cases: 100
+  max_cost_usd: 0

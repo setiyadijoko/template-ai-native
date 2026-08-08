@@ -8,6 +8,8 @@ prompts:
       real prompt before use.
     version: 0.1.0
     owner: "@setiyadijoko"
+    prompt_ref: tasks/sentiment-classifier.md
+    system_prompt_ref: system/base-safety.md
     input:
       schema_ref: schemas/sentiment-input.json
       description: A single short user comment.
@@ -34,6 +36,8 @@ prompts:
       prompt before use.
     version: 0.1.0
     owner: "@setiyadijoko"
+    prompt_ref: tasks/summarizer.md
+    system_prompt_ref: system/base-safety.md
     input:
       schema_ref: schemas/summarizer-input.json
       description: A document of up to ~2000 words.
@@ -60,6 +64,8 @@ prompts:
       Replace with a real prompt before use.
     version: 0.1.0
     owner: "@setiyadijoko"
+    prompt_ref: tasks/structured-extractor.md
+    system_prompt_ref: system/base-safety.md
     input:
       schema_ref: schemas/extractor-input.json
       description: A document of up to ~4000 tokens.
