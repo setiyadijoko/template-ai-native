@@ -1,0 +1,105 @@
+#!/usr/bin/env sh
+# Contract tests for the README-only project initializer.
+set -eu
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+ROOT="$(cd "$HERE/../.." && pwd)"
+# shellcheck source=scripts/test/lib.sh
+. "$HERE/lib.sh"
+
+TICK='`'
+EXPECTED_NODE_STACK="**Stack:** ${TICK}node${TICK}"
+EXPECTED_PYTHON_STACK="**Stack:** ${TICK}python${TICK}"
+
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/template-ai-native-init.XXXXXX")"
+trap 'rm -rf "$WORK"' EXIT HUP INT TERM
+
+cp "$ROOT/README.md" "$WORK/README.md"
+
+if [ -x "$ROOT/scripts/init-project.sh" ]; then
+  PASS=$((PASS+1))
+else
+  FAIL=$((FAIL+1)); printf 'FAIL initializer is executable\n' >&2
+fi
+
+if (cd "$WORK" && sh "$ROOT/scripts/init-project.sh" \
+  --name "sample-orders" \
+  --description "Order processing service" \
+  --stack node) >/dev/null 2>&1; then
+  PASS=$((PASS+1))
+else
+  FAIL=$((FAIL+1)); printf 'FAIL initializes a fresh README\n' >&2
+fi
+
+if grep -Fq '# sample-orders' "$WORK/README.md" \
+  && grep -Fq 'Order processing service' "$WORK/README.md" \
+  && grep -Fq "$EXPECTED_NODE_STACK" "$WORK/README.md"; then
+  PASS=$((PASS+1))
+else
+  FAIL=$((FAIL+1)); printf 'FAIL writes project identity to README\n' >&2
+fi
+
+if (cd "$WORK" && sh "$ROOT/scripts/init-project.sh" \
+  --name "replacement" --description "Must not overwrite") >/dev/null 2>&1; then
+  FAIL=$((FAIL+1)); printf 'FAIL refuses implicit reconfiguration\n' >&2
+else
+  PASS=$((PASS+1))
+fi
+
+if grep -Fq '# sample-orders' "$WORK/README.md" \
+  && ! grep -Fq '# replacement' "$WORK/README.md"; then
+  PASS=$((PASS+1))
+else
+  FAIL=$((FAIL+1)); printf 'FAIL preserves README after refused reconfiguration\n' >&2
+fi
+
+printf '\nConsumer documentation outside the identity block.\n' >> "$WORK/README.md"
+
+if (cd "$WORK" && sh "$ROOT/scripts/init-project.sh" \
+  --reconfigure --name "replacement" \
+  --description "Replacement service" --stack python) >/dev/null 2>&1 \
+  && grep -Fq '# replacement' "$WORK/README.md" \
+  && grep -Fq 'Replacement service' "$WORK/README.md" \
+  && grep -Fq "$EXPECTED_PYTHON_STACK" "$WORK/README.md" \
+  && grep -Fq 'Consumer documentation outside the identity block.' "$WORK/README.md"; then
+  PASS=$((PASS+1))
+else
+  FAIL=$((FAIL+1)); printf 'FAIL explicitly reconfigures README\n' >&2
+fi
+
+cp "$ROOT/README.md" "$WORK/missing-marker.md"
+sed '/template-ai-native:project-identity:start/,/template-ai-native:project-identity:end/d' \
+  "$WORK/missing-marker.md" > "$WORK/README-no-marker.md"
+if (cd "$WORK" && cp README-no-marker.md README.md && \
+  sh "$ROOT/scripts/init-project.sh" --name "missing-marker") >/dev/null 2>&1; then
+  FAIL=$((FAIL+1)); printf 'FAIL rejects README without identity markers\n' >&2
+else
+  PASS=$((PASS+1))
+fi
+
+if (cd "$WORK" && cp "$ROOT/README.md" README.md && \
+  sh "$ROOT/scripts/init-project.sh" --name "bad" --stack rust) >/dev/null 2>&1; then
+  FAIL=$((FAIL+1)); printf 'FAIL rejects unsupported stack\n' >&2
+else
+  PASS=$((PASS+1))
+fi
+
+MULTILINE='line one
+line two'
+if (cd "$WORK" && cp "$ROOT/README.md" README.md && \
+  sh "$ROOT/scripts/init-project.sh" --name "bad" --description "$MULTILINE") >/dev/null 2>&1; then
+  FAIL=$((FAIL+1)); printf 'FAIL rejects multiline description\n' >&2
+else
+  PASS=$((PASS+1))
+fi
+
+MULTILINE_NAME='bad
+name'
+if (cd "$WORK" && cp "$ROOT/README.md" README.md && \
+  sh "$ROOT/scripts/init-project.sh" --name "$MULTILINE_NAME") >/dev/null 2>&1; then
+  FAIL=$((FAIL+1)); printf 'FAIL rejects multiline project name\n' >&2
+else
+  PASS=$((PASS+1))
+fi
+
+report
