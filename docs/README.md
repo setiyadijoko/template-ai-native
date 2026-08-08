@@ -61,5 +61,5 @@ Architecture Decision Records — traceable, dated, reversible decisions.
 - `ai/` — AI system design, model/prompt management, evaluation, safety, guardrails
 - `development/` — setup, coding standards, branching, PR process, testing, DoR/DoD
 - `operations/` — deployment, environments, observability, monitoring, alerting, runbook, rollback
-- `templates/` — feature-design, implementation-plan, ADR, threat-model, incident, postmortem, release-checklist templates
+- `templates/` — feature-design, implementation-plan, ADR, threat-model, incident, postmortem, release-checklist, and license-header templates
 - `plans/` — active/completed feature designs + technical-debt log
