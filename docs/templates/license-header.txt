@@ -1,0 +1,21 @@
+SPDX license-header examples
+
+Use the comment syntax supported by the source file. Replace `<YEAR>` and
+`<OWNER>` with the approved copyright owner, and replace `MIT` when the project
+uses another license. The header must match the repository `LICENSE` and legal
+policy; it does not replace the full license file.
+
+Shell, Python, YAML, Makefile:
+
+# SPDX-FileCopyrightText: Copyright (c) <YEAR> <OWNER>
+# SPDX-License-Identifier: MIT
+
+JavaScript, TypeScript, Go, Java, C#, and similar languages:
+
+// SPDX-FileCopyrightText: Copyright (c) <YEAR> <OWNER>
+// SPDX-License-Identifier: MIT
+
+HTML, XML, and other markup:
+
+<!-- SPDX-FileCopyrightText: Copyright (c) <YEAR> <OWNER> -->
+<!-- SPDX-License-Identifier: MIT -->
