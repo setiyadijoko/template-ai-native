@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added coherent example task/system prompts, referenced JSON schemas, golden fixtures, provider-neutral evaluation config and runner contract, version-pinning and branch-protection guidance, optional PostHog observability guidance, and stack-specific cache guidance.
 - Documented optional Graphify codebase knowledge integration without changing
   the existing Code Review Graph or Alibaba review workflows.
 - Coordinated the local graph review and optional Alibaba semantic review under a shared advisory PR-review policy and code/AI change scope.

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-ai-native/prompts/schemas/summarizer-input.json",
+  "title": "Summarizer input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["document"],
+  "properties": {
+    "document": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 12000,
+      "description": "The source document to summarize."
+    }
+  }
+}

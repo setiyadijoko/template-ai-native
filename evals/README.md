@@ -33,4 +33,9 @@ The evaluation framework (see [../docs/ai/evaluation-strategy.md](../docs/ai/eva
 
 ## Where the framework plugs in
 
-The consumer adds `evals/run-evals.sh` (or a language-appropriate runner) that reads the `AI_EVAL_API_KEY` secret and executes the eval suites against the model endpoint. Until then, the `ai-evaluation.yml` workflow skips cleanly with a clear message. Promote thresholds to blocking in a later phase (TD-0007).
+The template includes [`run-evals.sh`](run-evals.sh) as a provider-neutral contract
+stub. `--check` validates the local fixture contract and never calls a model
+provider. A consumer replaces or extends it with an adapter-backed runner that
+reads `AI_EVAL_API_KEY` only in a controlled workflow. Until then, the
+`ai-evaluation.yml` workflow skips cleanly with a clear message. Promote
+thresholds to blocking in a later phase (TD-0007).

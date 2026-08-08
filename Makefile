@@ -66,5 +66,6 @@ test-scripts:
 	@sh scripts/test/test-code-review-graph.sh
 	@sh scripts/test/test-graphify-integration.sh
 	@sh scripts/test/test-branch-protection.sh
+	@sh scripts/test/test-prompt-eval-assets.sh
 ci: format-check lint docs-check readiness-check test-scripts
 	@echo "[ci] local gate (best-effort) complete"

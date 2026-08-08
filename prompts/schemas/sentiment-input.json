@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-ai-native/prompts/schemas/sentiment-input.json",
+  "title": "Sentiment input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["comment"],
+  "properties": {
+    "comment": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "description": "A short user comment to classify."
+    }
+  }
+}

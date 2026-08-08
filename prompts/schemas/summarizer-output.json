@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-ai-native/prompts/schemas/summarizer-output.json",
+  "title": "Summarizer output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["summary"],
+  "properties": {
+    "summary": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+    }
+  }
+}

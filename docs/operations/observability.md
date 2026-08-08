@@ -71,3 +71,10 @@ sh scripts/validate-production-readiness.sh observability/production-readiness.c
 
 OpenTelemetry is the recommended vendor-neutral instrumentation boundary; the
 consumer records the approved backend separately.
+
+PostHog is an optional product-analytics and feature-flag backend, not a
+template dependency. If selected, use the approved PostHog deployment or
+self-hosted endpoint, document event names and ownership, and apply the same
+data-classification, minimization, retention, and redaction controls as any
+other telemetry backend. Do not send raw prompts, model responses, credentials,
+or customer payloads by default.
