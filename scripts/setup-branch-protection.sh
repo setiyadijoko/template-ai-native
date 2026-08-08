@@ -13,10 +13,11 @@ REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || echo 
 require_approvals="gh api -X PUT repos/${REPO}/branches/${BRANCH}/protection \
   -H 'Accept: application/vnd.github+json' \
   -F 'required_status_checks[strict]=true' \
-  -f 'required_status_checks[contexts][]=pr-title / PR Title Check' \
-  -f 'required_status_checks[contexts][]=validate-metadata / validate-metadata' \
-  -f 'required_status_checks[contexts][]=docs-check / docs-check' \
-  -f 'required_status_checks[contexts][]=action-security / action-security' \
+  -f 'required_status_checks[contexts][]=PR Title Check' \
+  -f 'required_status_checks[contexts][]=Validate required docs & metadata' \
+  -f 'required_status_checks[contexts][]=Markdown lint + link check + TBD/TODO scan' \
+  -f 'required_status_checks[contexts][]=actionlint (workflow syntax)' \
+  -f 'required_status_checks[contexts][]=zizmor (workflow security)' \
   -F 'enforce_admins=true' \
   -F 'required_pull_request_reviews[required_approving_review_count]=1' \
   -F 'required_pull_request_reviews[dismiss_stale_reviews]=true' \

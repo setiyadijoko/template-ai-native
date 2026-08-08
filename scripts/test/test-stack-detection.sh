@@ -31,6 +31,25 @@ assert_eq "detect dotnet" "$($DET)" "dotnet"
 rm -f app.csproj
 assert_eq "detect unknown (empty)" "$($DET)" "unknown"
 
+# Consumer stacks may live under src/ as documented by the template.
+mkdir src
+printf '' > src/pyproject.toml
+assert_eq "detect python under src" "$($DET)" "python"
+rm -f src/pyproject.toml
+printf '{}' > src/package.json
+assert_eq "detect node under src" "$($DET)" "node"
+rm -f src/package.json
+printf 'module x\n' > src/go.mod
+assert_eq "detect go under src" "$($DET)" "go"
+rm -f src/go.mod
+printf '<project></project>' > src/pom.xml
+assert_eq "detect java under src" "$($DET)" "java"
+rm -f src/pom.xml
+printf '<Project Sdk="Microsoft.NET.Sdk"></Project>' > src/app.csproj
+assert_eq "detect dotnet under src" "$($DET)" "dotnet"
+rm -f src/app.csproj
+rmdir src
+
 # --- stack-tools.sh: unknown stack -> no-op, exit 0 ---
 for action in format format-check lint typecheck test test-unit test-integration test-e2e coverage build; do
   out=$($TOOL "$action" 2>&1 || true)

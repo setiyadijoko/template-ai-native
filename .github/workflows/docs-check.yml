@@ -2,10 +2,6 @@ name: docs-check
 
 on:
   pull_request:
-    paths:
-      - "**/*.md"
-      - ".markdownlint.jsonc"
-      - ".github/workflows/docs-check.yml"
   workflow_dispatch:
 
 permissions:
