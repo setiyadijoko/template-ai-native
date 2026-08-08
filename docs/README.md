@@ -56,7 +56,7 @@ Architecture Decision Records — traceable, dated, reversible decisions.
 
 ## Other documentation
 
-- `api/` — API guidelines, error model, authn/authz, versioning, OpenAPI skeleton
+- `api/` — API guidelines, error model, authn/authz, versioning, and OpenAPI skeleton with health/auth examples
 - `security/` — threat model, data classification, secrets, incident response, privacy
 - `ai/` — AI system design, model/prompt management, evaluation, safety, guardrails
 - `development/` — setup, coding standards, branching, PR process, testing, DoR/DoD
