@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Contract tests for the README-only project initializer.
+# Contract tests for the README identity and project-layout initializer.
 set -eu
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -25,7 +25,7 @@ fi
 if (cd "$WORK" && sh "$ROOT/scripts/init-project.sh" \
   --name "sample-orders" \
   --description "Order processing service" \
-  --stack node) >/dev/null 2>&1; then
+  --stack node --layout single --primary-path src) >/dev/null 2>&1; then
   PASS=$((PASS+1))
 else
   FAIL=$((FAIL+1)); printf 'FAIL initializes a fresh README\n' >&2
@@ -33,7 +33,10 @@ fi
 
 if grep -Fq '# sample-orders' "$WORK/README.md" \
   && grep -Fq 'Order processing service' "$WORK/README.md" \
-  && grep -Fq "$EXPECTED_NODE_STACK" "$WORK/README.md"; then
+  && grep -Fq "$EXPECTED_NODE_STACK" "$WORK/README.md" \
+  && grep -Fq 'layout: single' "$WORK/.template/project.yaml" \
+  && grep -Fq 'primary_stack: node' "$WORK/.template/project.yaml" \
+  && grep -Fq 'primary_path: src' "$WORK/.template/project.yaml"; then
   PASS=$((PASS+1))
 else
   FAIL=$((FAIL+1)); printf 'FAIL writes project identity to README\n' >&2
@@ -57,10 +60,13 @@ printf '\nConsumer documentation outside the identity block.\n' >> "$WORK/README
 
 if (cd "$WORK" && sh "$ROOT/scripts/init-project.sh" \
   --reconfigure --name "replacement" \
-  --description "Replacement service" --stack python) >/dev/null 2>&1 \
+  --description "Replacement service" --stack python \
+  --layout monorepo --primary-path src/backend) >/dev/null 2>&1 \
   && grep -Fq '# replacement' "$WORK/README.md" \
   && grep -Fq 'Replacement service' "$WORK/README.md" \
   && grep -Fq "$EXPECTED_PYTHON_STACK" "$WORK/README.md" \
+  && grep -Fq 'layout: monorepo' "$WORK/.template/project.yaml" \
+  && grep -Fq 'primary_path: src/backend' "$WORK/.template/project.yaml" \
   && grep -Fq 'Consumer documentation outside the identity block.' "$WORK/README.md"; then
   PASS=$((PASS+1))
 else

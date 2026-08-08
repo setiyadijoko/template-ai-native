@@ -23,7 +23,7 @@ itself. The shortest safe path is:
 3. Personalize the README identity:
 
    ```sh
-   ./scripts/init-project.sh --name my-app --description "My application" --stack auto
+   ./scripts/init-project.sh --name my-app --description "My application" --stack auto --layout single
    ```
 
 4. Write the business goal in `PRODUCT.md` and the approved design in
@@ -46,7 +46,7 @@ explains the terms, expected results, optional controls, and common problems.
 
 | Do this first | Add when needed | Consumer-specific |
 |---|---|---|
-| `PRODUCT.md`, `DESIGN.md`, `src/`, tests, `make ci`, secret handling | AI evaluations, Alibaba review, Graphify, Code Review Graph promotion | Runtime provider, database, deployment target, health endpoint, GitHub Environments |
+| `PRODUCT.md`, `DESIGN.md`, layout choice, `src/`, tests, `make ci`, secret handling | AI evaluations, Alibaba review, Graphify, Code Review Graph promotion | Runtime provider, database, deployment target, health endpoint, GitHub Environments |
 
 The template is useful even when no stack has been chosen yet. In that state,
 stack-dependent commands report a clean no-op; this is expected, not a failure.

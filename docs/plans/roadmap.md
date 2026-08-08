@@ -26,7 +26,7 @@ unchanged until the compatibility design is approved.
 - Synchronize README maturity status with the shipped Phase 1–6 baseline.
 - Identify deployment and smoke-test workflows as skeletons until a platform is
   adopted.
-- Add a README-only initializer with explicit reconfiguration protection; it
+- Add a README/layout initializer with explicit reconfiguration protection; it
   does not activate profile-aware controls.
 - Document profile-driven adoption as a roadmap item rather than an active
   capability.
@@ -40,12 +40,24 @@ unchanged until the compatibility design is approved.
 - Add an ADR covering workflow activation, required check contexts, and
   migration for existing consumers.
 
-### P2 — bootstrap and workflow activation (future)
+### P1 — explicit monorepo layout (foundation)
 
-- Add an idempotent `scripts/init-project.sh` after the profile contract is
-  stable.
-- Add explicit reconfiguration protection so consumer documentation is not
-  silently overwritten.
+Completed foundation:
+
+- Ask for `single`, `monorepo`, or `undecided` during consumer initialization.
+- Validate `.template/project.yaml` and record the primary component path.
+- Keep monorepo stack detection fail-safe until component-aware CI execution is
+  approved.
+
+Remaining design work:
+
+- Define component fan-out, artifact ownership, and required check contexts
+  before enabling nested service workflows.
+
+### P2 — bootstrap extensions and workflow activation (future)
+
+- Keep the existing idempotent initializer stable; extend it only after the
+  profile contract and migration behavior are approved.
 - Introduce profile-aware workflow activation only after proving that required
   checks remain stable and disabled controls do not leave pending statuses.
 - Measure CI duration and check noise before and after activation.

@@ -5,7 +5,7 @@ STACK := $(shell sh scripts/detect-stack.sh)
         test test-unit test-contract test-integration test-e2e test-coverage \
         eval eval-regression eval-safety \
         security secret-scan dependency-scan container-scan iac-scan \
-        build run smoke-test docs-check readiness-check ci test-scripts
+        build run smoke-test docs-check readiness-check project-config-check ci test-scripts
 
 # When no stack is detected, targets that need a toolchain no-op cleanly.
 ifeq ($(STACK),unknown)
@@ -58,6 +58,7 @@ iac-scan:         ; @echo "[stub] checkov runs in CI when IaC exists"
 security: secret-scan dependency-scan container-scan iac-scan
 docs-check:       ; @sh scripts/ci-local.sh
 readiness-check:   ; @sh scripts/validate-production-readiness.sh
+project-config-check: ; @sh scripts/validate-project-config.sh
 test-scripts:
 	@sh scripts/test/test-stack-detection.sh
 	@sh scripts/test/test-delivery-workflows.sh
@@ -68,5 +69,6 @@ test-scripts:
 	@sh scripts/test/test-branch-protection.sh
 	@sh scripts/test/test-prompt-eval-assets.sh
 	@sh scripts/test/test-init-project.sh
-ci: format-check lint docs-check readiness-check test-scripts
+	@sh scripts/test/test-project-config.sh
+ci: format-check lint docs-check readiness-check project-config-check test-scripts
 	@echo "[ci] local gate (best-effort) complete"

@@ -66,15 +66,31 @@ Run the initializer from the repository root:
 ./scripts/init-project.sh \
   --name my-app \
   --description "Short description of the application" \
-  --stack auto
+  --stack auto \
+  --layout single
 ```
 
 Supported stack values are `auto`, `node`, `python`, `go`, `java`, `dotnet`,
-and `other`. Use `auto` when you have not selected a stack yet.
+and `other`. Layout values are `single`, `monorepo`, and `undecided`. Use
+`auto` and `undecided` when you have not selected a stack or layout yet.
 
-The initializer changes only the marked project identity block in `README.md`.
-It does not create credentials, change workflows, or enable profile-aware
-controls. If you intentionally need to replace a generated identity, use
+When the command is run interactively without `--layout`, it asks whether the
+repository contains one application or multiple applications/services. For a
+monorepo, also provide the primary component path:
+
+```sh
+./scripts/init-project.sh \
+  --name ev-charge-tracker \
+  --description "EV charging tracker" \
+  --stack go \
+  --layout monorepo \
+  --primary-path src/backend
+```
+
+The initializer changes only the marked project identity block in `README.md`
+and writes the credential-free `.template/project.yaml` layout declaration. It
+does not create credentials, change workflows, or enable profile-aware controls.
+If you intentionally need to replace a generated identity and config, use
 `--reconfigure`:
 
 ```sh
@@ -82,7 +98,7 @@ controls. If you intentionally need to replace a generated identity, use
 ```
 
 Without `--reconfigure`, a second run stops instead of silently overwriting
-the README identity.
+the README identity or project config.
 
 ## 4. Describe the application before coding
 
@@ -114,7 +130,9 @@ tests/e2e/           critical user journeys only
 ```
 
 The template detects a primary Python, Node.js, Go, Java, or .NET stack from
-supported manifests in the repository root or directly under `src/`.
+supported manifests in the repository root or directly under `src/`. A
+declared monorepo currently fails safe as `unknown`; component-aware CI is a
+future step and will not guess which service to build.
 
 ## 6. Run the local checks
 
@@ -223,6 +241,14 @@ directly under `src/`. Add the application stack first, then rerun the command.
 Run it from the consumer repository root and confirm that `README.md` came from
 this template. If the README has been heavily rewritten, preserve the identity
 markers or update it manually instead of forcing the script.
+
+### The detector reports a monorepo as `unknown`
+
+This is intentional for now. The repository records the layout and primary
+path, but the current reusable workflows execute one stack from the repository
+root or `src/`. Returning `unknown` is safer than running Go tooling against a
+Node.js frontend or the reverse. Component-aware CI will be added only after
+the execution contract is approved.
 
 ### `make docs-check` skips tools
 

@@ -4,6 +4,18 @@
 # Makefile + CI to decide which tooling to run. Exit 0 always.
 set -eu
 
+# A monorepo declaration is explicit, but component-aware CI is not enabled
+# yet. Return unknown rather than guessing a nested service or running the
+# single-stack toolchain against the wrong directory.
+if [ -f ".template/project.yaml" ]; then
+  layout="$(awk -F ':[[:space:]]*' '$1 == "layout" { print $2; exit }' .template/project.yaml)"
+  if [ "$layout" = "monorepo" ]; then
+    printf '%s\n' 'monorepo layout selected; component-aware CI is not enabled, so stack detection is skipped.' >&2
+    echo "unknown"
+    exit 0
+  fi
+fi
+
 has_manifest() {
   [ -f "$1" ] || [ -f "src/$1" ]
 }

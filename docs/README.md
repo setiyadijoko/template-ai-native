@@ -52,6 +52,7 @@ Architecture Decision Records — traceable, dated, reversible decisions.
 
 - [adr/README.md](adr/README.md) — process & index
 - [adr/0001-record-architecture-decisions.md](adr/0001-record-architecture-decisions.md)
+- [adr/0006-explicit-project-layout.md](adr/0006-explicit-project-layout.md)
 
 ## Other documentation
 
