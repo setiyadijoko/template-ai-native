@@ -4,8 +4,12 @@ This is the documentation tree for `template-ai-native`. Documents are the sourc
 
 ## How to navigate
 
+Start with the [getting-started guide](getting-started.md) if this is your first
+consumer repository or if GitHub/Git terminology is unfamiliar.
+
 | Start with | For |
 |---|---|
+| [getting-started.md](getting-started.md) | Step-by-step setup, terms, expected results, and troubleshooting |
 | [../PRODUCT.md](../PRODUCT.md) | Why (vision, problem, users, metrics) |
 | [../DESIGN.md](../DESIGN.md) | What (approved system design) |
 | [../ARCHITECTURE.md](../ARCHITECTURE.md) | How (executive architecture) |

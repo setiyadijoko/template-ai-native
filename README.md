@@ -13,48 +13,50 @@ A reusable, production-grade, **stack-agnostic** GitHub template for building AI
 
 This is a **template repository** ("Use this template"). Consumers create a new repo from it and select their stack; the template's CI adapts via `scripts/detect-stack.sh`. It targets AI-enabled enterprise applications, AI agents and agentic workflows, RAG applications, LLM gateways, document extraction and OCR, internal enterprise apps, API services, web apps, background workers, data-processing apps, integration platforms, and cloud-native or self-hosted systems.
 
-## How to use this template
+## Quick start for every skill level
 
-1. Select **Use this template** on GitHub and create a new repository for your
-   application. Do not build the application directly in this template repo.
-2. Clone the new repository, copy `.env.example` to `.env`, and keep real
-   credentials in the approved secret manager—not in Git.
-3. Initialize the consumer-facing README identity. This changes only the
-   marked identity block; it does not configure workflows or write credentials:
+This repository is a starting point for an application, not the application
+itself. The shortest safe path is:
+
+1. Click **Use this template** on GitHub and create a new repository.
+2. Clone that new repository and enter its directory.
+3. Personalize the README identity:
 
    ```sh
    ./scripts/init-project.sh --name my-app --description "My application" --stack auto
    ```
 
-   Use `--reconfigure` only when intentionally replacing a previously generated
-   identity block.
-4. Define the business objective, users, scope, acceptance criteria, and
-   security/data impact in `PRODUCT.md` and `DESIGN.md`. Record architecture
-   choices in `docs/adr/` before implementing them.
-5. Adopt your runtime and framework under `src/`. The CI dispatcher detects
-   supported Python, Node.js, Go, Java, and .NET projects; it remains a clean
-   no-op while the template has no consumer stack.
-6. Run the local baseline and inspect the complete diff before opening a PR:
+4. Write the business goal in `PRODUCT.md` and the approved design in
+   `DESIGN.md`.
+5. Add your application under `src/` and tests under `tests/`.
+6. Run the local checks:
 
    ```sh
-   make setup
    make ci
    make docs-check
    ```
 
-7. Configure repository governance with
-   `scripts/setup-branch-protection.sh`, require the relevant checks on
-   `main`, and merge changes through reviewed pull requests.
-8. Use the advisory `code-review-graph` report to inspect change impact and
-   test gaps. Promote it to a merge gate only after measuring false positives
-   and recording the decision in an ADR.
-9. Optionally build a local Graphify knowledge graph to explore repository-wide
-   relationships; follow [`docs/ai/graphify.md`](docs/ai/graphify.md) and keep
-   generated output out of version control.
-10. When the application has a deployment target, wire the development,
-   staging, production, smoke-test, observability, and rollback skeletons to
-   that platform. Keep production protected by GitHub Environment approval and
-   promote the exact artifact validated in staging.
+7. Create a branch, commit your changes, and open a pull request on GitHub.
+
+If you are new to GitHub or software projects, follow the step-by-step
+walk-through in [`docs/getting-started.md`](docs/getting-started.md). It
+explains the terms, expected results, optional controls, and common problems.
+
+### What is required and what is optional?
+
+| Do this first | Add when needed | Consumer-specific |
+|---|---|---|
+| `PRODUCT.md`, `DESIGN.md`, `src/`, tests, `make ci`, secret handling | AI evaluations, Alibaba review, Graphify, Code Review Graph promotion | Runtime provider, database, deployment target, health endpoint, GitHub Environments |
+
+The template is useful even when no stack has been chosen yet. In that state,
+stack-dependent commands report a clean no-op; this is expected, not a failure.
+
+## How to use this template
+
+The [getting-started guide](docs/getting-started.md) contains the complete
+walk-through. Experienced users can use the quick start above, then consult
+the linked security, AI, development, and operations documents as each area is
+introduced.
 
 The template supplies governance and workflow contracts; the consumer remains
 responsible for application code, provider configuration, secrets, health

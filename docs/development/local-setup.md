@@ -2,6 +2,10 @@
 
 **Status:** Adapt to your project.
 
+If this is your first consumer repository, start with the
+[getting-started guide](../getting-started.md). This page is the short command
+reference.
+
 ```sh
 git clone <your-repo>
 cd <your-repo>
