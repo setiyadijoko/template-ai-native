@@ -73,6 +73,7 @@ These no-op cleanly until a stack is detected in `src/`. `make ci` and `make doc
 | `docs/` (incl. `docs/plans/active/`) | Project | Yes — keep in sync with changes |
 | `docs/adr/` | Project | Yes — add a new ADR for architecture decisions |
 | `prompts/`, `evals/` | Project | Yes — prompt changes are reviewed like code |
+| `.template/` | Consumer project metadata | Yes — generated layout config is credential-free and reviewed like code |
 | `.github/workflows/` | Template maintainers | Yes, with care; workflow security rules apply |
 | `infrastructure/`, `deployment/`, `observability/` | Consumer | Yes, with relevant scans |
 | `AGENTS.md`, `PRODUCT.md`, `DESIGN.md`, `ARCHITECTURE.md` | Project | Yes — `DESIGN.md` only after approval |

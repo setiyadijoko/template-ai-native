@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added explicit `single`/`monorepo`/`undecided` layout selection, credential-free
+  project config validation, and fail-safe monorepo detection. Component-aware
+  CI remains deferred until its execution and check-context contract is approved.
 - Added a beginner-friendly getting-started guide with quick-start steps,
   required/optional control mapping, terminology, expected results, and
   troubleshooting; linked it from the root README and documentation index.
