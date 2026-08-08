@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added the README-only `scripts/init-project.sh` initializer with explicit
+  reconfiguration protection and contract tests; it updates only the marked
+  consumer identity block and does not activate profile-aware controls.
 - Added coherent example task/system prompts, referenced JSON schemas, golden fixtures, provider-neutral evaluation config and runner contract, version-pinning and branch-protection guidance, optional PostHog observability guidance, and stack-specific cache guidance.
 - Documented optional Graphify codebase knowledge integration without changing
   the existing Code Review Graph or Alibaba review workflows.
@@ -29,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Phase-1 CI workflows: `pr-title`, `validate-metadata`, `docs-check`, `action-security` (least-privilege, pinned Actions) + `.markdownlint.jsonc`.
 
 ### Changed
+- Synchronized README maturity and deployment status with the shipped Phase 1–6
+  baseline; documented profile-driven adoption as deferred roadmap work pending
+  a compatible CI check-context design.
 - Archived the shipped Phase 6 design and implementation plan under `docs/plans/completed/` and synchronized the roadmap status through Phase 6.
 - Documentation tree: `docs/` (product, architecture, ADRs, API, security, AI, development, operations, templates, plans) + ADR-0001.
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.

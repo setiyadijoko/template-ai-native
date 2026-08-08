@@ -1,3 +1,4 @@
+<!-- template-ai-native:project-identity:start -->
 # template-ai-native
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
@@ -6,6 +7,7 @@
 **Status:** Template baseline — adapt to your project.
 
 A reusable, production-grade, **stack-agnostic** GitHub template for building AI-native applications to a consistent, governed standard — from discovery through production operation and continuous improvement. It carries engineering standards, AI-agent operating rules, architectural governance, documentation standards, quality gates, automated testing, security controls, supply-chain controls, AI evaluation, CI/CD workflows, deployment governance, production observability, operational readiness, and rollback/disaster-recovery procedures — **without** committing to a specific language, framework, or deployment target.
+<!-- template-ai-native:project-identity:end -->
 
 ## Project overview
 
@@ -17,13 +19,22 @@ This is a **template repository** ("Use this template"). Consumers create a new 
    application. Do not build the application directly in this template repo.
 2. Clone the new repository, copy `.env.example` to `.env`, and keep real
    credentials in the approved secret manager—not in Git.
-3. Define the business objective, users, scope, acceptance criteria, and
+3. Initialize the consumer-facing README identity. This changes only the
+   marked identity block; it does not configure workflows or write credentials:
+
+   ```sh
+   ./scripts/init-project.sh --name my-app --description "My application" --stack auto
+   ```
+
+   Use `--reconfigure` only when intentionally replacing a previously generated
+   identity block.
+4. Define the business objective, users, scope, acceptance criteria, and
    security/data impact in `PRODUCT.md` and `DESIGN.md`. Record architecture
    choices in `docs/adr/` before implementing them.
-4. Adopt your runtime and framework under `src/`. The CI dispatcher detects
+5. Adopt your runtime and framework under `src/`. The CI dispatcher detects
    supported Python, Node.js, Go, Java, and .NET projects; it remains a clean
    no-op while the template has no consumer stack.
-5. Run the local baseline and inspect the complete diff before opening a PR:
+6. Run the local baseline and inspect the complete diff before opening a PR:
 
    ```sh
    make setup
@@ -31,16 +42,16 @@ This is a **template repository** ("Use this template"). Consumers create a new 
    make docs-check
    ```
 
-6. Configure repository governance with
+7. Configure repository governance with
    `scripts/setup-branch-protection.sh`, require the relevant checks on
    `main`, and merge changes through reviewed pull requests.
-7. Use the advisory `code-review-graph` report to inspect change impact and
+8. Use the advisory `code-review-graph` report to inspect change impact and
    test gaps. Promote it to a merge gate only after measuring false positives
    and recording the decision in an ADR.
-8. Optionally build a local Graphify knowledge graph to explore repository-wide
+9. Optionally build a local Graphify knowledge graph to explore repository-wide
    relationships; follow [`docs/ai/graphify.md`](docs/ai/graphify.md) and keep
    generated output out of version control.
-9. When the application has a deployment target, wire the development,
+10. When the application has a deployment target, wire the development,
    staging, production, smoke-test, observability, and rollback skeletons to
    that platform. Keep production protected by GitHub Environment approval and
    promote the exact artifact validated in staging.
@@ -130,7 +141,21 @@ Tests live under `tests/{unit,contract,integration,e2e,security,performance}/`. 
 
 ## Deployment overview
 
-Environments: `local`, `test` (CI), `development`, `staging`, `production`. Development deploys on merge to `main`; staging is manual and protected; production is **human-gated** via GitHub Environment approval with OIDC and promotes the exact artifact validated in staging (no rebuild). See [`docs/operations/deployment-guide.md`](docs/operations/deployment-guide.md).
+Environments are scoped as `local`, `test` (CI), `development`, `staging`, and
+`production`. The deployment and smoke-test workflows are **skeletons** until a
+consumer selects a platform, wires OIDC and health checks, and configures the
+corresponding GitHub Environments. Production must remain human-gated and must
+promote the exact artifact validated in staging (no rebuild). See
+[`docs/operations/deployment-guide.md`](docs/operations/deployment-guide.md).
+
+## Adoption profiles (roadmap)
+
+The template currently ships one governed baseline; it does not yet activate
+Starter, Standard, or Enterprise controls automatically. Profile-aware
+configuration and bootstrap are recorded in [`docs/plans/roadmap.md`](docs/plans/roadmap.md)
+and will be introduced only after the CI check-context compatibility design is
+approved. Until then, consumers select the controls they need explicitly and
+keep the existing security defaults.
 
 ## Documentation index
 
@@ -149,4 +174,15 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Trunk-based development, all changes via
 
 ## Current project status
 
-**Phase 1 (Repository governance): in progress.** Phases 2–6 (code-quality baseline, security baseline, AI-native capability, delivery pipeline, production readiness) are planned — see `docs/superpowers/specs/2026-08-05-template-ai-native-design.md` and `docs/superpowers/plans/2026-08-05-phase1-repository-governance.md`.
+| Phase | Capability | Status |
+|---|---|---|
+| 1 | Repository governance | Complete baseline |
+| 2 | Code quality | Complete baseline |
+| 3 | Security baseline | Complete baseline |
+| 4 | AI-native capability | Baseline available; provider wiring remains consumer-specific |
+| 5 | Delivery pipeline | Baseline/skeleton available; platform wiring required |
+| 6 | Production readiness | Governance baseline; evidence and platform configuration required |
+
+The template itself is not a production application. A consumer must adopt a
+stack, configure providers and deployment targets, supply operational evidence,
+and complete the required human approvals before production use.
