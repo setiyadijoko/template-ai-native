@@ -75,21 +75,32 @@ and `other`. Layout values are `single`, `monorepo`, and `undecided`. Use
 `auto` and `undecided` when you have not selected a stack or layout yet.
 
 When the command is run interactively without `--layout`, it asks whether the
-repository contains one application or multiple applications/services. For a
-monorepo, also provide the primary component path:
+repository contains one application or multiple applications/services. A
+monorepo uses the explicit version-2 component contract; provide each component
+as `ID=PATH:STACK` (repeat `--component` as needed):
 
 ```sh
 ./scripts/init-project.sh \
   --name ev-charge-tracker \
   --description "EV charging tracker" \
-  --stack go \
+  --stack auto \
   --layout monorepo \
-  --primary-path src/backend
+  --primary-path src/backend \
+  --component backend=src/backend:go \
+  --component frontend=src/frontend:node
 ```
 
+The primary path may be omitted when the first component should be primary.
+Every generated component is required by default; optional components can be
+declared later by editing the reviewed `.template/project.yaml` contract.
+Single-stack and undecided layouts continue to generate the compatible
+version-1 config.
+
 The initializer changes only the marked project identity block in `README.md`
-and writes the credential-free `.template/project.yaml` layout declaration. It
-does not create credentials, change workflows, or enable profile-aware controls.
+and writes the credential-free `.template/project.yaml` layout declaration. For
+monorepos it validates and writes the explicit component list used by
+`ci-monorepo.yml`. It does not create credentials, change workflows, or enable
+profile-aware controls.
 If you intentionally need to replace a generated identity and config, use
 `--reconfigure`:
 

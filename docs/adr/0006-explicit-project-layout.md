@@ -15,7 +15,8 @@ toolchain against the wrong component.
 ## Decision
 
 The consumer initializer records a credential-free layout declaration in
-`.template/project.yaml`. Version 1 remains the compatibility format:
+`.template/project.yaml`. Single and undecided layouts use version 1, which
+remains the compatibility format:
 
 ```yaml
 version: 1
@@ -32,7 +33,8 @@ Version 1 monorepo configuration returns `unknown` from
 single-stack workflows must not guess which nested service to build or test.
 Repositories without a config retain compatibility behavior.
 
-Version 2 enables the explicit component contract after validation:
+For monorepos, the initializer requires explicit repeatable component values
+(`--component ID=PATH:STACK`) and writes version 2:
 
 ```yaml
 version: 2
