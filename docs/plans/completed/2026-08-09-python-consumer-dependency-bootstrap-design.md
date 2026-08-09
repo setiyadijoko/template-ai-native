@@ -1,6 +1,6 @@
 # Python Consumer Dependency Bootstrap Design
 
-**Status:** Approved for implementation on 2026-08-09.
+**Status:** Completed on 2026-08-09; hosted consumer revalidation remains external evidence.
 
 ## Problem
 
@@ -22,8 +22,9 @@ incorrect; broadening the measured test scope is not part of this change.
 ## Decision
 
 Add a focused POSIX-shell Python dependency bootstrap helper owned by the
-template. Single-stack and component-aware quality, test, and build jobs call
-the helper after Python setup and before mapper commands.
+template. Local `make setup` plus single-stack and component-aware quality,
+test, and build jobs call the helper after Python setup and before mapper
+commands.
 
 The helper operates from the current project or component directory and:
 
@@ -66,7 +67,8 @@ versions.
 The existing check names, triggers, permissions, SHA-pinned Actions,
 concurrency groups, mapper commands, and artifact behavior remain unchanged.
 Only the duplicated Python installation steps are replaced with calls to the
-shared helper.
+shared helper. Local `make setup` calls the same helper for Python and preserves
+the existing setup message for other detected stacks.
 
 ### Regression fixture
 
@@ -115,7 +117,8 @@ contract.
 
 1. The reported PEP 621 consumer contract installs its runtime and development
    dependencies before Python quality and tests.
-2. Single-stack and component-aware Python jobs use the same helper.
+2. Local setup plus single-stack and component-aware Python jobs use the same
+   helper.
 3. Empty templates and non-Python stacks retain their existing behavior.
 4. Requirements-based and `setup.py` projects have deterministic tested
    bootstrap paths.
@@ -126,6 +129,15 @@ contract.
 7. Fixture, workflow, shell, documentation, and security contracts pass.
 8. The complete diff contains no profile-aware, deployment, or unrelated stack
    changes.
+
+## Remaining compatibility boundary
+
+The helper can install a Python dependency manifest directly under `src/`, but
+the pre-existing build mapper still invokes `python -m build` from the current
+working directory. Hosted packaging for a single-stack direct-`src/` manifest
+is therefore not claimed by this change and is tracked as TD-0018. A nested
+service that needs independently governed packaging should use an explicit
+version-2 component path meanwhile.
 
 ## Rollback
 

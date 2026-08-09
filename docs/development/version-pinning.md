@@ -17,10 +17,35 @@ template has these cache behaviors:
 | Python | No default cache | Add `cache: pip` and an explicit `cache-dependency-path` after choosing the requirements/lockfile format. |
 | .NET | No default cache | Add a NuGet cache keyed by `packages.lock.json` or the selected lockfile after adopting the stack. |
 
-Python and .NET are intentionally not changed speculatively: the template has
-no consumer dependency file, and a cache key without a committed lockfile can
-reuse stale dependencies. Enable the cache together with the consumer's
-dependency and runtime pinning.
+Python and .NET caching is intentionally not enabled speculatively: a cache key
+without a committed consumer lockfile can reuse stale dependencies. Enable the
+cache together with the consumer's dependency and runtime pinning.
+
+## Python CI dependency contract
+
+Python consumers own their runtime and development versions. The shared
+`scripts/setup-python-deps.sh` installs those dependencies before inherited
+quality, test, and build commands run. When the consumer has not supplied a
+required CI tool, the helper uses these repository-controlled fallbacks from
+`scripts/python-ci-tools.txt`:
+
+| Tool | Fallback version |
+|---|---|
+| Ruff | 0.15.22 |
+| mypy | 2.3.0 |
+| pytest | 9.1.1 |
+| pytest-cov | 7.1.0 |
+| build | 1.5.0 |
+
+The helper checks import availability after installing consumer dependencies;
+it does not replace a compatible consumer-provided tool merely because its
+version differs from the fallback. Review fallback upgrades like any other CI
+toolchain change.
+
+No default pip cache is enabled. Cache activation requires a committed lock or
+constraints file and an explicit `cache-dependency-path`. A Pipfile alone is
+not a reproducible hosted-install contract; adopt and document a pinned Pipenv
+toolchain plus `Pipfile.lock` before adding that path.
 
 ## Upgrade process
 

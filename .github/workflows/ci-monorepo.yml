@@ -55,9 +55,9 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
-      - name: Install Python dev deps
+      - name: Install Python consumer deps
         if: matrix.component.stack == 'python'
-        run: pip install ruff mypy pytest pytest-cov build
+        run: sh "$GITHUB_WORKSPACE/scripts/setup-python-deps.sh"
 
       - name: Setup Node
         if: matrix.component.stack == 'node'
@@ -133,9 +133,9 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
-      - name: Install Python dev deps
+      - name: Install Python consumer deps
         if: matrix.component.stack == 'python'
-        run: pip install ruff mypy pytest pytest-cov build
+        run: sh "$GITHUB_WORKSPACE/scripts/setup-python-deps.sh"
 
       - name: Setup Node
         if: matrix.component.stack == 'node'
@@ -223,9 +223,9 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
-      - name: Install Python dev deps
+      - name: Install Python consumer deps
         if: matrix.component.stack == 'python'
-        run: pip install ruff mypy pytest pytest-cov build
+        run: sh "$GITHUB_WORKSPACE/scripts/setup-python-deps.sh"
 
       - name: Setup Node
         if: matrix.component.stack == 'node'
