@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Structural contracts for public CodeQL and OpenSSF Scorecard enforcement.
+# Structural contracts for public security enforcement and audit tooling.
 set -eu
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -10,8 +10,10 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 CODEQL="$ROOT/.github/workflows/codeql.yml"
 SCORECARD="$ROOT/.github/workflows/scorecard.yml"
 OSV="$ROOT/.github/workflows/dependency-review.yml"
+AUDIT="$ROOT/.github/workflows/dependency-audit.yml"
 AGENTS="$ROOT/AGENTS.md"
 VULNERABILITY="$ROOT/docs/security/vulnerability-management.md"
+POLICY="$ROOT/docs/security/dependency-policy.md"
 ASSUMPTIONS="$ROOT/docs/assumptions.md"
 DEBT="$ROOT/docs/plans/technical-debt.md"
 CHANGELOG="$ROOT/CHANGELOG.md"
@@ -200,6 +202,15 @@ assert_contains "osv permits the empty template" "$OSV" '--allow-no-lockfiles'
 assert_contains "osv keeps table output" "$OSV" '--format=table \.$'
 assert_contains "osv fails closed on scanner errors" "$OSV" 'set -euo pipefail'
 assert_not_contains "osv does not use the v1 CLI syntax" "$OSV" 'v1\.9\.2|osv-scanner scan recursive'
+
+# Scheduled dependency audits: pin executable tooling while preserving the
+# advisory failure policy.
+assert_contains "dependency audit pins pip-audit" "$AUDIT" 'pip-audit==2\.10\.1'
+assert_contains "dependency audit pins govulncheck" "$AUDIT" 'govulncheck@v1\.1\.4'
+assert_not_contains "dependency audit has no mutable pip-audit install" "$AUDIT" 'pip install[[:space:]].*pip-audit([[:space:]]|$)'
+assert_not_contains "dependency audit has no mutable govulncheck install" "$AUDIT" 'govulncheck@latest'
+assert_contains "dependency policy documents pip-audit pin" "$POLICY" 'pip-audit v2\.10\.1'
+assert_contains "dependency policy documents govulncheck pin" "$POLICY" 'govulncheck v1\.1\.4'
 
 assert_action_pins "security workflows pin actions with release tags" "$CODEQL" "$SCORECARD"
 
