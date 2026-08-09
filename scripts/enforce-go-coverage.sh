@@ -5,9 +5,11 @@ set -eu
 PROFILE="${1:-coverage.out}"
 MINIMUM_PERCENT=80
 
+printf 'Required Go coverage threshold: %s%%\n' "$MINIMUM_PERCENT"
+
 if [ ! -f "$PROFILE" ]; then
-  printf 'No Go coverage profile found; coverage gate is not measurable for this component.\n'
-  exit 0
+  printf '::error::No Go coverage profile found; coverage gate is not measurable for this component.\n' >&2
+  exit 1
 fi
 
 pct="$(go tool cover -func="$PROFILE" | awk '/^total:/ {gsub("%", "", $3); print $3}')"
