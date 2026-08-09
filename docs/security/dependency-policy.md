@@ -3,7 +3,9 @@
 **Status:** Adapt to your project.
 
 ## Phase 3 controls
-- **dependency-review (PR, blocking):** `fail-on-severity: high`.
+- **dependency-review (PR, blocking):** OSV-Scanner v2.4.0 recursively scans
+  supported manifests and lockfiles. A known vulnerability fails the job;
+  `--allow-no-lockfiles` only permits the empty template to remain green.
 - **dependency-audit (weekly cron, advisory):** `npm audit --audit-level=high` / `pip-audit` / `govulncheck`, auto-detected by manifest.
 - **license-check (PR, advisory):** `scripts/license-check.sh` enforces an allowlist/denylist.
 
