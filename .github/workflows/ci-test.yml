@@ -81,10 +81,7 @@ jobs:
       # Go has no native --cov-fail-under; enforce >=80% from the profile.
       - name: Enforce go coverage >= 80%
         if: inputs.stack == 'go' && hashFiles('coverage.out') != ''
-        run: |
-          pct=$(go tool cover -func=coverage.out | awk '/^total:/ {gsub("%","",$3); print $3}')
-          echo "Go coverage: ${pct}%"
-          awk "BEGIN {exit !($pct >= 80)}" || { echo "::error::Go coverage ${pct}% < 80%"; exit 1; }
+        run: sh scripts/enforce-go-coverage.sh
 
       - name: Upload coverage report
         if: always()

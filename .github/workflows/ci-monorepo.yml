@@ -181,17 +181,7 @@ jobs:
           sh -c "$command"
       - name: Enforce go coverage >= 80%
         if: matrix.component.stack == 'go'
-        run: |
-          if [ -f coverage.out ]; then
-            pct=$(go tool cover -func=coverage.out | awk '/^total:/ {gsub("%","",$3); print $3}')
-            echo "Go coverage: ${pct}%"
-            awk "BEGIN {exit !($pct >= 80)}" || {
-              echo "::error::Go coverage ${pct}% < 80%"
-              exit 1
-            }
-          else
-            echo "No Go coverage profile found; coverage gate is not measurable for this component."
-          fi
+        run: sh "$GITHUB_WORKSPACE/scripts/enforce-go-coverage.sh"
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added `scripts/enforce-go-coverage.sh` as the shared 80% Go coverage gate for
+  single-stack and component-aware CI, with focused contract tests.
 - Added version-2 monorepo component generation to `scripts/init-project.sh`;
   single and undecided layouts retain the version-1 compatibility format.
 - Added an accepted component-aware monorepo CI contract based on the MangaHub
