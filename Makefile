@@ -61,6 +61,7 @@ readiness-check:   ; @sh scripts/validate-production-readiness.sh
 project-config-check: ; @sh scripts/validate-project-config.sh
 test-scripts:
 	@sh scripts/test/test-stack-detection.sh
+	@sh scripts/test/test-node-test-category.sh
 	@sh scripts/test/test-go-coverage.sh
 	@sh scripts/test/test-consumer-regressions.sh
 	@sh scripts/test/test-delivery-workflows.sh

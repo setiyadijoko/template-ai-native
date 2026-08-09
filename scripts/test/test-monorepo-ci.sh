@@ -7,7 +7,9 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 . "$HERE/lib.sh"
 
 CI="$ROOT/.github/workflows/ci.yml"
+CI_QUALITY="$ROOT/.github/workflows/ci-quality.yml"
 CI_TEST="$ROOT/.github/workflows/ci-test.yml"
+BUILD="$ROOT/.github/workflows/build.yml"
 MONO="$ROOT/.github/workflows/ci-monorepo.yml"
 RESOLVER="$ROOT/scripts/resolve-components.sh"
 
@@ -36,13 +38,47 @@ assert_not_contains() {
 }
 
 assert_pins() {
-  invalid="$(sed -n 's/^[[:space:]]*uses:[[:space:]]*//p' "$MONO" | grep -Ev '^[^[:space:]#]+@[0-9a-f]{40}([[:space:]]+#.*)?$' || true)"
+  invalid="$(sed -n 's/^[[:space:]]*uses:[[:space:]]*//p' "$CI_QUALITY" "$MONO" | grep -Ev '^[^[:space:]#]+@[0-9a-f]{40}([[:space:]]+#.*)?$' || true)"
   if [ -z "$invalid" ]; then
     PASS=$((PASS+1))
   else
     FAIL=$((FAIL+1))
-    printf 'FAIL monorepo workflow pins actions\n%s\n' "$invalid" >&2
+    printf 'FAIL Go quality workflows pin actions\n%s\n' "$invalid" >&2
   fi
+}
+
+assert_golangci_installer() {
+  gci_label="$1"
+  gci_file="$2"
+  assert_contains "$gci_label pins official action" "$gci_file" \
+    'uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a[[:space:]]+# v9\.3\.0'
+  assert_contains "$gci_label pins linter version" "$gci_file" \
+    'version:[[:space:]]+v2\.12\.2([[:space:]]|$)'
+  assert_contains "$gci_label installs without duplicate lint run" "$gci_file" \
+    'install-only:[[:space:]]+true([[:space:]]|$)'
+}
+
+assert_concurrency_suffix() {
+  label="$1"
+  file="$2"
+  suffix="$3"
+  group="$(awk '
+    /^concurrency:[[:space:]]*$/ { inside=1; next }
+    inside && /^[^[:space:]]/ { exit }
+    inside && /^[[:space:]]+group:/ {
+      sub(/^[[:space:]]+group:[[:space:]]*/, "")
+      print
+      exit
+    }
+  ' "$file")"
+  case "$group" in
+    *"-$suffix-"*) PASS=$((PASS+1)) ;;
+    *)
+      FAIL=$((FAIL+1))
+      printf 'FAIL %s\n     concurrency group lacks unique suffix %s: %s\n' \
+        "$label" "$suffix" "$group" >&2
+      ;;
+  esac
 }
 
 assert_contains "dispatcher exposes layout" "$CI" 'layout:.*steps\.d\.outputs\.layout'
@@ -50,6 +86,14 @@ assert_contains "dispatcher calls monorepo workflow" "$CI" 'uses: ./\.github/wor
 assert_contains "dispatcher exposes safe component output" "$CI" 'component_ready:.*steps\.d\.outputs\.component_ready'
 assert_contains "dispatcher gates monorepo workflow" "$CI" "component_ready == 'true'"
 assert_contains "resolver is executable" "$RESOLVER" 'version: 2'
+
+# Called workflows inherit github.workflow from the caller. A reusable workflow
+# must therefore add its own stable suffix or its cancel-in-progress group can
+# cancel the top-level dispatcher for the same ref.
+assert_concurrency_suffix "quality workflow isolates concurrency" "$CI_QUALITY" 'ci-quality'
+assert_concurrency_suffix "test workflow isolates concurrency" "$CI_TEST" 'ci-test'
+assert_concurrency_suffix "build workflow isolates concurrency" "$BUILD" 'build'
+assert_concurrency_suffix "monorepo workflow isolates concurrency" "$MONO" 'ci-monorepo'
 
 assert_contains "monorepo workflow is reusable" "$MONO" 'workflow_call:'
 assert_contains "monorepo workflow validates config" "$MONO" 'resolve-components\.sh --validate'
@@ -66,6 +110,8 @@ assert_contains "component working directory" "$MONO" 'working-directory:.*matri
 assert_contains "component artifact upload" "$MONO" 'build-\$\{\{ matrix\.component\.id \}\}'
 assert_contains "artifact metadata commit" "$MONO" 'GITHUB_SHA'
 assert_not_contains "monorepo workflow has no pull request target" "$MONO" 'pull_request_target:'
+assert_golangci_installer "single-stack Go lint" "$CI_QUALITY"
+assert_golangci_installer "monorepo Go lint" "$MONO"
 assert_pins
 
 report

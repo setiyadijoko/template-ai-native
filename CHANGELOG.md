@@ -61,6 +61,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Fixed
+- Isolated reusable CI concurrency groups so called workflows cannot cancel the
+  top-level dispatcher, added SHA-pinned `golangci-lint` v2.12.2 installation,
+  and made empty optional Node.js integration/e2e categories skip explicitly
+  while preserving real Vitest failures.
+- Expanded the version-2 Go/Node consumer fixture with minimal source and unit
+  tests for local consumer contracts ahead of hosted-runner verification.
 - Aligned the getting-started and local-setup clone examples with the
   copy-safe README owner/repository placeholders.
 - Replaced angle-bracket `git clone` and `cd` placeholders in the root README

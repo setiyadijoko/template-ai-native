@@ -14,6 +14,11 @@ LOCAL_SETUP="$ROOT/docs/development/local-setup.md"
 FIXTURE="$ROOT/tests/fixtures/consumer-monorepo"
 CONFIG="$FIXTURE/.template/project.yaml"
 ARTIFACTS="$ROOT/docs/development/artifact-conventions.md"
+BACKEND_SOURCE="$FIXTURE/src/backend/main.go"
+BACKEND_TEST="$FIXTURE/src/backend/main_test.go"
+FRONTEND_SOURCE="$FIXTURE/src/frontend/src/index.ts"
+FRONTEND_TEST="$FIXTURE/src/frontend/tests/unit/app.test.ts"
+NODE_CATEGORY_HELPER="$ROOT/scripts/run-node-test-category.sh"
 
 assert_contains() {
   label="$1"
@@ -58,6 +63,10 @@ assert_contains "fixture declares backend component" "$CONFIG" '^[[:space:]]+- i
 assert_contains "fixture declares frontend component" "$CONFIG" '^[[:space:]]+- id:[[:space:]]+frontend$'
 assert_contains "fixture includes Go manifest" "$FIXTURE/src/backend/go.mod" '^module[[:space:]]+example\.com/template-ai-native-fixture/backend$'
 assert_contains "fixture includes Node manifest" "$FIXTURE/src/frontend/package.json" '"name"[[:space:]]*:[[:space:]]*"template-ai-native-fixture-frontend"'
+assert_contains "fixture includes Go source" "$BACKEND_SOURCE" '^func Greeting\(\) string'
+assert_contains "fixture includes Go unit test" "$BACKEND_TEST" '^func TestGreeting\(t \*testing\.T\)'
+assert_contains "fixture includes Node source" "$FRONTEND_SOURCE" '^export const applicationName ='
+assert_contains "fixture includes Node unit test" "$FRONTEND_TEST" 'describe\("consumer fixture"'
 
 assert_contains "artifact guide covers Next.js" "$ARTIFACTS" 'Next\.js.*\.next'
 assert_contains "artifact guide covers Nuxt" "$ARTIFACTS" 'Nuxt.*\.output'
@@ -80,5 +89,14 @@ else
   FAIL=$((FAIL+1))
   printf 'FAIL fixture project config validates\n' >&2
 fi
+
+integration_output="$(cd "$FIXTURE/src/frontend" && \
+  sh "$NODE_CATEGORY_HELPER" integration)"
+assert_eq "fixture skips absent Node integration category" "$integration_output" \
+  "[skip] no Node.js integration tests found under tests/integration"
+
+e2e_output="$(cd "$FIXTURE/src/frontend" && sh "$NODE_CATEGORY_HELPER" e2e)"
+assert_eq "fixture skips absent Node e2e category" "$e2e_output" \
+  "[skip] no Node.js e2e tests found under tests/e2e"
 
 report

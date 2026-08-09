@@ -46,8 +46,8 @@ case "$STACK:$ACTION" in
   node:lint)                echo "npx --no-install eslint ." ;;
   node:typecheck)           echo "npx --no-install tsc --noEmit" ;;
   node:test-unit)           echo "npx --no-install vitest run --dir tests/unit" ;;
-  node:test-integration)    echo "npx --no-install vitest run --dir tests/integration" ;;
-  node:test-e2e)            echo "npx --no-install vitest run --dir tests/e2e" ;;
+  node:test-integration)    printf 'sh "%s/run-node-test-category.sh" integration\n' "$HERE" ;;
+  node:test-e2e)            printf 'sh "%s/run-node-test-category.sh" e2e\n' "$HERE" ;;
   node:coverage)            echo "npx --no-install vitest run --coverage --coverage.thresholds.lines=80" ;;
   node:build)               echo "npm run build" ;;
 
