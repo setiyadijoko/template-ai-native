@@ -46,7 +46,8 @@ assert_pins() {
 
 assert_contains "dispatcher exposes layout" "$CI" 'layout:.*steps\.d\.outputs\.layout'
 assert_contains "dispatcher calls monorepo workflow" "$CI" 'uses: ./\.github/workflows/ci-monorepo\.yml'
-assert_contains "dispatcher gates monorepo workflow" "$CI" "component-ready == 'true'"
+assert_contains "dispatcher exposes safe component output" "$CI" 'component_ready:.*steps\.d\.outputs\.component_ready'
+assert_contains "dispatcher gates monorepo workflow" "$CI" "component_ready == 'true'"
 assert_contains "resolver is executable" "$RESOLVER" 'version: 2'
 
 assert_contains "monorepo workflow is reusable" "$MONO" 'workflow_call:'

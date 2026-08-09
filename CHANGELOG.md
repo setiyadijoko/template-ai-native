@@ -55,6 +55,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Fixed
+- Fixed the component-aware dispatcher output key to use an expression-safe
+  identifier, made Node.js quality/test commands resolve local project binaries
+  with `npx --no-install`, and documented the intentional MD060 table-style
+  exemption for the existing compact template tables.
 - Fixed the graph-review report handoff by pinning the action version that exports `comment-file`; hardened the trusted `workflow_run` publisher to satisfy zizmor's permission and concurrency checks.
 - Repaired the Phase 5 build-to-release chain: same-run provenance attestation,
   exact-commit CI artifact promotion without rebuild, fail-closed artifact

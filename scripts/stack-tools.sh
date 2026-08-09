@@ -41,14 +41,14 @@ case "$STACK:$ACTION" in
   python:coverage)          echo "pytest --cov=src --cov-report=xml --cov-report=term --cov-fail-under=80 tests/unit" ;;
   python:build)             echo "python -m build" ;;
 
-  node:format)              echo "prettier --write ." ;;
-  node:format-check)        echo "prettier --check ." ;;
-  node:lint)                echo "eslint ." ;;
-  node:typecheck)           echo "tsc --noEmit" ;;
-  node:test-unit)           echo "vitest run --dir tests/unit" ;;
-  node:test-integration)    echo "vitest run --dir tests/integration" ;;
-  node:test-e2e)            echo "vitest run --dir tests/e2e" ;;
-  node:coverage)            echo "vitest run --coverage --coverage.thresholds.lines=80" ;;
+  node:format)              echo "npx --no-install prettier --write ." ;;
+  node:format-check)        echo "npx --no-install prettier --check ." ;;
+  node:lint)                echo "npx --no-install eslint ." ;;
+  node:typecheck)           echo "npx --no-install tsc --noEmit" ;;
+  node:test-unit)           echo "npx --no-install vitest run --dir tests/unit" ;;
+  node:test-integration)    echo "npx --no-install vitest run --dir tests/integration" ;;
+  node:test-e2e)            echo "npx --no-install vitest run --dir tests/e2e" ;;
+  node:coverage)            echo "npx --no-install vitest run --coverage --coverage.thresholds.lines=80" ;;
   node:build)               echo "npm run build" ;;
 
   go:format)                echo "gofmt -w ." ;;

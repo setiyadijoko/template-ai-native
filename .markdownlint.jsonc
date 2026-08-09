@@ -8,6 +8,7 @@
   "MD022": false,            // blanks around headings
   "MD031": false,            // blanks around fences/lists
   "MD032": false,            // blanks around lists
+  "MD060": false,            // table column style; existing template tables use compact pipes
   "MD024": { "siblings_only": true },
   "MD025": false,            // multiple top-level headings
   "MD033": false,            // inline HTML (badges, collapsible sections, HTML comments)
