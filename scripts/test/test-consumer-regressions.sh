@@ -9,6 +9,8 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 . "$HERE/lib.sh"
 
 README="$ROOT/README.md"
+GETTING_STARTED="$ROOT/docs/getting-started.md"
+LOCAL_SETUP="$ROOT/docs/development/local-setup.md"
 FIXTURE="$ROOT/tests/fixtures/consumer-monorepo"
 CONFIG="$FIXTURE/.template/project.yaml"
 ARTIFACTS="$ROOT/docs/development/artifact-conventions.md"
@@ -41,6 +43,14 @@ assert_contains "README uses copy-safe clone placeholder" "$README" 'git clone h
 assert_contains "README uses copy-safe cd placeholder" "$README" 'cd YOUR-REPO'
 assert_not_contains "README has no angle-bracket clone command" "$README" 'git clone <your-new-repo-from-this-template>'
 assert_not_contains "README has no angle-bracket cd command" "$README" 'cd <your-repo>'
+assert_contains "getting-started uses copy-safe clone placeholder" "$GETTING_STARTED" 'git clone https://github\.com/YOUR-ORG/YOUR-REPO\.git'
+assert_contains "getting-started uses copy-safe cd placeholder" "$GETTING_STARTED" 'cd YOUR-REPO'
+assert_not_contains "getting-started has no angle-bracket clone command" "$GETTING_STARTED" 'git clone https://github\.com/<owner>/<new-repository>\.git'
+assert_not_contains "getting-started has no angle-bracket cd command" "$GETTING_STARTED" 'cd <new-repository>'
+assert_contains "local setup uses copy-safe clone placeholder" "$LOCAL_SETUP" 'git clone https://github\.com/YOUR-ORG/YOUR-REPO\.git'
+assert_contains "local setup uses copy-safe cd placeholder" "$LOCAL_SETUP" 'cd YOUR-REPO'
+assert_not_contains "local setup has no angle-bracket clone command" "$LOCAL_SETUP" 'git clone <your-repo>'
+assert_not_contains "local setup has no angle-bracket cd command" "$LOCAL_SETUP" 'cd <your-repo>'
 
 assert_contains "fixture declares version 2" "$CONFIG" '^version:[[:space:]]+2$'
 assert_contains "fixture declares monorepo layout" "$CONFIG" '^layout:[[:space:]]+monorepo$'
