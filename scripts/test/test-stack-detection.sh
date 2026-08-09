@@ -77,6 +77,7 @@ rm -f package.json
 printf 'module x\n' > go.mod
 assert_eq "go lint" "$($TOOL lint)" "golangci-lint run"
 assert_eq "go typecheck" "$($TOOL typecheck)" "go vet ./..."
+assert_eq "go format-check" "$($TOOL format-check)" 'test -z "$(gofmt -l .)"'
 assert_eq "go build" "$($TOOL build)" "go build -o bin/ ./..."
 rm -f go.mod
 
@@ -91,5 +92,23 @@ assert_eq "dotnet format-check" "$($TOOL format-check)" "dotnet format --verify-
 assert_eq "dotnet test-unit" "$($TOOL test-unit)" "dotnet test --filter Category=Unit"
 assert_eq "dotnet build" "$($TOOL build)" "dotnet build -c Release"
 rm -f app.csproj
+
+# A version-2 monorepo is resolved by component-aware CI, not this
+# single-stack detector.
+mkdir -p .template src/backend
+cat > .template/project.yaml <<'EOF'
+version: 2
+layout: monorepo
+primary_stack: auto
+primary_path: src/backend
+components:
+  - id: backend
+    path: src/backend
+    stack: go
+    required: true
+    artifact: backend
+EOF
+assert_eq "detect declared v2 monorepo" "$($DET 2>/dev/null)" "unknown"
+rm -rf .template src
 
 report

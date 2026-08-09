@@ -1,6 +1,6 @@
-# ADR-0007: Define a component-aware monorepo CI contract before implementation
+# ADR-0007: Define a component-aware monorepo CI contract
 
-- **Status:** Proposed
+- **Status:** Accepted — implemented, advisory pending pilot
 - **Date:** 2026-08-09
 - **Decision owners:** Template maintainers and consumer project owners
 
@@ -18,18 +18,21 @@ execution without a contract would also make artifact names, required check
 contexts, path filtering, fork behavior, and branch-protection migration
 ambiguous.
 
-This ADR is a design proposal only. It does not change the current workflows,
-the version-1 project config, or the fail-safe `unknown` result.
+The MangaHub consumer pilot validated this contract: its Go backend and React
+frontend required explicit working directories, a consumer-owned bridge while
+the template remained `unknown`, and no root-level manifest symlink. This ADR
+now records the implemented contract; version-1 consumers and the existing
+single-stack workflows remain unchanged while version-2 support is advisory.
 
 ## Decision
 
-Before implementing component-aware CI, validate the following contract with
-at least one real consumer monorepo.
+Implement component-aware CI only through the following explicit contract,
+validated against the MangaHub consumer pilot.
 
 ### 1. Explicit component manifest
 
-Extend the versioned `.template/project.yaml` contract in a future schema
-revision rather than recursively discovering manifests. The proposed shape is:
+Version 2 of the `.template/project.yaml` contract lists components explicitly;
+the resolver validates the list rather than recursively discovering manifests:
 
 ```yaml
 version: 2
@@ -57,11 +60,11 @@ single-stack/`unknown` compatibility behavior.
 
 ### 2. Component fan-out and working directory
 
-Reusable workflows fan out from the validated component list. Each matrix job
-runs its stack tools with the component path as its working directory and
-receives only the configuration needed for that component. The mapper must
-gain an explicit path input before this is implemented; changing the current
-root-based mapper implicitly is not allowed.
+`ci-monorepo.yml` fans out from the validated component list. Each matrix job
+runs the existing stack tools with the component path as its working directory
+and receives only the configuration needed for that component. The root
+single-stack mapper remains unchanged; the workflow provides the path boundary
+through GitHub Actions defaults rather than changing root detection implicitly.
 
 Unsupported or invalid required components fail configuration validation before
 tool execution. Optional components may be marked advisory only after the
@@ -89,9 +92,9 @@ renamed as part of this work.
 ### 4. Artifacts and promotion
 
 Each component owns an artifact named with its validated id, such as
-`backend-build` or `frontend-build`. Artifact metadata must include the source
-commit and component id. Deployment, if later adopted, promotes the exact
-validated artifact; it does not rebuild a component for production.
+`build-backend` or `build-frontend`. Artifact metadata includes the source
+commit, component id, path, and stack. Deployment, if later adopted, promotes
+the exact validated artifact; it does not rebuild a component for production.
 
 ### 5. Paths, cost, and no-op behavior
 
@@ -143,8 +146,8 @@ Positive:
 
 Trade-offs:
 
-- The template remains `unknown` for declared monorepos until the contract is
-  accepted and implemented.
+- The single-stack detector remains `unknown` for declared monorepos; validated
+  version-2 configurations are routed through component-aware CI instead.
 - Consumer setup requires explicit component metadata rather than discovery.
 - Matrix CI can increase runtime and cost; a pilot must establish limits.
 
@@ -171,9 +174,11 @@ consumer's branch-protection plan before activation.
 ## Migration strategy
 
 1. Keep version-1 configs and no-config repositories unchanged.
-2. Validate this contract against a real consumer monorepo.
-3. Add version-2 schema validation and path-aware mapper support with tests.
-4. Run component checks advisory-only and measure cost, noise, and stability.
+2. Validate this contract against the MangaHub consumer pilot.
+3. Keep version-2 schema validation and component workflow support covered by
+   the resolver and workflow contract tests.
+4. Run component checks advisory-only and measure cost, noise, and stability
+   on a consumer pilot.
 5. Add the aggregate check to branch protection only after a human-approved
    migration plan and stable check evidence.
 

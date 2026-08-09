@@ -8,8 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Added proposed ADR-0007 defining the component-aware monorepo CI contract;
-  implementation remains deferred pending a consumer pilot.
+- Added an accepted component-aware monorepo CI contract based on the MangaHub
+  consumer pilot; version-2 component validation and advisory workflow support
+  are implemented without changing version-1 consumers or branch protection.
 - Added an illustrative OpenAPI `/health` contract, global bearer-auth default,
   explicit consumer guidance, and a regression contract test.
 - Added an SPDX license-header template and coding-standards guidance for

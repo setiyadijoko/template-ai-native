@@ -52,7 +52,7 @@ case "$STACK:$ACTION" in
   node:build)               echo "npm run build" ;;
 
   go:format)                echo "gofmt -w ." ;;
-  go:format-check)          echo "gofmt -l ." ;;
+  go:format-check)          echo 'test -z "$(gofmt -l .)"' ;;
   go:lint)                  echo "golangci-lint run" ;;
   go:typecheck)             echo "go vet ./..." ;;
   go:test-unit)             echo "go test -short ./..." ;;

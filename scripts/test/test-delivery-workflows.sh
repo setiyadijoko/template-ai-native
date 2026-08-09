@@ -90,7 +90,8 @@ assert_contains "upload fails without package" "$BUILD" 'if-no-files-found: erro
 
 # --- ci.yml: same-run attestation only for governed main pushes ---
 assert_contains "ci calls attestation" "$CI" 'uses: ./\.github/workflows/artifact-attestation\.yml'
-assert_contains "ci attestation needs build" "$CI" 'needs: \[detect, build\]'
+assert_contains "ci attestation needs build and skips monorepo" "$CI" 'needs: \[detect, build, monorepo\]'
+assert_contains "ci attestation skips component workflow" "$CI" "needs\.monorepo\.result == 'skipped'"
 assert_contains "ci passes artifact name" "$CI" 'artifact-name:.*needs\.build\.outputs\.artifact-name'
 assert_contains "ci passes upload state" "$CI" 'artifact-uploaded:.*needs\.build\.outputs\.artifact-uploaded'
 assert_contains "ci limits attestation to push" "$CI" "github\.event_name == 'push'"

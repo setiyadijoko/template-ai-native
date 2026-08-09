@@ -21,14 +21,28 @@ jobs:
     timeout-minutes: 3
     outputs:
       stack: ${{ steps.d.outputs.stack }}
+      layout: ${{ steps.d.outputs.layout }}
+      component-ready: ${{ steps.d.outputs.component-ready }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: d
         name: Detect stack
         run: |
+          layout="$(sh scripts/resolve-components.sh --layout)"
+          echo "layout=$layout" >> "$GITHUB_OUTPUT"
+          component_ready=false
+          if [ "$layout" = 'monorepo' ]; then
+            version="$(awk -F ':[[:space:]]*' '$1 == "version" { print $2; exit }' .template/project.yaml)"
+            if [ "$version" = '2' ]; then
+              sh scripts/validate-project-config.sh
+              component_ready=true
+            fi
+          fi
+          echo "component-ready=$component_ready" >> "$GITHUB_OUTPUT"
           stack="$(sh scripts/detect-stack.sh)"
           echo "stack=$stack" >> "$GITHUB_OUTPUT"
+          echo "Detected layout: $layout"
           echo "Detected stack: $stack"
 
   quality:
@@ -55,14 +69,21 @@ jobs:
     with:
       stack: ${{ needs.detect.outputs.stack }}
 
+  monorepo:
+    name: Component-aware monorepo CI
+    needs: detect
+    if: needs.detect.outputs.component-ready == 'true'
+    uses: ./.github/workflows/ci-monorepo.yml
+
   attest:
     name: Attest build provenance
-    needs: [detect, build]
+    needs: [detect, build, monorepo]
     if: >-
       always() &&
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
       needs.detect.result == 'success' &&
+      needs.monorepo.result == 'skipped' &&
       (needs.build.result == 'success' ||
       (needs.build.result == 'skipped' &&
       needs.detect.outputs.stack == 'unknown'))

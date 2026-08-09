@@ -1,0 +1,332 @@
+name: ci-monorepo
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  resolve:
+    name: Resolve monorepo components
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      components: ${{ steps.resolve.outputs.components }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: resolve
+        name: Validate and resolve components
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh scripts/validate-project-config.sh
+          sh scripts/resolve-components.sh --validate
+          components="$(sh scripts/resolve-components.sh --json)"
+          echo "components=$components" >> "$GITHUB_OUTPUT"
+          echo "Resolved components: $components"
+
+  quality:
+    name: monorepo / quality / ${{ matrix.component.id }}
+    needs: resolve
+    if: needs.resolve.result == 'success'
+    continue-on-error: ${{ matrix.component.required == false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        component: ${{ fromJSON(needs.resolve.outputs.components) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.component.path }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Python
+        if: matrix.component.stack == 'python'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install Python dev deps
+        if: matrix.component.stack == 'python'
+        run: pip install ruff mypy pytest pytest-cov build
+
+      - name: Setup Node
+        if: matrix.component.stack == 'node'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "lts/*"
+          cache: npm
+          cache-dependency-path: ${{ matrix.component.path }}/package-lock.json
+      - name: Install Node dev deps
+        if: matrix.component.stack == 'node'
+        run: if [ -f package.json ]; then npm ci; fi
+
+      - name: Setup Go
+        if: matrix.component.stack == 'go'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: ${{ matrix.component.path }}/go.mod
+          cache: true
+
+      - name: Setup Java
+        if: matrix.component.stack == 'java'
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Setup .NET
+        if: matrix.component.stack == 'dotnet'
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Format check
+        run: |
+          command="$(sh "$GITHUB_WORKSPACE/scripts/stack-tools.sh" format-check)"
+          sh -c "$command"
+      - name: Lint
+        run: |
+          command="$(sh "$GITHUB_WORKSPACE/scripts/stack-tools.sh" lint)"
+          sh -c "$command"
+      - name: Typecheck
+        run: |
+          command="$(sh "$GITHUB_WORKSPACE/scripts/stack-tools.sh" typecheck)"
+          sh -c "$command"
+
+  test:
+    name: monorepo / test / ${{ matrix.component.id }}
+    needs: resolve
+    if: needs.resolve.result == 'success'
+    continue-on-error: ${{ matrix.component.required == false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        component: ${{ fromJSON(needs.resolve.outputs.components) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.component.path }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Python
+        if: matrix.component.stack == 'python'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install Python dev deps
+        if: matrix.component.stack == 'python'
+        run: pip install ruff mypy pytest pytest-cov build
+
+      - name: Setup Node
+        if: matrix.component.stack == 'node'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "lts/*"
+          cache: npm
+          cache-dependency-path: ${{ matrix.component.path }}/package-lock.json
+      - name: Install Node dev deps
+        if: matrix.component.stack == 'node'
+        run: if [ -f package.json ]; then npm ci; fi
+
+      - name: Setup Go
+        if: matrix.component.stack == 'go'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: ${{ matrix.component.path }}/go.mod
+          cache: true
+
+      - name: Setup Java
+        if: matrix.component.stack == 'java'
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Setup .NET
+        if: matrix.component.stack == 'dotnet'
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Unit tests
+        run: |
+          command="$(sh "$GITHUB_WORKSPACE/scripts/stack-tools.sh" test-unit)"
+          sh -c "$command"
+      - name: Integration tests
+        run: |
+          command="$(sh "$GITHUB_WORKSPACE/scripts/stack-tools.sh" test-integration)"
+          sh -c "$command"
+      - name: End-to-end tests
+        run: |
+          command="$(sh "$GITHUB_WORKSPACE/scripts/stack-tools.sh" test-e2e)"
+          sh -c "$command"
+      - name: Coverage
+        run: |
+          command="$(sh "$GITHUB_WORKSPACE/scripts/stack-tools.sh" coverage)"
+          sh -c "$command"
+      - name: Enforce go coverage >= 80%
+        if: matrix.component.stack == 'go'
+        run: |
+          if [ -f coverage.out ]; then
+            pct=$(go tool cover -func=coverage.out | awk '/^total:/ {gsub("%","",$3); print $3}')
+            echo "Go coverage: ${pct}%"
+            awk "BEGIN {exit !($pct >= 80)}" || {
+              echo "::error::Go coverage ${pct}% < 80%"
+              exit 1
+            }
+          else
+            echo "No Go coverage profile found; coverage gate is not measurable for this component."
+          fi
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-${{ matrix.component.id }}
+          path: |
+            ${{ matrix.component.path }}/coverage.xml
+            ${{ matrix.component.path }}/coverage.out
+            ${{ matrix.component.path }}/coverage.cobertura.xml
+            ${{ matrix.component.path }}/target/site/jacoco/jacoco.xml
+          if-no-files-found: ignore
+
+  build:
+    name: monorepo / build / ${{ matrix.component.id }}
+    needs: resolve
+    if: needs.resolve.result == 'success'
+    continue-on-error: ${{ matrix.component.required == false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        component: ${{ fromJSON(needs.resolve.outputs.components) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.component.path }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Python
+        if: matrix.component.stack == 'python'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install Python dev deps
+        if: matrix.component.stack == 'python'
+        run: pip install ruff mypy pytest pytest-cov build
+
+      - name: Setup Node
+        if: matrix.component.stack == 'node'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "lts/*"
+          cache: npm
+          cache-dependency-path: ${{ matrix.component.path }}/package-lock.json
+      - name: Install Node dev deps
+        if: matrix.component.stack == 'node'
+        run: if [ -f package.json ]; then npm ci; fi
+
+      - name: Setup Go
+        if: matrix.component.stack == 'go'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: ${{ matrix.component.path }}/go.mod
+          cache: true
+
+      - name: Setup Java
+        if: matrix.component.stack == 'java'
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Setup .NET
+        if: matrix.component.stack == 'dotnet'
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Build
+        run: |
+          command="$(sh "$GITHUB_WORKSPACE/scripts/stack-tools.sh" build)"
+          sh -c "$command"
+      - id: package
+        name: Package component artifact
+        shell: bash
+        env:
+          COMPONENT_ID: ${{ matrix.component.id }}
+          COMPONENT_PATH: ${{ matrix.component.path }}
+          COMPONENT_STACK: ${{ matrix.component.stack }}
+        run: |
+          set -euo pipefail
+          inputs=()
+          add_tree() {
+            local path="$1"
+            if [[ -d "$path" ]] && [[ -n "$(find "$path" -type f -print -quit)" ]]; then
+              inputs+=("$path")
+            fi
+          }
+          case "$COMPONENT_STACK" in
+            python) add_tree dist ;;
+            node) add_tree dist; add_tree build ;;
+            go) add_tree bin ;;
+            java) while IFS= read -r -d '' path; do inputs+=("$path"); done < <(find . -type f \( -path '*/target/*.jar' -o -path '*/build/libs/*.jar' \) -print0) ;;
+            dotnet) while IFS= read -r -d '' path; do inputs+=("$path"); done < <(find . -type f -path '*/bin/Release/*' -print0) ;;
+          esac
+          if [[ "${#inputs[@]}" -eq 0 ]]; then
+            echo "::error::No supported build output found for component $COMPONENT_ID"
+            exit 1
+          fi
+          metadata="$RUNNER_TEMP/component-metadata-${COMPONENT_ID}.txt"
+          printf 'commit=%s\ncomponent=%s\npath=%s\nstack=%s\n' \
+            "$GITHUB_SHA" "$COMPONENT_ID" "$COMPONENT_PATH" "$COMPONENT_STACK" > "$metadata"
+          asset="$RUNNER_TEMP/build-${COMPONENT_ID}.tar.gz"
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 \
+            --numeric-owner -czf "$asset" "${inputs[@]}" \
+            -C "$RUNNER_TEMP" "$(basename "$metadata")"
+          echo "artifact=$asset" >> "$GITHUB_OUTPUT"
+      - name: Upload component artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: build-${{ matrix.component.id }}
+          path: ${{ steps.package.outputs.artifact }}
+          if-no-files-found: error
+
+  aggregate:
+    name: monorepo / aggregate
+    if: always()
+    needs: [resolve, quality, test, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Report component results
+        env:
+          RESOLVE_RESULT: ${{ needs.resolve.result }}
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          TEST_RESULT: ${{ needs.test.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: |
+          set -eu
+          printf 'resolve=%s quality=%s test=%s build=%s\n' \
+            "$RESOLVE_RESULT" "$QUALITY_RESULT" "$TEST_RESULT" "$BUILD_RESULT"
+          [ "$RESOLVE_RESULT" = success ] || exit 1
+          [ "$QUALITY_RESULT" = success ] || exit 1
+          [ "$TEST_RESULT" = success ] || exit 1
+          [ "$BUILD_RESULT" = success ] || exit 1
