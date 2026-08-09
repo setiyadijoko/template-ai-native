@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added a checked-in Python consumer fixture plus a shared, tested dependency
+  bootstrap contract for PEP 621, setup.py, and requirements-based projects.
 - Added a checked-in consumer monorepo fixture and regression contract covering
   version-2 component resolution for Go and Node.js.
 - Added framework artifact conventions for Next.js, Nuxt, and Angular,
@@ -53,6 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Phase-1 CI workflows: `pr-title`, `validate-metadata`, `docs-check`, `action-security` (least-privilege, pinned Actions) + `.markdownlint.jsonc`.
 
 ### Changed
+- Clarified that the existing 80% baseline measures unit coverage; Python
+  integration and end-to-end suites remain separate required executions.
 - Updated the SHA-pinned actionlint, Markdown lint, link-check, and semantic
   PR-title Actions after their exact revisions passed in a consumer repository.
   The build-attestation wrapper was also updated without changing its inputs;
@@ -71,6 +75,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Fixed
+- Installed Python consumer runtime and development dependencies before local
+  setup and inherited quality, test, and build commands, replacing duplicated
+  tool-only workflow setup with a pinned fallback that respects consumer tools.
 - Isolated initializer contract tests from the repository's active `README.md`
   by using a dedicated, deterministic fresh-template fixture, so the tests also
   pass after a consumer has generated its own README identity.

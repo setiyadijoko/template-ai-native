@@ -22,3 +22,25 @@ credentials or activate profile-aware workflows. Use `--reconfigure` when
 intentionally replacing an identity and layout generated earlier.
 
 Tooling no-ops until a stack is wired (`scripts/detect-stack.sh`).
+
+For a detected Python project, `make setup` calls
+`scripts/setup-python-deps.sh`. Prefer a root `pyproject.toml` with a `dev`
+optional-dependency group that includes Ruff, mypy, pytest, pytest-cov, and
+build. The helper also supports an editable `setup.py` project or
+`requirements.txt` plus an optional `requirements-dev.txt`. Keep the Python
+dependency boundary in either the repository root or direct `src/`, not both.
+
+Activate an isolated Python 3.12 environment before running the helper locally:
+
+```sh
+python3.12 -m venv .venv
+. .venv/bin/activate
+make setup
+```
+
+The GitHub workflows use the interpreter selected by `actions/setup-python`;
+local developers must not install consumer dependencies into system Python.
+
+Pipfile-only automation is intentionally unsupported until the consumer adopts
+a reviewed Pipenv and lockfile contract. The helper exits with guidance instead
+of letting local setup and hosted CI resolve dependencies differently.

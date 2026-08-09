@@ -104,6 +104,23 @@ assert_contains "monorepo test check name" "$MONO" 'monorepo / test /'
 assert_contains "monorepo build check name" "$MONO" 'monorepo / build /'
 assert_contains "monorepo aggregate check" "$MONO" 'monorepo / aggregate'
 assert_contains "monorepo preserves Go coverage gate" "$MONO" 'Enforce go coverage >= 80%'
+assert_contains "single-stack quality uses Python dependency helper" "$CI_QUALITY" \
+  'run: sh scripts/setup-python-deps\.sh'
+assert_contains "single-stack test uses Python dependency helper" "$CI_TEST" \
+  'run: sh scripts/setup-python-deps\.sh'
+assert_contains "single-stack build uses Python dependency helper" "$BUILD" \
+  'run: sh scripts/setup-python-deps\.sh'
+assert_eq "all component Python jobs use dependency helper" \
+  "$(grep -Ec 'run: sh "[$]GITHUB_WORKSPACE/scripts/setup-python-deps\.sh"' "$MONO" || true)" \
+  "3"
+assert_not_contains "quality has no inline Python tool install" "$CI_QUALITY" \
+  'pip install ruff mypy pytest pytest-cov build'
+assert_not_contains "test has no inline Python tool install" "$CI_TEST" \
+  'pip install ruff mypy pytest pytest-cov build'
+assert_not_contains "build has no inline Python tool install" "$BUILD" \
+  'pip install ruff mypy pytest pytest-cov build'
+assert_not_contains "monorepo has no inline Python tool install" "$MONO" \
+  'pip install ruff mypy pytest pytest-cov build'
 assert_contains "single-stack workflow uses shared Go coverage helper" "$CI_TEST" 'run: sh scripts/enforce-go-coverage\.sh'
 assert_contains "monorepo workflow uses shared Go coverage helper" "$MONO" 'run: sh "[$]GITHUB_WORKSPACE/scripts/enforce-go-coverage\.sh"'
 assert_contains "component working directory" "$MONO" 'working-directory:.*matrix\.component\.path'

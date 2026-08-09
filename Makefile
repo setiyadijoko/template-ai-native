@@ -30,7 +30,7 @@ smoke-test:       ; @echo "[skip] no stack detected — wire src/ to enable smok
 else
 # Real commands for the detected stack, resolved via scripts/stack-tools.sh.
 # Swap a tool by editing scripts/stack-tools.sh (single source of truth).
-setup:            ; @echo "setup ready for $(STACK) (configure bootstrap as needed)"
+setup:            ; @if [ "$(STACK)" = "python" ]; then sh scripts/setup-python-deps.sh; else echo "setup ready for $(STACK) (configure bootstrap as needed)"; fi
 dev:              ; @echo "configure dev server for $(STACK)"
 format:           ; @sh -c "$$(sh scripts/stack-tools.sh format)"
 format-check:     ; @sh -c "$$(sh scripts/stack-tools.sh format-check)"
@@ -61,6 +61,7 @@ readiness-check:   ; @sh scripts/validate-production-readiness.sh
 project-config-check: ; @sh scripts/validate-project-config.sh
 test-scripts:
 	@sh scripts/test/test-stack-detection.sh
+	@sh scripts/test/test-python-dependency-bootstrap.sh
 	@sh scripts/test/test-node-test-category.sh
 	@sh scripts/test/test-go-coverage.sh
 	@sh scripts/test/test-consumer-regressions.sh

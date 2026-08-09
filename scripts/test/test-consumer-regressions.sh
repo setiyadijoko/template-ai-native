@@ -13,6 +13,10 @@ GETTING_STARTED="$ROOT/docs/getting-started.md"
 LOCAL_SETUP="$ROOT/docs/development/local-setup.md"
 FIXTURE="$ROOT/tests/fixtures/consumer-monorepo"
 CONFIG="$FIXTURE/.template/project.yaml"
+PYTHON_FIXTURE="$ROOT/tests/fixtures/consumer-python"
+PYTHON_PROJECT="$PYTHON_FIXTURE/pyproject.toml"
+PYTHON_SOURCE="$PYTHON_FIXTURE/src/example_service/__init__.py"
+PYTHON_TEST="$PYTHON_FIXTURE/tests/unit/test_runtime_dependency.py"
 ARTIFACTS="$ROOT/docs/development/artifact-conventions.md"
 BACKEND_SOURCE="$FIXTURE/src/backend/main.go"
 BACKEND_TEST="$FIXTURE/src/backend/main_test.go"
@@ -67,6 +71,32 @@ assert_contains "fixture includes Go source" "$BACKEND_SOURCE" '^func Greeting\(
 assert_contains "fixture includes Go unit test" "$BACKEND_TEST" '^func TestGreeting\(t \*testing\.T\)'
 assert_contains "fixture includes Node source" "$FRONTEND_SOURCE" '^export const applicationName ='
 assert_contains "fixture includes Node unit test" "$FRONTEND_TEST" 'describe\("consumer fixture"'
+
+assert_contains "Python fixture requires Python 3.12" "$PYTHON_PROJECT" \
+  '^requires-python[[:space:]]*=[[:space:]]*">=3\.12"$'
+assert_contains "Python fixture pins FastAPI runtime" "$PYTHON_PROJECT" \
+  '"fastapi==0\.139\.2"'
+assert_contains "Python fixture pins Pydantic runtime" "$PYTHON_PROJECT" \
+  '"pydantic==2\.13\.4"'
+assert_contains "Python fixture configures Pydantic mypy plugin" "$PYTHON_PROJECT" \
+  'plugins[[:space:]]*=[[:space:]]*\["pydantic\.mypy"\]'
+assert_contains "Python fixture declares dev extra" "$PYTHON_PROJECT" \
+  '^dev[[:space:]]*=[[:space:]]*\[$'
+for requirement in \
+  'ruff==0\.15\.22' \
+  'mypy==2\.3\.0' \
+  'pytest==9\.1\.1' \
+  'pytest-cov==7\.1\.0' \
+  'build==1\.5\.0'; do
+  assert_contains "Python fixture includes $requirement" "$PYTHON_PROJECT" \
+    "\"$requirement\""
+done
+assert_contains "Python fixture source imports Pydantic" "$PYTHON_SOURCE" \
+  '^from pydantic import BaseModel$'
+assert_contains "Python fixture test imports FastAPI" "$PYTHON_TEST" \
+  '^from fastapi import FastAPI$'
+assert_contains "Python fixture test imports consumer package" "$PYTHON_TEST" \
+  '^from example_service import HealthResponse, health_response$'
 
 assert_contains "artifact guide covers Next.js" "$ARTIFACTS" 'Next\.js.*\.next'
 assert_contains "artifact guide covers Nuxt" "$ARTIFACTS" 'Nuxt.*\.output'

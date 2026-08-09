@@ -84,6 +84,10 @@ assert_action_pins() {
 # --- build.yml: one fail-closed packaged artifact with reusable outputs ---
 assert_contains "build exports artifact name" "$BUILD" 'artifact-name:'
 assert_contains "build exports upload state" "$BUILD" 'artifact-uploaded:'
+assert_contains "build installs Python consumer dependencies" "$BUILD" \
+  'run: sh scripts/setup-python-deps\.sh'
+assert_not_contains "build has no inline Python tool-only install" "$BUILD" \
+  'pip install ruff mypy pytest pytest-cov build'
 assert_contains "build packages one file" "$BUILD" 'template-ai-native-build-.*\.tar\.gz'
 assert_contains "build fails without output" "$BUILD" 'No supported build output found'
 assert_contains "upload fails without package" "$BUILD" 'if-no-files-found: error'

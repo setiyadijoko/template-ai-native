@@ -1,0 +1,5 @@
+ruff==0.15.22|ruff
+mypy==2.3.0|mypy
+pytest==9.1.1|pytest
+pytest-cov==7.1.0|pytest_cov
+build==1.5.0|build
