@@ -53,6 +53,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Phase-1 CI workflows: `pr-title`, `validate-metadata`, `docs-check`, `action-security` (least-privilege, pinned Actions) + `.markdownlint.jsonc`.
 
 ### Changed
+- Updated the SHA-pinned actionlint, Markdown lint, link-check, and semantic
+  PR-title Actions after their exact revisions passed in a consumer repository.
+  The build-attestation wrapper was also updated without changing its inputs;
+  real provenance execution still requires an uploaded build artifact.
 - Recorded two successful hosted-runner validations of the corrected Go/Node
   consumer monorepo dispatcher and separated completed P0 runtime validation
   from the remaining human-approved branch-protection migration.
