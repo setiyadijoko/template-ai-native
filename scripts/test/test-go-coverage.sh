@@ -42,14 +42,18 @@ assert_text_contains() {
   fi
 }
 
-# A missing profile is not a false pass: the helper reports that the gate is
-# not measurable and exits successfully, matching the existing CI contract.
+# Once a Go stack is detected, a missing profile must fail closed rather than
+# reporting a successful but unmeasured quality gate.
 set +e
 missing_output="$(PATH="$GO_BIN:$PATH" sh "$HELPER" "$PROFILE" 2>&1)"
 missing_status=$?
 set -e
-assert_eq "missing profile status" "$missing_status" "0"
+assert_eq "missing profile status" "$missing_status" "1"
 assert_text_contains "missing profile message" "$missing_output" 'not measurable'
+assert_text_contains "missing profile is a CI error" "$missing_output" \
+  '^::error::No Go coverage profile found'
+assert_text_contains "missing profile reports threshold" "$missing_output" \
+  'Required Go coverage threshold: 80%'
 
 printf 'mode: atomic\n' > "$PROFILE"
 printf 'total: (statements) 80.0%%\n' > "$WORK/coverage-pass.txt"
@@ -59,6 +63,8 @@ pass_status=$?
 set -e
 assert_eq "coverage at threshold status" "$pass_status" "0"
 assert_text_contains "coverage pass output" "$pass_output" 'Go coverage: 80.0%'
+assert_text_contains "coverage pass reports threshold" "$pass_output" \
+  'Required Go coverage threshold: 80%'
 
 printf 'total: (statements) 79.9%%\n' > "$WORK/coverage-fail.txt"
 set +e
@@ -67,5 +73,7 @@ fail_status=$?
 set -e
 assert_eq "coverage below threshold status" "$fail_status" "1"
 assert_text_contains "coverage fail output" "$fail_output" 'Go coverage 79.9% < 80%'
+assert_text_contains "coverage failure reports threshold" "$fail_output" \
+  'Required Go coverage threshold: 80%'
 
 report
