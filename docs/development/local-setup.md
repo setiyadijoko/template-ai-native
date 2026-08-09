@@ -7,8 +7,9 @@ If this is your first consumer repository, start with the
 reference.
 
 ```sh
-git clone <your-repo>
-cd <your-repo>
+# Replace YOUR-ORG/YOUR-REPO with the repository you created from this template.
+git clone https://github.com/YOUR-ORG/YOUR-REPO.git
+cd YOUR-REPO
 cp .env.example .env     # edit with real values (never commit)
 ./scripts/init-project.sh --name my-app --description "My application" --stack auto --layout undecided
 make setup

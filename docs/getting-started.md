@@ -44,8 +44,9 @@ production environment to complete the first setup.
 4. Clone the new repository:
 
    ```sh
-   git clone https://github.com/<owner>/<new-repository>.git
-   cd <new-repository>
+   # Replace YOUR-ORG/YOUR-REPO with the repository you created from this template.
+   git clone https://github.com/YOUR-ORG/YOUR-REPO.git
+   cd YOUR-REPO
    ```
 
 5. When the application will use environment variables, create a local file

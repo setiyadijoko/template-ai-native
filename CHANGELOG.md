@@ -61,6 +61,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Fixed
+- Aligned the getting-started and local-setup clone examples with the
+  copy-safe README owner/repository placeholders.
 - Replaced angle-bracket `git clone` and `cd` placeholders in the root README
   with copy-safe owner/repository placeholders.
 - Pinned the scheduled Python and Go dependency-audit tooling to
