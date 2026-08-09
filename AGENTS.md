@@ -187,11 +187,20 @@ A feature is complete only when: acceptance criteria satisfied; format/lint/type
 
 ## Karpathy-inspired coding discipline
 
-1. **Think before coding.** State material assumptions explicitly; identify ambiguity; do not silently choose between materially different interpretations; identify trade-offs; inspect the existing implementation; search for existing components before creating new ones; identify the simplest viable solution; define how success will be verified; identify affected security and data boundaries; **stop** when requirements conflict with approved architecture or security policy.
-2. **Simplicity first.** Implement the minimum code required to satisfy the acceptance criteria. Before completion ask: fewer components? fewer abstractions? fewer files? less code without losing clarity? is any configurability speculative? would a senior engineer call this overengineered? When a ~200-line implementation can safely be ~50 lines, simplify. Never sacrifice correctness, security, readability, required error handling, observability, or maintainability merely to reduce line count.
-3. **Surgical changes.** Every changed line must be traceable to an approved requirement, design, acceptance criterion, required test, cleanup caused by the current change, or required documentation. Modify only necessary files; follow existing naming and style; do not reformat unrelated files, rewrite adjacent modules, upgrade unrelated dependencies, rename unrelated symbols, remove pre-existing dead code unless requested, combine feature work with broad refactoring, or modify unrelated comments. Remove only newly orphaned imports/variables/functions/files/config/tests.
-4. **Goal-driven execution.** Translate every task into measurable outcomes. Avoid vague verbs ("improve", "clean up", "make production ready"). For bugs: reproduce → failing test → fix → confirm pass → regression. For refactors: define invariant behavior → baseline tests → refactor → re-run → confirm unchanged.
-5. **Diff discipline.** Before completion review the complete diff: every changed file and line necessary; no debug code; no temporary configuration; no unrelated formatting; no secret; no sensitive data; no unnecessary abstraction; no accidental breaking change; tests match behavior; documentation matches implementation. The goal is the smallest clear, correct, secure, tested, maintainable change that satisfies the approved requirement.
+The following five rules are mandatory; the detailed guidance is in
+[`docs/ai/coding-discipline.md`](docs/ai/coding-discipline.md):
+
+1. Think before coding; state assumptions, inspect existing implementation,
+   define verification, and stop when requirements conflict with approved
+   architecture or security policy.
+2. Prefer the simplest sufficient implementation without sacrificing
+   correctness, security, observability, or maintainability.
+3. Make surgical changes that are traceable to the requirement; avoid
+   unrelated refactoring, formatting, upgrades, and speculative configuration.
+4. Define measurable outcomes; for bugs use reproduce → failing test → fix →
+   verify → regression.
+5. Review the complete diff for correctness, security, tests, documentation,
+   and accidental changes before completion.
 
 ## Avoid unrelated refactoring
 
@@ -207,14 +216,7 @@ Before declaring work done, run `git diff` over the full change. Confirm every c
 
 ## Agent implementation workflow
 
-Every task follows this 9-step loop:
-
-1. **Orient** — read `AGENTS.md → PRODUCT.md → DESIGN.md → ARCHITECTURE.md → relevant ADRs → active plans → code → tests`. Summarize the understood scope before changing code.
-2. **Inspect** — existing implementation, patterns, dependencies, tests, interfaces, security boundaries, recent changes, reusable components. Do not assume a component is absent before searching for it.
-3. **Define success** — convert the request into measurable acceptance criteria, test cases, verification commands, expected artifacts.
-4. **Plan** — files to create/modify, tests, documentation, risks, security considerations, verification steps, rollback implications.
-5. **Implement incrementally** — the smallest coherent change; never mix feature work with unrelated refactoring, dependency upgrades, style-only changes, architecture changes, or infrastructure modernization.
-6. **Test continuously** — add or update tests with the implementation; TDD for bugs.
-7. **Self-review the diff** — correctness, security, data leakage, accidental changes, missing tests, backward compatibility, unnecessary abstractions, dead code, misleading comments, overengineering, documentation gaps.
-8. **Verify** — execute required commands; record actual results; never fabricate.
-9. **Report** — what changed and why, design impact, tests performed, security checks performed, AI evaluations performed, remaining risks, deferred technical debt, deployment implications.
+Every task follows the nine-step loop in
+[`docs/ai/implementation-workflow.md`](docs/ai/implementation-workflow.md):
+Orient → Inspect → Define success → Plan → Implement incrementally → Test
+continuously → Self-review the complete diff → Verify → Report.
