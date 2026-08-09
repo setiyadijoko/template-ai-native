@@ -72,6 +72,10 @@ printf '{}' > package.json
 assert_eq "node format-check" "$($TOOL format-check)" "npx --no-install prettier --check ."
 assert_eq "node typecheck" "$($TOOL typecheck)" "npx --no-install tsc --noEmit"
 assert_eq "node test-unit" "$($TOOL test-unit)" "npx --no-install vitest run --dir tests/unit"
+assert_eq "node optional integration tests" "$($TOOL test-integration)" \
+  "sh \"$ROOT/scripts/run-node-test-category.sh\" integration"
+assert_eq "node optional e2e tests" "$($TOOL test-e2e)" \
+  "sh \"$ROOT/scripts/run-node-test-category.sh\" e2e"
 rm -f package.json
 
 printf 'module x\n' > go.mod

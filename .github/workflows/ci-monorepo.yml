@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  group: ${{ github.workflow }}-ci-monorepo-${{ github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -76,6 +76,12 @@ jobs:
         with:
           go-version-file: ${{ matrix.component.path }}/go.mod
           cache: true
+      - name: Install golangci-lint
+        if: matrix.component.stack == 'go'
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.12.2
+          install-only: true
 
       - name: Setup Java
         if: matrix.component.stack == 'java'

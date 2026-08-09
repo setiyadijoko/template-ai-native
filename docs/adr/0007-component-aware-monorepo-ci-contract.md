@@ -18,11 +18,14 @@ execution without a contract would also make artifact names, required check
 contexts, path filtering, fork behavior, and branch-protection migration
 ambiguous.
 
-The MangaHub consumer pilot validated this contract: its Go backend and React
-frontend required explicit working directories, a consumer-owned bridge while
-the template remained `unknown`, and no root-level manifest symlink. This ADR
-now records the implemented contract; version-1 consumers and the existing
-single-stack workflows remain unchanged while version-2 support is advisory.
+The MangaHub consumer pilot validated the component contract: its Go backend
+and React frontend required explicit working directories, a consumer-owned
+bridge while the template remained `unknown`, and no root-level manifest
+symlink. A second `media-belajar-anak` pilot exercised the version-2 dispatcher
+on GitHub-hosted runners. It exposed a caller/callee concurrency collision, a
+missing Go linter installation, and false failures when optional Node.js test
+categories were empty. This ADR now includes those runtime boundaries;
+version-1 consumers remain unchanged while version-2 support is advisory.
 
 ## Decision
 
@@ -112,6 +115,19 @@ untrusted pull-request jobs. `pull_request_target` is not an implementation
 shortcut. Artifact uploads and comments must use the existing trusted handoff
 patterns where write permissions are required.
 
+### 7. Reusable-workflow runtime boundaries
+
+The event-facing `ci.yml` dispatcher owns top-level cancellation. Every called
+workflow uses a workflow-specific concurrency-group suffix because GitHub
+passes the caller's `github.workflow` value into a reusable workflow; sharing
+the caller group can cancel the dispatcher before component fan-out appears.
+
+Go quality jobs install `golangci-lint` at an explicit version through an
+immutable Action SHA before invoking the existing mapper command. Node.js unit
+tests remain required. Integration and end-to-end categories run when matching
+Vitest files exist and otherwise report an explicit successful skip; a real
+Vitest failure continues to fail the component job.
+
 ## Alternatives considered
 
 ### Recursively select the first manifest
@@ -179,7 +195,9 @@ consumer's branch-protection plan before activation.
    the resolver and workflow contract tests.
 4. Run component checks advisory-only and measure cost, noise, and stability
    on a consumer pilot.
-5. Add the aggregate check to branch protection only after a human-approved
+5. Verify the corrected dispatcher, Go lint setup, optional Node.js categories,
+   and aggregate result on a fresh consumer pull request.
+6. Add the aggregate check to branch protection only after a human-approved
    migration plan and stable check evidence.
 
 ## Rollback considerations

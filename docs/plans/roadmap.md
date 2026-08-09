@@ -61,8 +61,11 @@ Pilot result and remaining work:
 - The MangaHub consumer was used as a diagnostic test and confirmed the need
   for explicit component paths, local Node tool resolution, and consumer-owned
   test coverage. Its PR is intentionally not a production rollout.
-- Run the component workflow on a consumer where the reusable workflow already
-  exists on the base branch before making component checks blocking.
+- The `media-belajar-anak` hosted-runner pilot exposed and drove local fixes for
+  reusable-workflow concurrency isolation, deterministic Go lint setup, and
+  empty optional Node.js test categories.
+- Run the corrected component workflow on a fresh consumer pull request and
+  verify the aggregate check before making component checks blocking.
 
 The contract is recorded in [ADR-0007](../adr/0007-component-aware-monorepo-ci-contract.md).
 
