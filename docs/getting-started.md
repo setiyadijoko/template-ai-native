@@ -130,9 +130,10 @@ tests/e2e/           critical user journeys only
 ```
 
 The template detects a primary Python, Node.js, Go, Java, or .NET stack from
-supported manifests in the repository root or directly under `src/`. A
-declared monorepo currently fails safe as `unknown`; component-aware CI is a
-future step and will not guess which service to build.
+supported manifests in the repository root or directly under `src/`. A version-1
+monorepo remains safely `unknown`. A version-2 monorepo lists components
+explicitly in `.template/project.yaml` and uses component-aware CI without
+guessing nested manifests.
 
 ## 6. Run the local checks
 
@@ -244,11 +245,11 @@ markers or update it manually instead of forcing the script.
 
 ### The detector reports a monorepo as `unknown`
 
-This is intentional for now. The repository records the layout and primary
-path, but the current reusable workflows execute one stack from the repository
-root or `src/`. Returning `unknown` is safer than running Go tooling against a
-Node.js frontend or the reverse. Component-aware CI will be added only after
-the execution contract is approved.
+This is expected for version-1 or incomplete configurations. Returning
+`unknown` is safer than running Go tooling against a Node.js frontend or the
+reverse. Migrate to version 2 with an explicit `components` list, run
+`make project-config-check`, and let `ci-monorepo.yml` execute the component
+jobs.
 
 ### `make docs-check` skips tools
 

@@ -27,12 +27,16 @@ value_for() {
 [ "$(count_key primary_stack)" -eq 1 ] || die 'primary_stack must appear exactly once'
 [ "$(count_key primary_path)" -eq 1 ] || die 'primary_path must appear exactly once'
 
+HERE="$(cd "$(dirname "$0")" && pwd)"
 VERSION="$(value_for version)"
 LAYOUT="$(value_for layout)"
 STACK="$(value_for primary_stack)"
 PATH_VALUE="$(value_for primary_path)"
 
-[ "$VERSION" = '1' ] || die "unsupported version '$VERSION'"
+case "$VERSION" in
+  1|2) ;;
+  *) die "unsupported version '$VERSION'" ;;
+esac
 
 case "$LAYOUT" in
   single|monorepo|undecided) ;;
@@ -43,6 +47,11 @@ case "$STACK" in
   auto|node|python|go|java|dotnet|other) ;;
   *) die "unsupported primary_stack '$STACK'" ;;
 esac
+
+if [ "$VERSION" = '2' ]; then
+  [ "$LAYOUT" = 'monorepo' ] || die 'version 2 requires layout monorepo'
+  [ "$STACK" = 'auto' ] || die 'version 2 requires primary_stack auto'
+fi
 
 [ -n "$PATH_VALUE" ] || die 'primary_path cannot be empty'
 case "$PATH_VALUE" in
@@ -57,6 +66,10 @@ fi
 
 if grep -Eiq '(^|[^[:alnum:]_])(token|secret|password|api[_-]?key)([^[:alnum:]_]|$)' "$CONFIG"; then
   die 'project config must not contain credentials or secret fields'
+fi
+
+if [ "$VERSION" = '2' ]; then
+  sh "$HERE/resolve-components.sh" --validate "$CONFIG"
 fi
 
 printf 'Project config valid: %s\n' "$CONFIG"

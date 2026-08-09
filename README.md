@@ -51,6 +51,12 @@ explains the terms, expected results, optional controls, and common problems.
 The template is useful even when no stack has been chosen yet. In that state,
 stack-dependent commands report a clean no-op; this is expected, not a failure.
 
+For a monorepo, choose `layout: monorepo` and list each component explicitly in
+`.template/project.yaml` version 2. The component-aware workflow uses each
+component's declared path and stack; it never selects the first nested manifest.
+Version-1 monorepos remain in the safe `unknown` compatibility mode until they
+migrate to the version-2 component contract.
+
 ## How to use this template
 
 The [getting-started guide](docs/getting-started.md) contains the complete
@@ -131,7 +137,9 @@ make setup                # bootstrap (no-op until a stack is wired)
 | `make docs-check` | Markdown lint + link check + TBD/TODO scan |
 | `make ci` | Local mirror of the primary CI gate |
 
-Targets no-op cleanly until a stack is detected in `src/`.
+Single-stack targets no-op cleanly until a stack is detected. A declared
+version-2 monorepo runs through the component-aware GitHub Actions workflow;
+the root Make targets remain stack-agnostic.
 
 ## Testing
 

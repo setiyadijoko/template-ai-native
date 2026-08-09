@@ -12,7 +12,8 @@ The template is a **documentation-and-governance layer** plus **stack-aware CI**
 
 - **Governance docs** — `README.md`, `PRODUCT.md`, `DESIGN.md`, `ARCHITECTURE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `SECURITY.md`, and the `docs/` tree (source of truth + ADRs + templates).
 - **Agent adapters** — `CLAUDE.md`, `.github/copilot-instructions.md`, `.cursor/rules/project.mdc`, `.codex/instructions.md` (all reference `AGENTS.md`).
-- **Command interface** — `Makefile` + `scripts/` (`detect-stack.sh`, `ci-local.sh`, `setup-branch-protection.sh`).
+- **Command interface** — `Makefile` + `scripts/` (`detect-stack.sh`, `resolve-components.sh`, `ci-local.sh`, `setup-branch-protection.sh`).
+- **CI routing** — single-stack detection dispatches to reusable quality/test/build workflows; validated version-2 monorepos dispatch to `ci-monorepo.yml` with an aggregate result and component artifacts.
 - **CI/CD** — `.github/workflows/` (PR title, metadata, docs-check, action-security in Phase 1; quality/test/build/security/AI/deploy in later phases).
 - **GitHub governance** — `CODEOWNERS`, `dependabot.yml`, `labeler.yml`, `release.yml`, PR + issue templates.
 - **AI apparatus** — `prompts/` (registry), `evals/` (framework), `docs/ai/` (guidance) — scaffolding only.

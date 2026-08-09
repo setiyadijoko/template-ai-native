@@ -30,7 +30,7 @@ docs/plans/active/ → CURRENT-FEATURE designs (moved to completed/ on merge)
 
 ## Architecture summary
 
-See `ARCHITECTURE.md` for the executive overview and `DESIGN.md` for the approved design. `src/` is consumer-owned — do not commit a language/framework unless the project owner explicitly adopts one. The template's CI is stack-aware (`scripts/detect-stack.sh`); when no stack is detected, quality targets no-op cleanly.
+See `ARCHITECTURE.md` for the executive overview and `DESIGN.md` for the approved design. `src/` is consumer-owned — do not commit a language/framework unless the project owner explicitly adopts one. Single-stack CI is stack-aware (`scripts/detect-stack.sh`); a version-2 monorepo uses the explicit component resolver and `ci-monorepo.yml`, while unknown/no-config paths remain safe no-ops.
 
 ## Source-of-truth precedence
 
@@ -62,7 +62,7 @@ make docs-check       # markdown lint + link check + TBD/TODO scan
 
 These no-op cleanly until a stack is detected in `src/`. `make ci` and `make docs-check` always run (they validate the template itself).
 
-> CI runs these via the `ci.yml` dispatcher, which detects the stack once and calls the `ci-quality` / `ci-test` / `build` reusable workflows. The per-stack tool commands live in `scripts/stack-tools.sh` (single source of truth) — change a tool there, not in each workflow. `make test-scripts` runs the shell tests for the detection/mapper scripts.
+> CI runs these via the `ci.yml` dispatcher. Single-stack repositories call the `ci-quality` / `ci-test` / `build` reusable workflows; validated version-2 monorepos call `ci-monorepo.yml` with explicit component working directories and aggregate checks. The per-stack tool commands live in `scripts/stack-tools.sh` (single source of truth) — change a tool there, not in each workflow. `make test-scripts` runs the shell tests for the detection, resolver, and workflow contracts.
 
 ## Directory boundaries
 

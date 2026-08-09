@@ -40,20 +40,25 @@ unchanged until the compatibility design is approved.
 - Add an ADR covering workflow activation, required check contexts, and
   migration for existing consumers.
 
-### P1 — explicit monorepo layout (foundation)
+### P0 — component-aware monorepo CI (implemented; pilot pending)
 
 Completed foundation:
 
 - Ask for `single`, `monorepo`, or `undecided` during consumer initialization.
 - Validate `.template/project.yaml` and record the primary component path.
-- Keep monorepo stack detection fail-safe until component-aware CI execution is
-  approved.
+- Keep recursive manifest discovery disabled.
+- Validate an explicit version-2 component list from the MangaHub pilot.
 
-Remaining design work:
+Implemented in the template branch:
 
-- Define component fan-out, artifact ownership, and required check contexts
-  before enabling nested service workflows; the proposed contract is recorded
-  in [ADR-0007](../adr/0007-component-aware-monorepo-ci-contract.md).
+- Add reusable component fan-out, aggregate status, and component artifacts.
+- Keep version-1/single-stack behavior and branch protection unchanged.
+
+Remaining pilot work:
+
+- Run a consumer pilot before making component checks blocking.
+
+The contract is recorded in [ADR-0007](../adr/0007-component-aware-monorepo-ci-contract.md).
 
 ### P2 — bootstrap extensions and workflow activation (future)
 
