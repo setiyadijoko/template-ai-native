@@ -7,6 +7,7 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 . "$HERE/lib.sh"
 
 CI="$ROOT/.github/workflows/ci.yml"
+CI_TEST="$ROOT/.github/workflows/ci-test.yml"
 MONO="$ROOT/.github/workflows/ci-monorepo.yml"
 RESOLVER="$ROOT/scripts/resolve-components.sh"
 
@@ -59,6 +60,8 @@ assert_contains "monorepo test check name" "$MONO" 'monorepo / test /'
 assert_contains "monorepo build check name" "$MONO" 'monorepo / build /'
 assert_contains "monorepo aggregate check" "$MONO" 'monorepo / aggregate'
 assert_contains "monorepo preserves Go coverage gate" "$MONO" 'Enforce go coverage >= 80%'
+assert_contains "single-stack workflow uses shared Go coverage helper" "$CI_TEST" 'run: sh scripts/enforce-go-coverage\.sh'
+assert_contains "monorepo workflow uses shared Go coverage helper" "$MONO" 'run: sh "[$]GITHUB_WORKSPACE/scripts/enforce-go-coverage\.sh"'
 assert_contains "component working directory" "$MONO" 'working-directory:.*matrix\.component\.path'
 assert_contains "component artifact upload" "$MONO" 'build-\$\{\{ matrix\.component\.id \}\}'
 assert_contains "artifact metadata commit" "$MONO" 'GITHUB_SHA'
