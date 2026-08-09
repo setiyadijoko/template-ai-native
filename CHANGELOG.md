@@ -53,6 +53,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Phase-1 CI workflows: `pr-title`, `validate-metadata`, `docs-check`, `action-security` (least-privilege, pinned Actions) + `.markdownlint.jsonc`.
 
 ### Changed
+- Recorded two successful hosted-runner validations of the corrected Go/Node
+  consumer monorepo dispatcher and separated completed P0 runtime validation
+  from the remaining human-approved branch-protection migration.
 - Made the fixed 80% Go coverage threshold visible on every helper run, failed
   closed when a detected Go component has no measurable profile, and documented
   first-PR remediation without adding a bootstrap bypass or meaningless tests.
