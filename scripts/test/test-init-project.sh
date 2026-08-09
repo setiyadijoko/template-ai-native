@@ -6,6 +6,16 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
 # shellcheck source=scripts/test/lib.sh
 . "$HERE/lib.sh"
+README_FIXTURE="$HERE/fixtures/init-project-README.md"
+
+if [ ! -f "$README_FIXTURE" ]; then
+  printf 'FAIL dedicated fresh README fixture is available\n' >&2
+  exit 1
+fi
+if grep -Fq '<!-- template-ai-native:project-identity:generated -->' "$README_FIXTURE"; then
+  printf 'FAIL dedicated README fixture is already initialized\n' >&2
+  exit 1
+fi
 
 TICK='`'
 EXPECTED_NODE_STACK="**Stack:** ${TICK}node${TICK}"
@@ -14,7 +24,7 @@ EXPECTED_AUTO_STACK="**Stack:** ${TICK}auto${TICK}"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/template-ai-native-init.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT HUP INT TERM
 
-cp "$ROOT/README.md" "$WORK/README.md"
+cp "$README_FIXTURE" "$WORK/README.md"
 
 if [ -x "$ROOT/scripts/init-project.sh" ]; then
   PASS=$((PASS+1))
@@ -82,7 +92,7 @@ else
   FAIL=$((FAIL+1)); printf 'FAIL explicitly reconfigures README\n' >&2
 fi
 
-cp "$ROOT/README.md" "$WORK/missing-marker.md"
+cp "$README_FIXTURE" "$WORK/missing-marker.md"
 sed '/template-ai-native:project-identity:start/,/template-ai-native:project-identity:end/d' \
   "$WORK/missing-marker.md" > "$WORK/README-no-marker.md"
 if (cd "$WORK" && cp README-no-marker.md README.md && \
@@ -92,14 +102,14 @@ else
   PASS=$((PASS+1))
 fi
 
-if (cd "$WORK" && cp "$ROOT/README.md" README.md && \
+if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
   sh "$ROOT/scripts/init-project.sh" --name "bad" --stack rust) >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL rejects unsupported stack\n' >&2
 else
   PASS=$((PASS+1))
 fi
 
-if (cd "$WORK" && cp "$ROOT/README.md" README.md && \
+if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
   sh "$ROOT/scripts/init-project.sh" --name "missing-components" \
   --layout monorepo --primary-path src/backend) >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL accepts non-interactive monorepo without components\n' >&2
@@ -107,7 +117,7 @@ else
   PASS=$((PASS+1))
 fi
 
-if (cd "$WORK" && cp "$ROOT/README.md" README.md && \
+if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
   sh "$ROOT/scripts/init-project.sh" --name "bad-component" \
   --layout monorepo --component backend=src/backend:rust) >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL accepts unsupported component stack\n' >&2
@@ -115,7 +125,7 @@ else
   PASS=$((PASS+1))
 fi
 
-if (cd "$WORK" && cp "$ROOT/README.md" README.md && \
+if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
   sh "$ROOT/scripts/init-project.sh" --name "duplicate-component" \
   --layout monorepo \
   --component backend=src/backend:go \
@@ -127,7 +137,7 @@ fi
 
 MULTILINE='line one
 line two'
-if (cd "$WORK" && cp "$ROOT/README.md" README.md && \
+if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
   sh "$ROOT/scripts/init-project.sh" --name "bad" --description "$MULTILINE") >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL rejects multiline description\n' >&2
 else
@@ -136,7 +146,7 @@ fi
 
 MULTILINE_NAME='bad
 name'
-if (cd "$WORK" && cp "$ROOT/README.md" README.md && \
+if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
   sh "$ROOT/scripts/init-project.sh" --name "$MULTILINE_NAME") >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL rejects multiline project name\n' >&2
 else
