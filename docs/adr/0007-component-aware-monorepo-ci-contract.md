@@ -1,6 +1,6 @@
 # ADR-0007: Define a component-aware monorepo CI contract
 
-- **Status:** Accepted — implemented, advisory pending pilot
+- **Status:** Accepted — implemented; blocking adoption deferred
 - **Date:** 2026-08-09
 - **Decision owners:** Template maintainers and consumer project owners
 
@@ -25,12 +25,14 @@ symlink. A second `media-belajar-anak` pilot exercised the version-2 dispatcher
 on GitHub-hosted runners. It exposed a caller/callee concurrency collision, a
 missing Go linter installation, and false failures when optional Node.js test
 categories were empty. This ADR now includes those runtime boundaries;
-version-1 consumers remain unchanged while version-2 support is advisory.
+version-1 consumers remain unchanged while the version-2 aggregate check stays
+advisory pending consumer-specific governance approval.
 
 ## Decision
 
 Implement component-aware CI only through the following explicit contract,
-validated against the MangaHub consumer pilot.
+validated against the MangaHub diagnostic pilot and the `media-belajar-anak`
+hosted-runner pilot.
 
 ### 1. Explicit component manifest
 
@@ -128,6 +130,20 @@ tests remain required. Integration and end-to-end categories run when matching
 Vitest files exist and otherwise report an explicit successful skip; a real
 Vitest failure continues to fail the component job.
 
+## Validation evidence
+
+On 2026-08-09, the `media-belajar-anak` consumer PR passed the corrected generic
+dispatcher twice without a consumer-owned caller:
+
+- [run 31312862775](https://github.com/setiyadinamikaintegrasi/media-belajar-anak/actions/runs/31312862775);
+- [run 31313000802](https://github.com/setiyadinamikaintegrasi/media-belajar-anak/actions/runs/31313000802).
+
+Both runs produced the resolver, deterministic backend/frontend quality, test,
+and build contexts, and the stable `monorepo / aggregate` result. Required
+security and documentation checks also passed. This evidence closes the hosted
+runtime-validation step; it does not validate fork behavior, a larger matrix,
+deployment artifact promotion, or consumer branch-protection migration.
+
 ## Alternatives considered
 
 ### Recursively select the first manifest
@@ -195,8 +211,8 @@ consumer's branch-protection plan before activation.
    the resolver and workflow contract tests.
 4. Run component checks advisory-only and measure cost, noise, and stability
    on a consumer pilot.
-5. Verify the corrected dispatcher, Go lint setup, optional Node.js categories,
-   and aggregate result on a fresh consumer pull request.
+5. Completed 2026-08-09: the corrected dispatcher, Go lint setup, optional
+   Node.js categories, and aggregate result passed twice on consumer PR #1.
 6. Add the aggregate check to branch protection only after a human-approved
    migration plan and stable check evidence.
 

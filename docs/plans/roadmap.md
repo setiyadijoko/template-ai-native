@@ -40,7 +40,7 @@ unchanged until the compatibility design is approved.
 - Add an ADR covering workflow activation, required check contexts, and
   migration for existing consumers.
 
-### P0 — component-aware monorepo CI (implemented; pilot diagnostic complete)
+### P0 — component-aware monorepo CI (implemented; hosted pilot passed)
 
 Completed foundation:
 
@@ -56,7 +56,7 @@ Implemented in the template branch:
 - Add reusable component fan-out, aggregate status, and component artifacts.
 - Keep version-1/single-stack behavior and branch protection unchanged.
 
-Pilot result and remaining work:
+Pilot result:
 
 - Initializer contract tests now use a dedicated fresh README fixture instead
   of copying the active consumer README, preserving repeatable post-bootstrap
@@ -67,8 +67,20 @@ Pilot result and remaining work:
 - The `media-belajar-anak` hosted-runner pilot exposed and drove local fixes for
   reusable-workflow concurrency isolation, deterministic Go lint setup, and
   empty optional Node.js test categories.
-- Run the corrected component workflow on a fresh consumer pull request and
-  verify the aggregate check before making component checks blocking.
+- The corrected generic dispatcher then passed twice on the consumer pull
+  request without a duplicate caller. Both runs materialized the resolver, six
+  Go/Node quality/test/build jobs, and the stable aggregate check. See hosted
+  runs
+  [31312862775](https://github.com/setiyadinamikaintegrasi/media-belajar-anak/actions/runs/31312862775)
+  and
+  [31313000802](https://github.com/setiyadinamikaintegrasi/media-belajar-anak/actions/runs/31313000802).
+
+Governance follow-up before making the aggregate check blocking:
+
+- Measure fork behavior, cost and noise on a larger component matrix, and
+  artifact ownership/promotion in a consumer that adopts deployment.
+- Add `monorepo / aggregate` to branch protection only through a
+  human-approved consumer migration plan.
 
 The contract is recorded in [ADR-0007](../adr/0007-component-aware-monorepo-ci-contract.md).
 
