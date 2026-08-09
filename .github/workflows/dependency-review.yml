@@ -27,26 +27,20 @@ jobs:
 
       - name: Install osv-scanner CLI
         run: |
-          version="v1.9.2"
-          curl -sSL "https://github.com/google/osv-scanner/releases/download/${version}/osv-scanner_linux_amd64" \
-            -o /usr/local/bin/osv-scanner
-          chmod +x /usr/local/bin/osv-scanner
-          osv-scanner --version
+          set -euo pipefail
+          version="v2.4.0"
+          asset="osv-scanner_linux_amd64"
+          expected_sha256="15314940c10d26af9c6649f150b8a47c1262e8fc7e17b1d1029b0e479e8ed8a0"
+          download="$RUNNER_TEMP/$asset"
+          url="https://github.com/google/osv-scanner/releases/download/${version}/${asset}"
+          curl --fail --silent --show-error --location --retry 3 "$url" \
+            --output "$download"
+          printf '%s  %s\n' "$expected_sha256" "$download" | sha256sum -c -
+          install -m 0755 "$download" "$RUNNER_TEMP/osv-scanner"
+          "$RUNNER_TEMP/osv-scanner" --version
 
       - name: Scan dependencies (recursive)
-        # Blocks if any known vulnerability is found in a lockfile/manifest.
-        # When no manifest exists, osv-scanner exits non-zero with "no packages
-        # found" — guard that so an empty template stays green.
         run: |
-          set +e
-          osv-scanner scan recursive --format=table . > scan.txt 2>&1
-          code=$?
-          cat scan.txt
-          # exit 0 = no vulns; exit 1 = vulns found (block).
-          # Other non-zero (e.g. "no packages found" on empty template) = advisory skip.
-          if [ "$code" -eq 1 ]; then
-            echo "::error::osv-scanner found vulnerable dependencies"
-            exit 1
-          fi
-          echo "osv-scanner: no blocking findings (exit $code treated as advisory skip)"
-          exit 0
+          set -euo pipefail
+          "$RUNNER_TEMP/osv-scanner" scan source --recursive \
+            --allow-no-lockfiles --format=table .

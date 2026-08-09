@@ -9,6 +9,7 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 
 CODEQL="$ROOT/.github/workflows/codeql.yml"
 SCORECARD="$ROOT/.github/workflows/scorecard.yml"
+OSV="$ROOT/.github/workflows/dependency-review.yml"
 AGENTS="$ROOT/AGENTS.md"
 VULNERABILITY="$ROOT/docs/security/vulnerability-management.md"
 ASSUMPTIONS="$ROOT/docs/assumptions.md"
@@ -20,7 +21,7 @@ assert_contains() {
   file="$2"
   pattern="$3"
 
-  if grep -Eq "$pattern" "$file"; then
+  if grep -Eq -- "$pattern" "$file"; then
     PASS=$((PASS+1))
   else
     FAIL=$((FAIL+1))
@@ -33,7 +34,7 @@ assert_not_contains() {
   file="$2"
   pattern="$3"
 
-  if grep -Eq "$pattern" "$file"; then
+  if grep -Eq -- "$pattern" "$file"; then
     FAIL=$((FAIL+1))
     printf 'FAIL %s\n     forbidden pattern: %s\n' "$label" "$pattern" >&2
   else
@@ -46,7 +47,7 @@ assert_text_contains() {
   value="$2"
   pattern="$3"
 
-  if printf '%s\n' "$value" | grep -Eq "$pattern"; then
+  if printf '%s\n' "$value" | grep -Eq -- "$pattern"; then
     PASS=$((PASS+1))
   else
     FAIL=$((FAIL+1))
@@ -59,7 +60,7 @@ assert_text_not_contains() {
   value="$2"
   pattern="$3"
 
-  if printf '%s\n' "$value" | grep -Eq "$pattern"; then
+  if printf '%s\n' "$value" | grep -Eq -- "$pattern"; then
     FAIL=$((FAIL+1))
     printf 'FAIL %s\n     forbidden pattern: %s\n' "$label" "$pattern" >&2
   else
@@ -185,6 +186,20 @@ assert_not_contains "scorecard has no error suppression" "$SCORECARD" 'continue-
 assert_contains "scorecard retains timeout" "$SCORECARD" 'timeout-minutes: 15'
 assert_checkout_credentials "scorecard checkout disables credential persistence" "$SCORECARD"
 assert_scorecard_action_allowlist
+
+# OSV-Scanner: pinned v2 CLI, verified binary integrity, and fail-closed
+# dependency scanning with an explicit empty-template allowance.
+assert_contains "osv runs for pull requests" "$OSV" '^  pull_request:$'
+assert_contains "osv supports manual dispatch" "$OSV" '^  workflow_dispatch:$'
+assert_contains "osv pins current v2 release" "$OSV" 'version="v2\.4\.0"'
+assert_contains "osv downloads the linux amd64 binary" "$OSV" 'osv-scanner_linux_amd64'
+assert_contains "osv verifies the downloaded binary" "$OSV" 'sha256sum -c -'
+assert_contains "osv pins the v2.4.0 binary checksum" "$OSV" '15314940c10d26af9c6649f150b8a47c1262e8fc7e17b1d1029b0e479e8ed8a0'
+assert_contains "osv uses v2 source scan syntax" "$OSV" 'scan source --recursive'
+assert_contains "osv permits the empty template" "$OSV" '--allow-no-lockfiles'
+assert_contains "osv keeps table output" "$OSV" '--format=table \.$'
+assert_contains "osv fails closed on scanner errors" "$OSV" 'set -euo pipefail'
+assert_not_contains "osv does not use the v1 CLI syntax" "$OSV" 'v1\.9\.2|osv-scanner scan recursive'
 
 assert_action_pins "security workflows pin actions with release tags" "$CODEQL" "$SCORECARD"
 
