@@ -55,6 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Fixed
+- Pinned the scheduled Python and Go dependency-audit tooling to
+  `pip-audit` v2.10.1 and `govulncheck` v1.1.4, removing mutable `@latest`
+  installation from the advisory security workflow.
 - Upgraded the blocking dependency-review workflow from OSV-Scanner v1.9.2 to
   v2.4.0, added SHA-256 binary verification, adopted the v2 source-scan
   command, and made scanner errors fail closed while preserving empty-template

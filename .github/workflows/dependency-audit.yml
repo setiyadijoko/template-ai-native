@@ -29,7 +29,7 @@ jobs:
       - name: pip-audit
         if: hashFiles('pyproject.toml','requirements.txt','Pipfile') != ''
         run: |
-          pip install pip-audit
+          python -m pip install --disable-pip-version-check "pip-audit==2.10.1"
           pip-audit || echo "::warning::pip-audit found advisories (advisory in Phase 3)"
 
       - name: Setup Node
@@ -51,7 +51,7 @@ jobs:
       - name: govulncheck
         if: hashFiles('go.mod') != ''
         run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
+          go install golang.org/x/vuln/cmd/govulncheck@v1.1.4
           govulncheck ./... || echo "::warning::govulncheck found advisories (advisory in Phase 3)"
 
       - name: No manifest

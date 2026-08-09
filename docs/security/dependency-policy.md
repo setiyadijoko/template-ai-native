@@ -6,7 +6,10 @@
 - **dependency-review (PR, blocking):** OSV-Scanner v2.4.0 recursively scans
   supported manifests and lockfiles. A known vulnerability fails the job;
   `--allow-no-lockfiles` only permits the empty template to remain green.
-- **dependency-audit (weekly cron, advisory):** `npm audit --audit-level=high` / `pip-audit` / `govulncheck`, auto-detected by manifest.
+- **dependency-audit (weekly cron, advisory):** `npm audit --audit-level=high` /
+  `pip-audit v2.10.1` / `govulncheck v1.1.4`, auto-detected by manifest. The
+  Python and Go audit tools are pinned to exact releases; update them
+  deliberately with a contract test and changelog entry.
 - **license-check (PR, advisory):** `scripts/license-check.sh` enforces an allowlist/denylist.
 
 ## License policy
