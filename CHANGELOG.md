@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added proposed ADR-0007 defining the component-aware monorepo CI contract;
+  implementation remains deferred pending a consumer pilot.
 - Added an illustrative OpenAPI `/health` contract, global bearer-auth default,
   explicit consumer guidance, and a regression contract test.
 - Added an SPDX license-header template and coding-standards guidance for

@@ -52,7 +52,8 @@ Completed foundation:
 Remaining design work:
 
 - Define component fan-out, artifact ownership, and required check contexts
-  before enabling nested service workflows.
+  before enabling nested service workflows; the proposed contract is recorded
+  in [ADR-0007](../adr/0007-component-aware-monorepo-ci-contract.md).
 
 ### P2 — bootstrap extensions and workflow activation (future)
 
