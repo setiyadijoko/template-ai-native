@@ -58,6 +58,9 @@ Implemented in the template branch:
 
 Pilot result and remaining work:
 
+- Initializer contract tests now use a dedicated fresh README fixture instead
+  of copying the active consumer README, preserving repeatable post-bootstrap
+  validation.
 - The MangaHub consumer was used as a diagnostic test and confirmed the need
   for explicit component paths, local Node tool resolution, and consumer-owned
   test coverage. Its PR is intentionally not a production rollout.
