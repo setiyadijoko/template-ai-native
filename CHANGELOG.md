@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added a checked-in consumer monorepo fixture and regression contract covering
+  version-2 component resolution for Go and Node.js.
+- Added framework artifact conventions for Next.js, Nuxt, and Angular,
+  including the boundary of the generic Node.js packaging workflow.
 - Added `scripts/enforce-go-coverage.sh` as the shared 80% Go coverage gate for
   single-stack and component-aware CI, with focused contract tests.
 - Added version-2 monorepo component generation to `scripts/init-project.sh`;
@@ -57,6 +61,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Fixed
+- Replaced angle-bracket `git clone` and `cd` placeholders in the root README
+  with copy-safe owner/repository placeholders.
 - Pinned the scheduled Python and Go dependency-audit tooling to
   `pip-audit` v2.10.1 and `govulncheck` v1.1.4, removing mutable `@latest`
   installation from the advisory security workflow.

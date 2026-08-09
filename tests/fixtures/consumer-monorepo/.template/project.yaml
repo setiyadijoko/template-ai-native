@@ -1,0 +1,15 @@
+version: 2
+layout: monorepo
+primary_stack: auto
+primary_path: src/backend
+components:
+  - id: backend
+    path: src/backend
+    stack: go
+    required: true
+    artifact: backend
+  - id: frontend
+    path: src/frontend
+    stack: node
+    required: true
+    artifact: frontend

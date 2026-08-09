@@ -112,8 +112,9 @@ None committed. The template uses Markdown (docs/templates), GitHub Actions (YAM
 ## Local setup
 
 ```sh
-git clone <your-new-repo-from-this-template>
-cd <your-repo>
+# Replace YOUR-ORG/YOUR-REPO with the repository you created from this template.
+git clone https://github.com/YOUR-ORG/YOUR-REPO.git
+cd YOUR-REPO
 cp .env.example .env      # then edit .env with real values (never commit it)
 make setup                # bootstrap (no-op until a stack is wired)
 ```
