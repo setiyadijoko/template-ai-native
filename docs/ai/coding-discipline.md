@@ -1,0 +1,13 @@
+# Coding Discipline
+
+This document contains the detailed coding-discipline guidance referenced by
+the canonical [`AGENTS.md`](../../AGENTS.md). The rules apply to every change
+in this repository and in consumer repositories created from the template.
+
+## Karpathy-inspired coding discipline
+
+1. **Think before coding.** State material assumptions explicitly; identify ambiguity; do not silently choose between materially different interpretations; identify trade-offs; inspect the existing implementation; search for existing components before creating new ones; identify the simplest viable solution; define how success will be verified; identify affected security and data boundaries; **stop** when requirements conflict with approved architecture or security policy.
+2. **Simplicity first.** Implement the minimum code required to satisfy the acceptance criteria. Before completion ask: fewer components? fewer abstractions? fewer files? less code without losing clarity? is any configurability speculative? would a senior engineer call this overengineered? When a ~200-line implementation can safely be ~50 lines, simplify. Never sacrifice correctness, security, readability, required error handling, observability, or maintainability merely to reduce line count.
+3. **Surgical changes.** Every changed line must be traceable to an approved requirement, design, acceptance criterion, required test, cleanup caused by the current change, or required documentation. Modify only necessary files; follow existing naming and style; do not reformat unrelated files, rewrite adjacent modules, upgrade unrelated dependencies, rename unrelated symbols, remove pre-existing dead code unless requested, combine feature work with broad refactoring, or modify unrelated comments. Remove only newly orphaned imports/variables/functions/files/config/tests.
+4. **Goal-driven execution.** Translate every task into measurable outcomes. Avoid vague verbs ("improve", "clean up", "make production ready"). For bugs: reproduce → failing test → fix → confirm pass → regression. For refactors: define invariant behavior → baseline tests → refactor → re-run → confirm unchanged.
+5. **Diff discipline.** Before completion review the complete diff: every changed file and line necessary; no debug code; no temporary configuration; no unrelated formatting; no secret; no sensitive data; no unnecessary abstraction; no accidental breaking change; tests match behavior; documentation matches implementation. The goal is the smallest clear, correct, secure, tested, maintainable change that satisfies the approved requirement.

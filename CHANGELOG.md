@@ -55,6 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Fixed
+- Reduced the canonical `AGENTS.md` context load by moving the detailed coding
+  discipline and implementation workflow into linked `docs/ai/` guidance while
+  keeping the mandatory rules and workflow order explicit.
 - Fixed the component-aware dispatcher output key to use an expression-safe
   identifier, made Node.js quality/test commands resolve local project binaries
   with `npx --no-install`, and documented the intentional MD060 table-style
