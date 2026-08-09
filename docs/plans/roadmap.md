@@ -40,7 +40,7 @@ unchanged until the compatibility design is approved.
 - Add an ADR covering workflow activation, required check contexts, and
   migration for existing consumers.
 
-### P0 — component-aware monorepo CI (implemented; pilot pending)
+### P0 — component-aware monorepo CI (implemented; pilot diagnostic complete)
 
 Completed foundation:
 
@@ -56,9 +56,13 @@ Implemented in the template branch:
 - Add reusable component fan-out, aggregate status, and component artifacts.
 - Keep version-1/single-stack behavior and branch protection unchanged.
 
-Remaining pilot work:
+Pilot result and remaining work:
 
-- Run a consumer pilot before making component checks blocking.
+- The MangaHub consumer was used as a diagnostic test and confirmed the need
+  for explicit component paths, local Node tool resolution, and consumer-owned
+  test coverage. Its PR is intentionally not a production rollout.
+- Run the component workflow on a consumer where the reusable workflow already
+  exists on the base branch before making component checks blocking.
 
 The contract is recorded in [ADR-0007](../adr/0007-component-aware-monorepo-ci-contract.md).
 

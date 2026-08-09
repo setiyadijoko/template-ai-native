@@ -19,3 +19,6 @@ quality/detection scripts no-op on the empty template, while
 - These scripts intentionally avoid Bashisms so they run on macOS (`/bin/sh`) and Linux CI alike.
 - Never hardcode secrets into these scripts; read from environment or approved secret managers.
 - When you adopt a stack, replace the `Makefile` stub targets with real commands that call your toolchain — `detect-stack.sh` already routes by stack.
+- Node.js quality, typecheck, and test mappings use `npx --no-install`; declare
+  the required formatter, linter, compiler, and test runner in the consumer's
+  `devDependencies` so CI fails clearly when a tool is not configured.

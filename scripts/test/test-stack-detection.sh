@@ -69,9 +69,9 @@ assert_eq "python build" "$($TOOL build)" "python -m build"
 rm -f pyproject.toml
 
 printf '{}' > package.json
-assert_eq "node format-check" "$($TOOL format-check)" "prettier --check ."
-assert_eq "node typecheck" "$($TOOL typecheck)" "tsc --noEmit"
-assert_eq "node test-unit" "$($TOOL test-unit)" "vitest run --dir tests/unit"
+assert_eq "node format-check" "$($TOOL format-check)" "npx --no-install prettier --check ."
+assert_eq "node typecheck" "$($TOOL typecheck)" "npx --no-install tsc --noEmit"
+assert_eq "node test-unit" "$($TOOL test-unit)" "npx --no-install vitest run --dir tests/unit"
 rm -f package.json
 
 printf 'module x\n' > go.mod
