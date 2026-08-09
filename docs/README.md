@@ -64,7 +64,7 @@ Architecture Decision Records — traceable, dated, reversible decisions.
 - `api/` — API guidelines, error model, authn/authz, versioning, and OpenAPI skeleton with health/auth examples
 - `security/` — threat model, data classification, secrets, incident response, privacy
 - `ai/` — AI system design, model/prompt management, evaluation, safety, guardrails
-- `development/` — setup, coding standards, branching, PR process, testing, DoR/DoD
+- `development/` — setup, coding standards, branching, PR process, testing, artifact conventions, DoR/DoD
 - `operations/` — deployment, environments, observability, monitoring, alerting, runbook, rollback
 - `templates/` — feature-design, implementation-plan, ADR, threat-model, incident, postmortem, release-checklist, and license-header templates
 - `plans/` — active/completed feature designs + technical-debt log

@@ -4,6 +4,10 @@
 
 See [../docs/development/testing-strategy.md](../docs/development/testing-strategy.md) for the strategy and thresholds.
 
+`fixtures/consumer-monorepo/` is a minimal checked-in consumer layout used by
+the repository's regression contract tests. It is test input, not application
+runtime code.
+
 | Subdir | Contains |
 |--------|----------|
 | `unit/` | domain rules, validation, routing, parsers, guardrails |

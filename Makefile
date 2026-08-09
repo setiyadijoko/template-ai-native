@@ -62,6 +62,7 @@ project-config-check: ; @sh scripts/validate-project-config.sh
 test-scripts:
 	@sh scripts/test/test-stack-detection.sh
 	@sh scripts/test/test-go-coverage.sh
+	@sh scripts/test/test-consumer-regressions.sh
 	@sh scripts/test/test-delivery-workflows.sh
 	@sh scripts/test/test-security-workflows.sh
 	@sh scripts/test/test-production-readiness.sh

@@ -1,0 +1,8 @@
+{
+  "name": "template-ai-native-fixture-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "build": "echo fixture build"
+  }
+}
