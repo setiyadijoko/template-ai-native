@@ -52,7 +52,12 @@ Architecture Decision Records — traceable, dated, reversible decisions.
 
 - [adr/README.md](adr/README.md) — process & index
 - [adr/0001-record-architecture-decisions.md](adr/0001-record-architecture-decisions.md)
+- [adr/0002-keep-readiness-validation-approval-neutral.md](adr/0002-keep-readiness-validation-approval-neutral.md)
+- [adr/0003-adopt-local-first-graph-pr-review.md](adr/0003-adopt-local-first-graph-pr-review.md)
+- [adr/0004-integrate-structural-and-semantic-review.md](adr/0004-integrate-structural-and-semantic-review.md)
+- [adr/0005-adopt-graphify-as-optional-codebase-memory.md](adr/0005-adopt-graphify-as-optional-codebase-memory.md)
 - [adr/0006-explicit-project-layout.md](adr/0006-explicit-project-layout.md)
+- [adr/0007-component-aware-monorepo-ci-contract.md](adr/0007-component-aware-monorepo-ci-contract.md)
 
 ## Other documentation
 
