@@ -55,6 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Fixed
+- Documented the safe activation order for version-2 monorepo CI so reusable
+  workflows are present on the default branch before component checks become
+  part of a consumer PR or branch-protection policy.
 - Reduced the canonical `AGENTS.md` context load by moving the detailed coding
   discipline and implementation workflow into linked `docs/ai/` guidance while
   keeping the mandatory rules and workflow order explicit.

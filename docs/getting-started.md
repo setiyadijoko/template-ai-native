@@ -111,6 +111,31 @@ If you intentionally need to replace a generated identity and config, use
 Without `--reconfigure`, a second run stops instead of silently overwriting
 the README identity or project config.
 
+### 3.3 Activate component-aware monorepo CI
+
+For a version-2 monorepo, keep both the caller workflow
+(`.github/workflows/ci.yml`) and the reusable component workflow
+(`.github/workflows/ci-monorepo.yml`) on the repository's default branch before
+opening the first application PR that relies on component checks. GitHub notes
+that some events require a workflow file to exist on the default branch, and a
+local reusable workflow is resolved from the caller's commit. See the
+[GitHub Actions workflow documentation](https://docs.github.com/en/actions/concepts/workflows-and-actions/workflows#triggering-a-workflow).
+
+If the workflows are being added or migrated separately, use this sequence:
+
+1. Merge the workflow files and the reviewed `.template/project.yaml` contract.
+2. Run `make project-config-check` on the default branch.
+3. Open a small follow-up PR that changes a component path and confirm the
+   component checks run in their declared working directories.
+4. Keep `monorepo / aggregate` advisory until runtime, check-name stability,
+   fork behavior, artifact ownership, and CI cost have been measured. Do not
+   add component contexts to branch protection during the pilot.
+
+If a component check remains pending, first confirm that the reusable workflow
+exists on the PR base branch and that every component path, stack, and artifact
+name passes `.template/project.yaml` validation. Do not use
+`pull_request_target` or add credentials to make the check run.
+
 ## 4. Describe the application before coding
 
 Start with these files:
