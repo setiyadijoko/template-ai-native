@@ -38,7 +38,7 @@ case "$STACK:$ACTION" in
   python:test-unit)         echo "pytest -q tests/unit" ;;
   python:test-integration)  echo "pytest -q tests/integration" ;;
   python:test-e2e)          echo "pytest -q tests/e2e" ;;
-  python:coverage)          echo "pytest --cov=src --cov-report=xml --cov-report=term --cov-fail-under=80 tests/unit" ;;
+  python:coverage)          echo "pytest --cov=src --cov-report=xml --cov-report=term --cov-fail-under=80" ;;
   python:build)             echo "python -m build" ;;
 
   node:format)              echo "npx --no-install prettier --write ." ;;

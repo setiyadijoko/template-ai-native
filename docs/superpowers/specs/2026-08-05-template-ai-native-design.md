@@ -341,7 +341,7 @@ Secrets are never printed to workflow logs. Real model calls and secrets are not
 
 **Initial thresholds (configurable by project criticality, §8):**
 ```
-Overall unit-test coverage: minimum 80%
+Overall automated-test coverage: minimum 80%
 Critical domain-module coverage: minimum 90%
 Changed-lines coverage: minimum 90%
 Critical security findings: zero

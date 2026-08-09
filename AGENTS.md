@@ -143,7 +143,7 @@ Do not:
 ## Testing requirements
 
 - Unit (domain rules, validation, transformations, authorization, routing logic, prompt builders, parsers, guardrails), contract (FE↔BE, adapters, tool interfaces), integration (DB, migrations, queues, auth, adapters with test doubles), E2E (critical journeys only), AI tests (deterministic CI with stubs; real-model calls only in controlled workflows with spending limits).
-- Thresholds (configurable): unit coverage ≥80%, critical domain modules ≥90%, changed-lines ≥90%, critical security findings = 0, committed secrets = 0, blocking lint/type errors = 0. See `docs/development/testing-strategy.md`.
+- Thresholds (configurable): overall automated-test coverage ≥80%, critical domain modules ≥90%, changed-lines ≥90%, critical security findings = 0, committed secrets = 0, blocking lint/type errors = 0. See `docs/development/testing-strategy.md`.
 - No meaningless tests created only to raise coverage.
 
 ## Documentation update requirements

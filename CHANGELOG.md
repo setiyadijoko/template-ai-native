@@ -55,8 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Phase-1 CI workflows: `pr-title`, `validate-metadata`, `docs-check`, `action-security` (least-privilege, pinned Actions) + `.markdownlint.jsonc`.
 
 ### Changed
-- Clarified that the existing 80% baseline measures unit coverage; Python
-  integration and end-to-end suites remain separate required executions.
+- Made Python's 80% coverage gate follow consumer-owned pytest discovery so
+  correctly classified unit, integration, contract, and end-to-end tests
+  contribute to overall coverage; category-specific executions remain visible.
 - Updated the SHA-pinned actionlint, Markdown lint, link-check, and semantic
   PR-title Actions after their exact revisions passed in a consumer repository.
   The build-attestation wrapper was also updated without changing its inputs;
