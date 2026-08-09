@@ -9,7 +9,7 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 
 TICK='`'
 EXPECTED_NODE_STACK="**Stack:** ${TICK}node${TICK}"
-EXPECTED_PYTHON_STACK="**Stack:** ${TICK}python${TICK}"
+EXPECTED_AUTO_STACK="**Stack:** ${TICK}auto${TICK}"
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/template-ai-native-init.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT HUP INT TERM
@@ -60,13 +60,22 @@ printf '\nConsumer documentation outside the identity block.\n' >> "$WORK/README
 
 if (cd "$WORK" && sh "$ROOT/scripts/init-project.sh" \
   --reconfigure --name "replacement" \
-  --description "Replacement service" --stack python \
-  --layout monorepo --primary-path src/backend) >/dev/null 2>&1 \
+  --description "Replacement service" --stack auto \
+  --layout monorepo \
+  --component backend=src/backend:go \
+  --component frontend=src/frontend:node) >/dev/null 2>&1 \
   && grep -Fq '# replacement' "$WORK/README.md" \
   && grep -Fq 'Replacement service' "$WORK/README.md" \
-  && grep -Fq "$EXPECTED_PYTHON_STACK" "$WORK/README.md" \
+  && grep -Fq "$EXPECTED_AUTO_STACK" "$WORK/README.md" \
   && grep -Fq 'layout: monorepo' "$WORK/.template/project.yaml" \
+  && grep -Fq 'version: 2' "$WORK/.template/project.yaml" \
+  && grep -Fq 'primary_stack: auto' "$WORK/.template/project.yaml" \
   && grep -Fq 'primary_path: src/backend' "$WORK/.template/project.yaml" \
+  && grep -Fq 'id: backend' "$WORK/.template/project.yaml" \
+  && grep -Fq 'path: src/frontend' "$WORK/.template/project.yaml" \
+  && grep -Fq 'stack: node' "$WORK/.template/project.yaml" \
+  && sh "$ROOT/scripts/validate-project-config.sh" "$WORK/.template/project.yaml" >/dev/null 2>&1 \
+  && [ "$(sh "$ROOT/scripts/resolve-components.sh" --json "$WORK/.template/project.yaml")" = '[{"id":"backend","path":"src/backend","stack":"go","required":true,"artifact":"backend"},{"id":"frontend","path":"src/frontend","stack":"node","required":true,"artifact":"frontend"}]' ] \
   && grep -Fq 'Consumer documentation outside the identity block.' "$WORK/README.md"; then
   PASS=$((PASS+1))
 else
@@ -86,6 +95,32 @@ fi
 if (cd "$WORK" && cp "$ROOT/README.md" README.md && \
   sh "$ROOT/scripts/init-project.sh" --name "bad" --stack rust) >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL rejects unsupported stack\n' >&2
+else
+  PASS=$((PASS+1))
+fi
+
+if (cd "$WORK" && cp "$ROOT/README.md" README.md && \
+  sh "$ROOT/scripts/init-project.sh" --name "missing-components" \
+  --layout monorepo --primary-path src/backend) >/dev/null 2>&1; then
+  FAIL=$((FAIL+1)); printf 'FAIL accepts non-interactive monorepo without components\n' >&2
+else
+  PASS=$((PASS+1))
+fi
+
+if (cd "$WORK" && cp "$ROOT/README.md" README.md && \
+  sh "$ROOT/scripts/init-project.sh" --name "bad-component" \
+  --layout monorepo --component backend=src/backend:rust) >/dev/null 2>&1; then
+  FAIL=$((FAIL+1)); printf 'FAIL accepts unsupported component stack\n' >&2
+else
+  PASS=$((PASS+1))
+fi
+
+if (cd "$WORK" && cp "$ROOT/README.md" README.md && \
+  sh "$ROOT/scripts/init-project.sh" --name "duplicate-component" \
+  --layout monorepo \
+  --component backend=src/backend:go \
+  --component backend=src/other:node) >/dev/null 2>&1; then
+  FAIL=$((FAIL+1)); printf 'FAIL accepts duplicate component id\n' >&2
 else
   PASS=$((PASS+1))
 fi

@@ -46,6 +46,8 @@ Completed foundation:
 
 - Ask for `single`, `monorepo`, or `undecided` during consumer initialization.
 - Validate `.template/project.yaml` and record the primary component path.
+- Generate a validated version-2 component list for monorepos during
+  initialization.
 - Keep recursive manifest discovery disabled.
 - Validate an explicit version-2 component list from the MangaHub pilot.
 
@@ -62,8 +64,9 @@ The contract is recorded in [ADR-0007](../adr/0007-component-aware-monorepo-ci-c
 
 ### P2 — bootstrap extensions and workflow activation (future)
 
-- Keep the existing idempotent initializer stable; extend it only after the
-  profile contract and migration behavior are approved.
+- Keep the existing identity update and reconfiguration protection stable;
+  profile-related extensions still require an approved profile contract and
+  migration behavior.
 - Introduce profile-aware workflow activation only after proving that required
   checks remain stable and disabled controls do not leave pending statuses.
 - Measure CI duration and check noise before and after activation.

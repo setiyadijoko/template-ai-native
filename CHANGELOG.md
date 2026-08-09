@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added version-2 monorepo component generation to `scripts/init-project.sh`;
+  single and undecided layouts retain the version-1 compatibility format.
 - Added an accepted component-aware monorepo CI contract based on the MangaHub
   consumer pilot; version-2 component validation and advisory workflow support
   are implemented without changing version-1 consumers or branch protection.
@@ -16,8 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added an SPDX license-header template and coding-standards guidance for
   consumer source files.
 - Added explicit `single`/`monorepo`/`undecided` layout selection, credential-free
-  project config validation, and fail-safe monorepo detection. Component-aware
-  CI remains deferred until its execution and check-context contract is approved.
+  project config validation, and fail-safe monorepo detection. Version-2
+  monorepos now use the explicit component-aware workflow contract.
 - Added a beginner-friendly getting-started guide with quick-start steps,
   required/optional control mapping, terminology, expected results, and
   troubleshooting; linked it from the root README and documentation index.
