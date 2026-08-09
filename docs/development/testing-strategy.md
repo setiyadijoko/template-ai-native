@@ -13,8 +13,11 @@
 
 ## Thresholds (spec §8, partially phased)
 
-- Overall unit coverage ≥ 80% — **enforced in Phase 2** (`fail-under=80`) when a
-  supported stack is detected. The first application PR has no bootstrap
+- Overall automated-test coverage ≥ 80% — **enforced in Phase 2**
+  (`fail-under=80`) when a supported stack is detected. Python follows the
+  consumer's pytest discovery configuration instead of forcing coverage to the
+  unit-test directory; tests must remain in their correct unit, contract,
+  integration, or E2E category. The first application PR has no bootstrap
   bypass; below-threshold results fail with the active threshold in the log.
   The initializer remains stack-agnostic and does not generate application
   tests. See the minimal tested consumer fixture under

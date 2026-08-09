@@ -36,11 +36,13 @@ Single source of truth = `scripts/stack-tools.sh`. Each action prints the comman
 | test-unit | `pytest -q tests/unit` | `vitest run --dir tests/unit` | `go test -short ./...` | `mvn -q test` | `dotnet test --filter Category=Unit` |
 | test-integration | `pytest -q tests/integration` | `vitest run --dir tests/integration` | `go test -run Integration ./...` | `mvn -q verify -Dtest='*IT'` | `dotnet test --filter Category=Integration` |
 | test-e2e | `pytest -q tests/e2e` | `vitest run --dir tests/e2e` | `go test -run E2E ./...` | `mvn -q verify -Dtest='*E2E'` | `dotnet test --filter Category=E2E` |
-| coverage | `pytest --cov=src --cov-report=xml --cov-report=term --cov-fail-under=80 tests/unit` | `vitest run --coverage --coverage.thresholds.lines=80` | `go test -coverprofile=coverage.out -covermode=atomic ./...` (>=80% enforced by a follow-up step) | `mvn -q verify -Pcoverage` (jacoco `min=0.80`) | `dotnet test --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=cobertura` |
+| coverage | `pytest --cov=src --cov-report=xml --cov-report=term --cov-fail-under=80` | `vitest run --coverage --coverage.thresholds.lines=80` | `go test -coverprofile=coverage.out -covermode=atomic ./...` (>=80% enforced by a follow-up step) | `mvn -q verify -Pcoverage` (jacoco `min=0.80`) | `dotnet test --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=cobertura` |
 | build | `python -m build` | `npm run build` | `go build -o bin/ ./...` | `mvn -q -DskipTests package` | `dotnet build -c Release` |
 
 Notes:
 - Consumers may swap any tool via an ADR + Makefile/workflow override.
+- Python coverage follows consumer-owned pytest discovery (`testpaths` when
+  configured) so tests contribute from their correct categories.
 - For stacks where the type-checker is the compiler (go/java/dotnet), the typecheck action delegates to the build/compile step.
 - Go has no native `--cov-fail-under`; the coverage action emits the profile and a small follow-up step computes the percentage and fails if <80.
 
