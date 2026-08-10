@@ -78,7 +78,7 @@ case "$STACK:$ACTION" in
   dotnet:test-unit)         echo "dotnet test --filter Category=Unit" ;;
   dotnet:test-integration)  echo "dotnet test --filter Category=Integration" ;;
   dotnet:test-e2e)          echo "dotnet test --filter Category=E2E" ;;
-  dotnet:coverage)          echo 'dotnet test --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=cobertura' ;;
+  dotnet:coverage)          printf 'sh "%s/run-dotnet-coverage.sh"\n' "$HERE" ;;
   dotnet:build)             echo "dotnet build -c Release" ;;
 
   *:*)

@@ -65,6 +65,7 @@ test-scripts:
 	@sh scripts/test/test-python-dependency-bootstrap.sh
 	@sh scripts/test/test-node-test-category.sh
 	@sh scripts/test/test-go-coverage.sh
+	@sh scripts/test/test-dotnet-coverage.sh
 	@sh scripts/test/test-consumer-regressions.sh
 	@sh scripts/test/test-delivery-workflows.sh
 	@sh scripts/test/test-security-workflows.sh

@@ -95,6 +95,8 @@ rm -f pom.xml
 printf '<Project Sdk="Microsoft.NET.Sdk"></Project>' > app.csproj
 assert_eq "dotnet format-check" "$($TOOL format-check)" "dotnet format --verify-no-changes"
 assert_eq "dotnet test-unit" "$($TOOL test-unit)" "dotnet test --filter Category=Unit"
+assert_eq "dotnet coverage" "$($TOOL coverage)" \
+  "sh \"$ROOT/scripts/run-dotnet-coverage.sh\""
 assert_eq "dotnet build" "$($TOOL build)" "dotnet build -c Release"
 rm -f app.csproj
 
