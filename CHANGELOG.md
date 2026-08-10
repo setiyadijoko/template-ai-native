@@ -8,9 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Approved ADR-0009 and a bounded profile-policy shadow-mode design: one
-  read-only advisory observation path with no changes to existing workflow
-  execution, required checks, branch protection, or initializer behavior.
+- Added the profile-shadow resolver, advisory workflow, stable
+  `Profile shadow / Profile policy observation` context, and focused contracts.
+  Existing workflow execution, required checks, branch protection, and
+  initializer behavior remain unchanged.
 - Recorded the hosted Standard-profile Python coverage pilot, including
   duplicate-basename-safe 100% coverage, build artifacts, blocking security,
   and strictly verified post-merge provenance.

@@ -80,7 +80,7 @@ unchanged until the compatibility design is approved.
 - Record workflow activation, required check contexts, and consumer migration
   as deferred work requiring a separate ADR and hosted pilot.
 
-### P1 — profile shadow mode (design approved; implementation pending)
+### P1 — profile shadow mode (implemented locally; hosted pilot pending)
 
 - ADR-0009 approves one isolated, advisory observation workflow and a
   deterministic resolver.

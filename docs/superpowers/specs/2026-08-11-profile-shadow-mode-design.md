@@ -1,6 +1,6 @@
 # Profile-Aware CI Shadow Mode Design
 
-**Status:** Approved for implementation
+**Status:** Implemented locally; hosted validation pending
 **Date:** 2026-08-11
 **Owner:** Template maintainers
 

@@ -1,6 +1,6 @@
 # ADR-0009: Observe profile policy before workflow activation
 
-- **Status:** Accepted — observational implementation only; activation deferred
+- **Status:** Accepted — observational implementation; activation deferred
 - **Date:** 2026-08-11
 - **Decision owners:** Template maintainers and consumer project owners
 
