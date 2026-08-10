@@ -88,6 +88,12 @@ assert_contains "build installs Python consumer dependencies" "$BUILD" \
   'run: sh scripts/setup-python-deps\.sh'
 assert_not_contains "build has no inline Python tool-only install" "$BUILD" \
   'pip install ruff mypy pytest pytest-cov build'
+assert_contains "Python packaging resolves project directory" "$BUILD" \
+  'project_dir="[$][(]sh scripts/resolve-python-project-dir\.sh[)]"'
+assert_contains "Python packaging selects resolved dist" "$BUILD" \
+  'add_tree "[$]project_dir/dist"'
+assert_not_contains "Python packaging does not hardcode root dist" "$BUILD" \
+  'python[)] add_tree dist'
 assert_contains "build packages one file" "$BUILD" 'template-ai-native-build-.*\.tar\.gz'
 assert_contains "build fails without output" "$BUILD" 'No supported build output found'
 assert_contains "upload fails without package" "$BUILD" 'if-no-files-found: error'

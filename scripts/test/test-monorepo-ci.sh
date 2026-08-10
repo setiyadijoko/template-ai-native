@@ -126,6 +126,10 @@ assert_contains "monorepo workflow uses shared Go coverage helper" "$MONO" 'run:
 assert_contains "component working directory" "$MONO" 'working-directory:.*matrix\.component\.path'
 assert_contains "component artifact upload" "$MONO" 'build-\$\{\{ matrix\.component\.id \}\}'
 assert_contains "artifact metadata commit" "$MONO" 'GITHUB_SHA'
+assert_contains "component Python packaging resolves project directory" "$MONO" \
+  'project_dir="[$][(]sh "[$]GITHUB_WORKSPACE/scripts/resolve-python-project-dir\.sh"[)]"'
+assert_contains "component Python packaging selects resolved dist" "$MONO" \
+  'add_tree "[$]project_dir/dist"'
 assert_not_contains "monorepo workflow has no pull request target" "$MONO" 'pull_request_target:'
 assert_golangci_installer "single-stack Go lint" "$CI_QUALITY"
 assert_golangci_installer "monorepo Go lint" "$MONO"

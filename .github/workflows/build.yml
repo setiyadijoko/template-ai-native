@@ -115,7 +115,8 @@ jobs:
 
           case "$STACK" in
             python)
-              add_tree dist
+              project_dir="$(sh scripts/resolve-python-project-dir.sh)"
+              add_tree "$project_dir/dist"
               ;;
             node)
               add_tree dist
