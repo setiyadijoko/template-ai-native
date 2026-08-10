@@ -50,12 +50,8 @@ assert_contains "pushes target main" /dev/stdin 'branches: \[main\]' <<EOF
 $push_trigger
 EOF
 assert_contains "manual dispatch enabled" "$WORKFLOW" '^  workflow_dispatch:$'
-assert_contains "workflow defaults to read-only" /dev/stdin '^  contents: read$' <<EOF
-$permissions
-EOF
-assert_not_contains "workflow has no write permissions" /dev/stdin ': write' <<EOF
-$permissions
-EOF
+assert_eq "workflow permissions are exactly read-only" "$permissions" \
+  "$(printf 'permissions:\n  contents: read')"
 assert_contains "observation job name" "$WORKFLOW" \
   'name: Profile shadow / Profile policy observation'
 assert_contains "short timeout" "$WORKFLOW" 'timeout-minutes: 3'
