@@ -56,6 +56,18 @@ unchanged until the compatibility design is approved.
 - `gh attestation verify` verified the SLSA provenance subject; GitHub recorded [attestation 39794621](https://github.com/setiyadinamikaintegrasi/template-dotnet-pilot/attestations/39794621).
 - The pilot used deterministic .NET domain logic with no framework server, external service, deployment, AI provider, or profile activation.
 
+### Hosted single-stack Python coverage pilot — verified 2026-08-11
+
+- Consumer: [setiyadijoko/template-ai-native-python-coverage-pilot](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot).
+- Pull request: [#2](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot/pull/2), merged from reviewed head `d3836197d5de499b71aaf916f3ec4cc88f48391d`.
+- Merge commit: `02d399f3d32008f9171c29784350a3e013c96607`.
+- Main CI: [run 31430494963](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot/actions/runs/31430494963) completed successfully for the merge commit.
+- Hosted coverage collected identically named unit, integration, and E2E test modules without consumer pytest discovery workarounds: 12 tests passed with 100% coverage.
+- Python quality, build, CodeQL, OSV Scanner, secret scanning, workflow security, and post-merge provenance passed; only the inapplicable component-aware monorepo job skipped.
+- Artifact `template-ai-native-build-python.tar.gz` contained the wheel and source distribution; attested subject SHA-256: `7693208e0bcda789fabcb4a77be260a9e40aa9bbee10add23a0306506fd27fa0`.
+- Strict `gh attestation verify` policy bound the subject to the signer workflow, merge digest, `refs/heads/main`, and a GitHub-hosted runner. GitHub recorded [attestation 39903008](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot/attestations/39903008).
+- The Standard profile remained declarative and did not change workflow execution.
+
 ### P1 — profile foundation (implemented; activation deferred)
 
 - Define and validate a versioned `.template/profile.yaml` schema; see
@@ -67,6 +79,16 @@ unchanged until the compatibility design is approved.
   and security defaults remain unchanged.
 - Record workflow activation, required check contexts, and consumer migration
   as deferred work requiring a separate ADR and hosted pilot.
+
+### P1 — profile shadow mode (design approved; implementation pending)
+
+- ADR-0009 approves one isolated, advisory observation workflow and a
+  deterministic resolver.
+- All current workflows, required checks, branch protection, initializer
+  behavior, and production controls remain unchanged.
+- The implementation must prove missing-profile compatibility, Standard
+  consumer behavior, and fork safety before any activation design.
+- Profile-aware execution and check-policy changes remain deferred.
 
 ### P0 — component-aware monorepo CI (implemented; hosted pilot passed)
 
@@ -121,13 +143,19 @@ The contract is recorded in [ADR-0007](../adr/0007-component-aware-monorepo-ci-c
   checks remain stable and disabled controls do not leave pending statuses.
 - Measure CI duration and check noise before and after activation.
 
-## Exit criteria for resuming profile work
+## Exit criteria for profile activation
 
-Profile implementation may resume when all of the following are defined:
+Observational profile work may proceed under ADR-0009 because it changes no
+existing control execution. Actual profile activation remains blocked until:
 
-1. compatibility behavior for repositories without a profile;
-2. a stable required-check strategy for every profile;
-3. an explicit policy for controls that are blocking, advisory, scheduled, or
-   manual;
-4. an idempotent document-update strategy for the initializer;
-5. a consumer pilot that validates adoption cost and security behavior.
+1. the shadow context is stable across pull-request, push, rerun, and fork
+   events;
+2. compatibility, Starter, Standard, and Enterprise decisions match the
+   approved mapping without suppressing existing workflows;
+3. blocking, advisory, scheduled/post-merge, and manual classifications are
+   validated against hosted evidence;
+4. noise and duration remain proportionate in consumer pilots;
+5. any initializer extension has an idempotent, explicit reconfiguration
+   contract;
+6. a separate ADR defines activation, branch-protection migration, rollback,
+   and consumer compatibility.
