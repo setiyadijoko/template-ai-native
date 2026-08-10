@@ -11,16 +11,32 @@ die() {
 }
 
 profile_name() {
-  awk -F ':[[:space:]]*' '$1 == "profile" { print $2; exit }' "$PROFILE_CONFIG"
+  awk '
+    {
+      line = $0
+      sub(/[[:space:]]+#.*$/, "", line)
+      sub(/[[:space:]]+$/, "", line)
+      if (line ~ /^profile:[[:space:]]*/) {
+        sub(/^profile:[[:space:]]*/, "", line)
+        print line
+        exit
+      }
+    }
+  ' "$PROFILE_CONFIG"
 }
 
 profile_value() {
   section="$1"; key="$2"
   awk -v section="$section" -v key="$key" '
-    $0 == section ":" { inside = 1; next }
-    inside && /^[^ ]/ { exit }
-    inside && $0 ~ "^  " key ":[[:space:]]*" {
-      value = $0
+    {
+      line = $0
+      sub(/[[:space:]]+#.*$/, "", line)
+      sub(/[[:space:]]+$/, "", line)
+    }
+    line == section ":" { inside = 1; next }
+    inside && line ~ /^[^ ]/ { exit }
+    inside && line ~ "^  " key ":[[:space:]]*" {
+      value = line
       sub("^  " key ":[[:space:]]*", "", value)
       print value
       exit

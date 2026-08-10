@@ -6,6 +6,7 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 . "$HERE/lib.sh"
 
 RESOLVER="$ROOT/scripts/resolve-profile-shadow.sh"
+VALIDATOR="$ROOT/scripts/validate-profile-config.sh"
 MAPPING="$ROOT/.template/profile-controls.yaml"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/template-ai-native-profile-shadow.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT HUP INT TERM
@@ -41,6 +42,27 @@ assert_output_contains "standard codeql runs" "$standard" \
   '^control\.codeql\.decision=would-run$'
 assert_output_contains "standard codeql class" "$standard" \
   '^control\.codeql\.class=pull-request-blocking$'
+
+# Profiles accepted by the canonical validator must resolve identically when
+# comments and trailing whitespace are present.
+sed \
+  -e 's/^version: 1$/version: 1 # schema version   /' \
+  -e 's/^profile: standard$/profile: standard # selected profile/' \
+  -e 's/^project:$/project: # project settings/' \
+  -e 's/^stack:$/stack: # stack settings/' \
+  -e 's/^ai:$/ai: # AI settings/' \
+  -e 's/^deployment:$/deployment: # deployment settings/' \
+  -e 's/^controls:$/controls: # control settings/' \
+  -e 's/^  enabled: true$/  enabled: true # enabled for this profile/' \
+  -e 's/^  codeql: true$/  codeql: true # enabled in Standard/' \
+  -e 's/^  scorecard: false$/  scorecard: false   /' \
+  "$ROOT/.template/profile.yaml.example" > "$WORK/commented.yaml"
+assert_exit "canonical validator accepts comments and trailing whitespace" 0 \
+  sh "$VALIDATOR" "$WORK/commented.yaml"
+assert_exit "resolver accepts canonical commented profile" 0 \
+  run_shadow "$WORK/commented.yaml"
+commented="$(run_shadow "$WORK/commented.yaml" 2>"$WORK/commented.err" || true)"
+assert_eq "commented profile resolves like Standard" "$commented" "$standard"
 
 # Starter may choose stronger controls without a mismatch.
 sed 's/^profile: standard$/profile: starter/' \
