@@ -31,6 +31,19 @@ unchanged until the compatibility design is approved.
 - Document profile-driven adoption as a roadmap item rather than an active
   capability.
 
+### Hosted single-stack Java pilot — verified 2026-08-10
+
+- Consumer: [setiyadinamikaintegrasi/template-java-pilot](https://github.com/setiyadinamikaintegrasi/template-java-pilot).
+- Pull request: [#2](https://github.com/setiyadinamikaintegrasi/template-java-pilot/pull/2), merged at `2026-08-10T07:36:51Z` from the reviewed head `bd8ca8c99c11c62e1d32e83322581802454fe160`.
+- Merge commit: `c7e5f19770e307c07ca46ae84f95cfd655019042`.
+- Main CI: [run 31366576067](https://github.com/setiyadinamikaintegrasi/template-java-pilot/actions/runs/31366576067) completed successfully for the merge commit.
+- The main CI run executed Java quality, integration/E2E/coverage, build, and provenance jobs successfully; only the inapplicable component-aware monorepo job skipped.
+- The same push completed CodeQL, secret scanning, workflow security, Scorecard, SBOM, and the production-readiness contract successfully.
+- Artifact `build-java` contained `target/template-java-pilot-0.1.0-SNAPSHOT.jar` in `template-ai-native-build-java.tar.gz`.
+- Downloaded archive and attested subject SHA-256: `3f42c297fd23d4b3a79531e2de520c904be1ff01e3944401ed2c6ac7a11e4dd7`.
+- `gh attestation verify` verified the SLSA provenance subject against `setiyadinamikaintegrasi/template-java-pilot`; GitHub recorded [attestation 39760436](https://github.com/setiyadinamikaintegrasi/template-java-pilot/attestations/39760436).
+- The pilot used Java 21, Maven, deterministic synthetic logic, and no secret, external service, framework, deployment, or profile activation.
+
 ### P1 — profile foundation (future)
 
 - Define and validate a versioned `.template/profile.yaml` schema.
