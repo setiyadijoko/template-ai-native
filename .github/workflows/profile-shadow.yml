@@ -1,0 +1,39 @@
+name: Profile shadow
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  observe:
+    name: Profile shadow / Profile policy observation
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Resolve profile policy
+        shell: sh
+        run: |
+          report="${RUNNER_TEMP}/profile-shadow-report.txt"
+          sh scripts/resolve-profile-shadow.sh > "$report"
+          cat "$report"
+          {
+            printf '## Profile policy shadow\n\n'
+            printf 'This report is observational and changes no workflow execution.\n\n'
+            printf '```text\n'
+            cat "$report"
+            printf '```\n'
+          } >> "$GITHUB_STEP_SUMMARY"
