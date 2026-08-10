@@ -44,14 +44,29 @@ unchanged until the compatibility design is approved.
 - `gh attestation verify` verified the SLSA provenance subject against `setiyadinamikaintegrasi/template-java-pilot`; GitHub recorded [attestation 39760436](https://github.com/setiyadinamikaintegrasi/template-java-pilot/attestations/39760436).
 - The pilot used Java 21, Maven, deterministic synthetic logic, and no secret, external service, framework, deployment, or profile activation.
 
-### P1 — profile foundation (future)
+### Hosted single-stack .NET pilot — verified 2026-08-10
 
-- Define and validate a versioned `.template/profile.yaml` schema.
-- Define Starter, Standard, and Enterprise control mappings.
-- Add a compatibility fallback when no profile exists; it must preserve current
-  behavior and must not weaken security by default.
-- Add an ADR covering workflow activation, required check contexts, and
-  migration for existing consumers.
+- Consumer: [setiyadinamikaintegrasi/template-dotnet-pilot](https://github.com/setiyadinamikaintegrasi/template-dotnet-pilot).
+- Pull request: [#1](https://github.com/setiyadinamikaintegrasi/template-dotnet-pilot/pull/1), merged at `2026-08-10T10:53:59Z`.
+- Merge commit: `e7f4283e2f99beb1aa61a09ea2f2b13b9b3628b9`.
+- Main CI: [run 31381140727](https://github.com/setiyadinamikaintegrasi/template-dotnet-pilot/actions/runs/31381140727) completed successfully with .NET quality, unit, integration, E2E, coverage, build, and provenance jobs.
+- The consumer used a .NET 8 class library plus a separate xUnit test project; hosted coverage measured `100.00% (26/26 lines)`.
+- The same merge completed CodeQL, secret scanning, workflow security, Scorecard, SBOM, OSV Scanner, and the production-readiness contract successfully.
+- Artifact `build-dotnet` contained `template-ai-native-build-dotnet.tar.gz`; attested subject SHA-256: `0f079d6fca3cebeea2428a1f69a0523cce0ed3be05e0eb2ad2e46889ec7dd239`.
+- `gh attestation verify` verified the SLSA provenance subject; GitHub recorded [attestation 39794621](https://github.com/setiyadinamikaintegrasi/template-dotnet-pilot/attestations/39794621).
+- The pilot used deterministic .NET domain logic with no framework server, external service, deployment, AI provider, or profile activation.
+
+### P1 — profile foundation (implemented; activation deferred)
+
+- Define and validate a versioned `.template/profile.yaml` schema; see
+  `.template/profile.schema.yaml` and `scripts/validate-profile-config.sh`.
+- Define Starter, Standard, and Enterprise control mappings in
+  [ADR-0008](../adr/0008-profile-foundation.md) and
+  `.template/profile-controls.yaml`.
+- Preserve a compatibility fallback when no profile exists; current behavior
+  and security defaults remain unchanged.
+- Record workflow activation, required check contexts, and consumer migration
+  as deferred work requiring a separate ADR and hosted pilot.
 
 ### P0 — component-aware monorepo CI (implemented; hosted pilot passed)
 

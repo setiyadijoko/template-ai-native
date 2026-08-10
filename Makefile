@@ -5,7 +5,7 @@ STACK := $(shell sh scripts/detect-stack.sh)
         test test-unit test-contract test-integration test-e2e test-coverage \
         eval eval-regression eval-safety \
         security secret-scan dependency-scan container-scan iac-scan \
-        build run smoke-test docs-check readiness-check project-config-check ci test-scripts
+        build run smoke-test docs-check readiness-check project-config-check profile-config-check ci test-scripts
 
 # When no stack is detected, targets that need a toolchain no-op cleanly.
 ifeq ($(STACK),unknown)
@@ -59,6 +59,7 @@ security: secret-scan dependency-scan container-scan iac-scan
 docs-check:       ; @sh scripts/ci-local.sh
 readiness-check:   ; @sh scripts/validate-production-readiness.sh
 project-config-check: ; @sh scripts/validate-project-config.sh
+profile-config-check:  ; @sh scripts/validate-profile-config.sh
 test-scripts:
 	@sh scripts/test/test-stack-detection.sh
 	@sh scripts/test/test-python-project-build.sh
@@ -78,5 +79,6 @@ test-scripts:
 	@sh scripts/test/test-project-config.sh
 	@sh scripts/test/test-openapi-contract.sh
 	@sh scripts/test/test-monorepo-ci.sh
-ci: format-check lint docs-check readiness-check project-config-check test-scripts
+	@sh scripts/test/test-profile-config.sh
+ci: format-check lint docs-check readiness-check project-config-check profile-config-check test-scripts
 	@echo "[ci] local gate (best-effort) complete"

@@ -159,14 +159,24 @@ corresponding GitHub Environments. Production must remain human-gated and must
 promote the exact artifact validated in staging (no rebuild). See
 [`docs/operations/deployment-guide.md`](docs/operations/deployment-guide.md).
 
-## Adoption profiles (roadmap)
+## Adoption profiles (declarative foundation)
 
-The template currently ships one governed baseline; it does not yet activate
-Starter, Standard, or Enterprise controls automatically. Profile-aware
-configuration and bootstrap are recorded in [`docs/plans/roadmap.md`](docs/plans/roadmap.md)
-and will be introduced only after the CI check-context compatibility design is
-approved. Until then, consumers select the controls they need explicitly and
-keep the existing security defaults.
+The template now defines a versioned, credential-free profile contract for
+`starter`, `standard`, and `enterprise`. Copy
+`.template/profile.yaml.example` to `.template/profile.yaml`, edit the values,
+and validate it with:
+
+```sh
+sh scripts/validate-profile-config.sh .template/profile.yaml
+```
+
+Profile files currently document the intended control posture only; they do
+not activate, skip, or downgrade workflows. Repositories without the file stay
+in compatibility mode and retain the current security defaults. The mapping and
+future activation gate are recorded in
+[`docs/adr/0008-profile-foundation.md`](docs/adr/0008-profile-foundation.md).
+The machine-readable default mapping is in
+`.template/profile-controls.yaml`.
 
 ## Documentation index
 
