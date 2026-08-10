@@ -282,7 +282,11 @@ jobs:
           case "$COMPONENT_STACK" in
             python)
               project_dir="$(sh "$GITHUB_WORKSPACE/scripts/resolve-python-project-dir.sh")"
-              add_tree "$project_dir/dist"
+              case "$project_dir" in
+                .) artifact_dir=dist ;;
+                src) artifact_dir=src/dist ;;
+              esac
+              add_tree "$artifact_dir"
               ;;
             node) add_tree dist; add_tree build ;;
             go) add_tree bin ;;

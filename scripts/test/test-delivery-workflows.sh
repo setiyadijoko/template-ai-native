@@ -81,6 +81,86 @@ assert_action_pins() {
   fi
 }
 
+extract_step_run_script() {
+  workflow="$1"
+  step_id="$2"
+  output="$3"
+
+  awk -v marker="      - id: $step_id" '
+    $0 == marker { in_step = 1; next }
+    in_step && $0 == "        run: |" { in_run = 1; next }
+    in_run && /^      - / { exit }
+    in_run {
+      sub(/^          /, "")
+      print
+    }
+  ' "$workflow" > "$output"
+}
+
+write_portable_tar_adapter() {
+  output="$1"
+  cat > "$output" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+archive=""
+args=()
+while (( "$#" > 0 )); do
+  case "$1" in
+    --sort=*|--mtime=*|--owner=*|--group=*|--numeric-owner)
+      shift
+      ;;
+    -czf)
+      archive="$2"
+      shift 2
+      ;;
+    *)
+      args+=("$1")
+      shift
+      ;;
+  esac
+done
+
+exec "$SYSTEM_TAR" -czf "$archive" "${args[@]}"
+EOF
+  chmod +x "$output"
+}
+
+run_single_stack_python_package() {
+  layout="$1"
+  case_root="$DELIVERY_TMP/$layout"
+  project="$case_root/project"
+  runner_temp="$case_root/runner"
+  github_output="$case_root/github-output"
+
+  mkdir -p "$project/scripts" "$runner_temp"
+  cp "$ROOT/scripts/resolve-python-project-dir.sh" "$project/scripts/"
+  case "$layout" in
+    root)
+      mkdir -p "$project/dist"
+      : > "$project/pyproject.toml"
+      printf 'fixture\n' > "$project/dist/example.whl"
+      ;;
+    src)
+      mkdir -p "$project/src/dist"
+      : > "$project/src/pyproject.toml"
+      printf 'fixture\n' > "$project/src/dist/example.whl"
+      ;;
+  esac
+
+  (
+    cd "$project"
+    PATH="$DELIVERY_TMP/bin:$PATH" \
+      SYSTEM_TAR="$SYSTEM_TAR" \
+      STACK=python \
+      RUNNER_TEMP="$runner_temp" \
+      GITHUB_OUTPUT="$github_output" \
+      bash "$DELIVERY_PACKAGE_SCRIPT"
+  )
+
+  "$SYSTEM_TAR" -tzf "$runner_temp/template-ai-native-build-python.tar.gz"
+}
+
 # --- build.yml: one fail-closed packaged artifact with reusable outputs ---
 assert_contains "build exports artifact name" "$BUILD" 'artifact-name:'
 assert_contains "build exports upload state" "$BUILD" 'artifact-uploaded:'
@@ -90,7 +170,13 @@ assert_not_contains "build has no inline Python tool-only install" "$BUILD" \
   'pip install ruff mypy pytest pytest-cov build'
 assert_contains "Python packaging resolves project directory" "$BUILD" \
   'project_dir="[$][(]sh scripts/resolve-python-project-dir\.sh[)]"'
-assert_contains "Python packaging selects resolved dist" "$BUILD" \
+assert_contains "Python packaging selects literal root dist" "$BUILD" \
+  '[.][)] artifact_dir=dist ;;'
+assert_contains "Python packaging selects direct-src dist" "$BUILD" \
+  'src[)] artifact_dir=src/dist ;;'
+assert_contains "Python packaging adds normalized dist" "$BUILD" \
+  'add_tree "[$]artifact_dir"'
+assert_not_contains "Python packaging rejects dot-prefixed dist input" "$BUILD" \
   'add_tree "[$]project_dir/dist"'
 assert_not_contains "Python packaging does not hardcode root dist" "$BUILD" \
   'python[)] add_tree dist'
@@ -167,5 +253,28 @@ assert_not_contains "release does not request OIDC" "$RELEASE" 'id-token: write'
 
 assert_action_pins "delivery workflows pin third-party actions" \
   "$BUILD" "$CI" "$ATTEST" "$RELEASE"
+
+# Execute the real package step against controlled root and direct-src fixtures.
+# macOS ships BSD tar, so the test adapter removes GNU metadata flags while
+# preserving the workflow-selected input paths and creating a real archive.
+DELIVERY_TMP="$(mktemp -d "${TMPDIR:-/tmp}/delivery-workflows.XXXXXX")"
+trap 'rm -rf "$DELIVERY_TMP"' EXIT HUP INT TERM
+DELIVERY_PACKAGE_SCRIPT="$DELIVERY_TMP/package-build.sh"
+SYSTEM_TAR="$(command -v tar)"
+mkdir -p "$DELIVERY_TMP/bin"
+extract_step_run_script "$BUILD" artifact "$DELIVERY_PACKAGE_SCRIPT"
+write_portable_tar_adapter "$DELIVERY_TMP/bin/tar"
+
+root_members="$(run_single_stack_python_package root)"
+assert_text_contains "root Python archive keeps dist member path" "$root_members" \
+  '^dist/example\.whl$'
+assert_text_not_contains "root Python archive has no dot-prefixed members" "$root_members" \
+  '^\./dist/'
+
+src_members="$(run_single_stack_python_package src)"
+assert_text_contains "direct-src Python archive keeps src/dist member path" "$src_members" \
+  '^src/dist/example\.whl$'
+assert_text_not_contains "direct-src Python archive has no root dist member" "$src_members" \
+  '^dist/example\.whl$'
 
 report
