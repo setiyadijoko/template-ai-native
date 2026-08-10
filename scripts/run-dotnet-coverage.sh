@@ -3,6 +3,7 @@
 set -eu
 
 MINIMUM_PERCENT=80
+MAX_SAFE_COUNTER=2147483647
 RESULTS_PARENT=TestResults
 RESULTS_DIR="$RESULTS_PARENT/template-ai-native-coverage"
 DOTNET_BIN="${DOTNET_BIN:-dotnet}"
@@ -52,19 +53,65 @@ fi
 total_covered=0
 total_valid=0
 
+is_safe_counter() {
+  printf '%s\n' "$1" | awk '
+    {
+      value = $0
+      sub(/^0+/, "", value)
+      if (value == "") value = "0"
+      if (length(value) < 10) exit 0
+      if (length(value) > 10) exit 1
+
+      limit = "2147483647"
+      for (position = 1; position <= 10; position++) {
+        digit = substr(value, position, 1)
+        limit_digit = substr(limit, position, 1)
+        if (digit < limit_digit) exit 0
+        if (digit > limit_digit) exit 1
+      }
+      exit 0
+    }
+    END { if (NR != 1) exit 1 }
+  '
+}
+
 while IFS= read -r report; do
   coverage_tag="$(awk '
-    BEGIN { RS = ">" }
-    /<coverage[[:space:]]/ {
-      gsub(/[\r\n]/, " ")
-      print
-      exit
+    function trim_leading(value) {
+      sub(/^[[:space:]]+/, "", value)
+      return value
+    }
+    {
+      document = document $0 "\n"
+    }
+    END {
+      document = trim_leading(document)
+      while (document ~ /^<\?/) {
+        end = index(document, "?>")
+        if (!end) {
+          invalid = 1
+          break
+        }
+        document = trim_leading(substr(document, end + 2))
+      }
+      while (!invalid && document ~ /^<!--/) {
+        end = index(document, "-->")
+        if (!end) {
+          invalid = 1
+          break
+        }
+        document = trim_leading(substr(document, end + 3))
+      }
+      if (!invalid && document ~ /^<coverage([[:space:]]|\/)/) {
+        end = index(document, ">")
+        if (end) print substr(document, 1, end)
+      }
     }
   ' "$report")"
-  covered="$(printf '%s>\n' "$coverage_tag" \
-    | sed -n 's/.*lines-covered="\([0-9][0-9]*\)".*/\1/p')"
-  valid="$(printf '%s>\n' "$coverage_tag" \
-    | sed -n 's/.*lines-valid="\([0-9][0-9]*\)".*/\1/p')"
+  covered="$(printf '%s\n' "$coverage_tag" \
+    | sed -n 's/.*[[:space:]]lines-covered="\([0-9][0-9]*\)".*/\1/p')"
+  valid="$(printf '%s\n' "$coverage_tag" \
+    | sed -n 's/.*[[:space:]]lines-valid="\([0-9][0-9]*\)".*/\1/p')"
 
   case "$covered" in
     ''|*[!0-9]*)
@@ -80,9 +127,20 @@ while IFS= read -r report; do
       exit 1
       ;;
   esac
+  if ! is_safe_counter "$covered" || ! is_safe_counter "$valid"; then
+    printf '::error::.NET coverage counter exceeds safe shell range: %s\n' \
+      "$report" >&2
+    exit 1
+  fi
   if [ "$covered" -gt "$valid" ]; then
     printf '::error::Impossible .NET coverage counters in %s: %s/%s\n' \
       "$report" "$covered" "$valid" >&2
+    exit 1
+  fi
+  if [ "$covered" -gt "$((MAX_SAFE_COUNTER - total_covered))" ] || \
+    [ "$valid" -gt "$((MAX_SAFE_COUNTER - total_valid))" ]; then
+    printf '::error::.NET coverage aggregate exceeds safe shell range: %s\n' \
+      "$report" >&2
     exit 1
   fi
 

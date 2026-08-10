@@ -75,6 +75,26 @@ case "$DOTNET_FIXTURE_MODE" in
     printf '<coverage lines-covered="8"></coverage>\n' \
       > "$result_root/run-a/coverage.cobertura.xml"
     ;;
+  prefixed)
+    mkdir -p "$result_root/run-a"
+    printf '<coverage data-lines-covered="8" lines-valid="10"></coverage>\n' \
+      > "$result_root/run-a/coverage.cobertura.xml"
+    ;;
+  truncated)
+    mkdir -p "$result_root/run-a"
+    printf '<coverage lines-covered="8" lines-valid="10"\n' \
+      > "$result_root/run-a/coverage.cobertura.xml"
+    ;;
+  nested)
+    mkdir -p "$result_root/run-a"
+    printf '<not-coverage><coverage lines-covered="8" lines-valid="10"></coverage></not-coverage>\n' \
+      > "$result_root/run-a/coverage.cobertura.xml"
+    ;;
+  oversized)
+    mkdir -p "$result_root/run-a"
+    printf '<coverage lines-covered="18446744073709551617" lines-valid="18446744073709551617"></coverage>\n' \
+      > "$result_root/run-a/coverage.cobertura.xml"
+    ;;
   impossible)
     mkdir -p "$result_root/run-a"
     printf '<coverage lines-covered="11" lines-valid="10"></coverage>\n' \
@@ -155,7 +175,7 @@ assert_eq "weighted calculation rejects unweighted false pass" \
 assert_text_contains "weighted failure output" "$weighted_fail_output" \
   '[.]NET coverage 72[.]00% < 80%'
 
-for failure_mode in missing malformed impossible zero; do
+for failure_mode in missing malformed prefixed truncated nested oversized impossible zero; do
   set +e
   failure_output="$(run_case "$failure_mode" "$failure_mode" 2>&1)"
   failure_status=$?
