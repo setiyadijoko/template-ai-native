@@ -80,6 +80,24 @@ case "$DOTNET_FIXTURE_MODE" in
     printf '<coverage data-lines-covered="8" lines-valid="10"></coverage>\n' \
       > "$result_root/run-a/coverage.cobertura.xml"
     ;;
+  quoted-spoof)
+    mkdir -p "$result_root/run-a"
+    printf '<coverage note='\'' lines-covered="8"'\'' lines-valid="10"></coverage>\n' \
+      > "$result_root/run-a/coverage.cobertura.xml"
+    ;;
+  duplicate)
+    mkdir -p "$result_root/run-a"
+    printf '<coverage lines-covered="8" lines-covered="8" lines-valid="10"></coverage>\n' \
+      > "$result_root/run-a/coverage.cobertura.xml"
+    ;;
+  overlong)
+    mkdir -p "$result_root/run-a"
+    {
+      printf '<coverage note="'
+      dd if=/dev/zero bs=1 count=4096 2>/dev/null | tr '\000' x
+      printf '" lines-covered="8" lines-valid="10"></coverage>\n'
+    } > "$result_root/run-a/coverage.cobertura.xml"
+    ;;
   truncated)
     mkdir -p "$result_root/run-a"
     printf '<coverage lines-covered="8" lines-valid="10"\n' \
@@ -175,7 +193,7 @@ assert_eq "weighted calculation rejects unweighted false pass" \
 assert_text_contains "weighted failure output" "$weighted_fail_output" \
   '[.]NET coverage 72[.]00% < 80%'
 
-for failure_mode in missing malformed prefixed truncated nested oversized impossible zero; do
+for failure_mode in missing malformed prefixed quoted-spoof duplicate overlong truncated nested oversized impossible zero; do
   set +e
   failure_output="$(run_case "$failure_mode" "$failure_mode" 2>&1)"
   failure_status=$?

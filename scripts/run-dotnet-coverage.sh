@@ -4,6 +4,7 @@ set -eu
 
 MINIMUM_PERCENT=80
 MAX_SAFE_COUNTER=2147483647
+MAX_ROOT_TAG_LENGTH=4096
 RESULTS_PARENT=TestResults
 RESULTS_DIR="$RESULTS_PARENT/template-ai-native-coverage"
 DOTNET_BIN="${DOTNET_BIN:-dotnet}"
@@ -75,43 +76,164 @@ is_safe_counter() {
   '
 }
 
-while IFS= read -r report; do
-  coverage_tag="$(awk '
-    function trim_leading(value) {
-      sub(/^[[:space:]]+/, "", value)
-      return value
+parse_coverage_values() {
+  LC_ALL=C fold -w 1 "$1" | awk -v maximum="$MAX_ROOT_TAG_LENGTH" '
+    BEGIN { state = "before" }
+    function is_space(value) {
+      return value ~ /^[[:space:]]$/
+    }
+    function is_name_start(value) {
+      return value ~ /^[A-Za-z_:]$/
+    }
+    function is_name_character(value) {
+      return value ~ /^[A-Za-z0-9_.:-]$/
+    }
+    function append_tag(value) {
+      if (length(tag) >= maximum) {
+        invalid = 1
+        return
+      }
+      tag = tag value
+    }
+    function emit_attributes(    position, tag_length, value, attribute, quote) {
+      position = 10
+      tag_length = length(tag)
+      while (position <= tag_length) {
+        while (position <= tag_length && is_space(substr(tag, position, 1))) position++
+        if (position > tag_length) return
+        value = substr(tag, position, 1)
+        if (value == ">") {
+          position++
+          break
+        }
+        if (value == "/") {
+          position++
+          while (position <= tag_length && is_space(substr(tag, position, 1))) position++
+          if (substr(tag, position, 1) != ">") return
+          position++
+          break
+        }
+        if (!is_name_start(value)) return
+
+        attribute = ""
+        while (position <= tag_length && is_name_character(substr(tag, position, 1))) {
+          attribute = attribute substr(tag, position, 1)
+          position++
+        }
+        while (position <= tag_length && is_space(substr(tag, position, 1))) position++
+        if (substr(tag, position, 1) != "=") return
+        position++
+        while (position <= tag_length && is_space(substr(tag, position, 1))) position++
+        quote = substr(tag, position, 1)
+        if (quote != "\"" && quote != "\047") return
+        position++
+
+        value = ""
+        while (position <= tag_length && substr(tag, position, 1) != quote) {
+          value = value substr(tag, position, 1)
+          position++
+        }
+        if (substr(tag, position, 1) != quote) return
+        position++
+        if (attribute == "lines-covered") {
+          if (have_covered) return
+          covered = value
+          have_covered = 1
+        } else if (attribute == "lines-valid") {
+          if (have_valid) return
+          valid = value
+          have_valid = 1
+        }
+        if (position <= tag_length && !is_space(substr(tag, position, 1)) && \
+          substr(tag, position, 1) != "/" && substr(tag, position, 1) != ">") return
+      }
+      if (position != tag_length + 1 || !have_covered || !have_valid || \
+        covered !~ /^[0-9][0-9]*$/ || valid !~ /^[0-9][0-9]*$/) return
+      print covered " " valid
     }
     {
-      document = document $0 "\n"
-    }
-    END {
-      document = trim_leading(document)
-      while (document ~ /^<\?/) {
-        end = index(document, "?>")
-        if (!end) {
+      value = $0
+      if (value == "") value = "\n"
+      if (invalid || done) next
+
+      if (state == "before") {
+        if (is_space(value)) next
+        if (value != "<") {
           invalid = 1
-          break
+          next
         }
-        document = trim_leading(substr(document, end + 2))
-      }
-      while (!invalid && document ~ /^<!--/) {
-        end = index(document, "-->")
-        if (!end) {
-          invalid = 1
-          break
+        state = "open"
+      } else if (state == "open") {
+        if (value == "?") {
+          state = "processing_instruction"
+        } else if (value == "!") {
+          state = "comment_first_dash"
+        } else {
+          tag = "<"
+          append_tag(value)
+          if (value != "c") invalid = 1
+          else state = "root_name"
         }
-        document = trim_leading(substr(document, end + 3))
-      }
-      if (!invalid && document ~ /^<coverage([[:space:]]|\/)/) {
-        end = index(document, ">")
-        if (end) print substr(document, 1, end)
+      } else if (state == "processing_instruction") {
+        if (previous == "?" && value == ">") {
+          state = "before"
+          previous = ""
+        } else {
+          previous = value
+        }
+      } else if (state == "comment_first_dash") {
+        if (value == "-") state = "comment_second_dash"
+        else invalid = 1
+      } else if (state == "comment_second_dash") {
+        if (value == "-") {
+          state = "comment"
+          previous = ""
+          before_previous = ""
+        } else invalid = 1
+      } else if (state == "comment") {
+        if (before_previous == "-" && previous == "-" && value == ">") {
+          state = "before"
+          previous = ""
+          before_previous = ""
+        } else {
+          before_previous = previous
+          previous = value
+        }
+      } else if (state == "root_name") {
+        append_tag(value)
+        name_length = length(tag) - 1
+        if (value != substr("coverage", name_length, 1)) invalid = 1
+        else if (name_length == length("coverage")) state = "root_boundary"
+      } else if (state == "root_boundary") {
+        append_tag(value)
+        if (is_space(value) || value == "/") state = "root_tag"
+        else invalid = 1
+      } else if (state == "root_tag") {
+        append_tag(value)
+        if (invalid) next
+        if (quote != "") {
+          if (value == quote) quote = ""
+        } else if (value == "\"" || value == "\047") {
+          quote = value
+        } else if (value == ">") {
+          emit_attributes()
+          done = 1
+          exit
+        }
       }
     }
-  ' "$report")"
-  covered="$(printf '%s\n' "$coverage_tag" \
-    | sed -n 's/.*[[:space:]]lines-covered="\([0-9][0-9]*\)".*/\1/p')"
-  valid="$(printf '%s\n' "$coverage_tag" \
-    | sed -n 's/.*[[:space:]]lines-valid="\([0-9][0-9]*\)".*/\1/p')"
+  '
+}
+
+while IFS= read -r report; do
+  coverage_values="$(parse_coverage_values "$report")"
+  set -- $coverage_values
+  if [ "$#" -ne 2 ]; then
+    printf '::error::Malformed .NET coverage root tag: %s\n' "$report" >&2
+    exit 1
+  fi
+  covered="$1"
+  valid="$2"
 
   case "$covered" in
     ''|*[!0-9]*)
