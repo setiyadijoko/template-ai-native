@@ -1,6 +1,6 @@
 # Hosted Java Consumer Pilot Design
 
-**Status:** Proposed
+**Status:** Approved 2026-08-10
 **Date:** 2026-08-10
 **Owner:** Project owner (@setiyadijoko)
 **Target:** `setiyadinamikaintegrasi/template-java-pilot`
