@@ -6,7 +6,9 @@ quality/detection scripts no-op on the empty template, while
 
 | Script | When to run | What it does |
 |---|---|---|
-| `setup-python-deps.sh` | Called by Python quality, test, and build jobs | Installs the consumer project from a supported pip-installable manifest, then installs only CI tools still missing after consumer dependency setup. It uses the workflow-selected Python interpreter and fails explicitly for ambiguous boundaries or Pipfile-only projects. |
+| `resolve-python-project-dir.sh` | Called by Python setup, build, and packaging paths | Selects exactly one Python dependency boundary from the current directory or direct `src/`; ambiguous and absent boundaries fail explicitly. |
+| `setup-python-deps.sh` | Called by Python quality, test, and build jobs | Consumes the shared project-directory resolver, installs the consumer project from a supported pip-installable manifest, then installs only CI tools still missing after consumer dependency setup. It uses the workflow-selected Python interpreter and fails explicitly for Pipfile-only projects. |
+| `run-python-build.sh` | Called by the Python build mapper | Requires a package build manifest, resolves the selected interpreter before changing directories, and builds from the shared project boundary. |
 | `python-ci-tools.txt` | Read by `setup-python-deps.sh` | Stores repository-controlled fallback pins as `distribution==version\|import_module`; consumer-provided compatible tools take precedence. |
 | `detect-stack.sh` | Called by single-stack `Makefile` and CI compatibility paths; run manually to debug | Prints the detected stack token (`python \| node \| go \| java \| dotnet \| unknown`) from the repo root or direct `src/` manifests. A declared monorepo returns `unknown`; version-2 component CI resolves its explicit list separately. Always exits 0. |
 | `resolve-components.sh` | Called by component-aware CI; run manually to validate a monorepo | Validates version-2 `.template/project.yaml` components and emits the explicit component list as `--tsv` or JSON with `--json`; it never discovers nested manifests. |
