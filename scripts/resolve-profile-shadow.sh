@@ -120,13 +120,15 @@ review_alignment() {
 
 validate_mapping
 
-if [ ! -f "$PROFILE_CONFIG" ]; then
+if [ ! -e "$PROFILE_CONFIG" ]; then
   printf 'mode=compatibility\nprofile=none\nstatus=current-baseline\n'
   for control in $CONTROLS; do
     printf 'control.%s.decision=current-baseline\n' "$control"
   done
   exit 0
 fi
+
+[ -f "$PROFILE_CONFIG" ] || die "invalid profile config '$PROFILE_CONFIG'"
 
 sh scripts/validate-profile-config.sh "$PROFILE_CONFIG" >/dev/null 2>&1 || die "invalid profile config '$PROFILE_CONFIG'"
 PROFILE="$(profile_name)"

@@ -73,6 +73,10 @@ assert_output_contains "AI evaluation skips" "$ai_disabled" \
 cp "$ROOT/.template/profile.yaml.example" "$WORK/invalid.yaml"
 printf 'provider: openai\n' >> "$WORK/invalid.yaml"
 assert_exit "invalid profile fails" 1 run_shadow "$WORK/invalid.yaml"
+mkdir "$WORK/profile-directory"
+assert_exit "directory profile fails" 1 run_shadow "$WORK/profile-directory"
+directory_output="$(run_shadow "$WORK/profile-directory" 2>&1 || true)"
+assert_output_contains "directory profile error prefix" "$directory_output" '^profile-shadow:'
 sed '/^[[:space:]]*codeql:/d' "$MAPPING" > "$WORK/malformed-controls.yaml"
 assert_exit "malformed mapping fails" 1 run_shadow \
   "$ROOT/.template/profile.yaml.example" "$WORK/malformed-controls.yaml"
