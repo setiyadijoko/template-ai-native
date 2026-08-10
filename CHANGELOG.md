@@ -81,6 +81,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Fixed
+- Prevented aggregate Python coverage from collecting template-owned regression
+  fixtures or colliding on same-named test modules across test categories.
 - Enforced the documented 80% .NET line-coverage baseline through a shared,
   fail-closed current-run Cobertura aggregator and retained recursive collector
   reports in single-stack and component-aware CI.

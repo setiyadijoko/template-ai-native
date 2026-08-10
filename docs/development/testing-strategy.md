@@ -16,9 +16,11 @@
 - Overall automated-test coverage ≥ 80% — **enforced in Phase 2**
   (`fail-under=80`) when a supported stack is detected. Python follows the
   consumer's pytest discovery configuration instead of forcing coverage to the
-  unit-test directory; tests must remain in their correct unit, contract,
-  integration, or E2E category. The first application PR has no bootstrap
-  bypass; below-threshold results fail with the active threshold in the log.
+  unit-test directory, excludes template-owned `tests/fixtures/`, and uses
+  pytest's `importlib` mode to avoid same-name module collisions across test
+  categories. Tests must remain in their correct unit, contract, integration,
+  or E2E category. The first application PR has no bootstrap bypass;
+  below-threshold results fail with the active threshold in the log.
   .NET runs its consumer-owned XPlat collector in an isolated current-run
   results directory; the repository wrapper aggregates Cobertura line counters
   across test projects and fails closed below 80% or when evidence is missing

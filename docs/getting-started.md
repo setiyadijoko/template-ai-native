@@ -241,8 +241,10 @@ This threshold also applies to the first application pull request; there is no
 hidden bootstrap bypass. For Python, the coverage mapper follows the consumer's
 pytest discovery configuration (`testpaths` when configured), so unit,
 integration, contract, and end-to-end suites can contribute to the aggregate.
-Pytest discovery remains consumer-owned and is independent of the build
-boundary.
+The mapper excludes the template-owned `tests/fixtures/` regression assets and
+uses pytest's `importlib` import mode so test files may share a name across
+categories without module collisions. Discovery otherwise remains
+consumer-owned and independent of the build boundary.
 The category-specific commands still run separately so failures remain easy to
 locate. Coverage output states the active threshold before reporting the
 measured result.
