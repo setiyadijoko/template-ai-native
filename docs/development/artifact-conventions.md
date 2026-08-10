@@ -16,6 +16,21 @@ workflows.
 | Nuxt | `.output/` | Package `.output/` with the selected Nitro preset, or adapt the consumer-owned artifact step; it is not auto-selected by the generic Node packaging contract. |
 | Angular | `dist/<project>/` | Confirm the configured `outputPath` under `dist/`; the generic `dist/` convention can include it. |
 
+## Python package output
+
+A Python dependency boundary may be the repository root or direct `src/`, but
+not both. Package builds additionally require `pyproject.toml` or `setup.py` at
+that boundary; requirements files and `Pipfile` can identify a dependency
+boundary without defining a buildable package. Root projects produce `dist/`;
+direct-src projects produce `src/dist/`.
+
+Packaging preserves those literal archive member paths: `dist/` for a root
+project and `src/dist/` for a direct-src project. The uploaded artifact name
+remains `build-python` in both layouts for the single-stack workflow. Version-2
+components retain their declared component artifact identity. This layout
+support does not change pytest discovery, workflow permissions, provenance
+inputs, or deployment readiness.
+
 ## Artifact identity
 
 Use the component or stack artifact name as the stable Actions artifact identity

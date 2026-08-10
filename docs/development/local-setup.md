@@ -29,6 +29,15 @@ optional-dependency group that includes Ruff, mypy, pytest, pytest-cov, and
 build. The helper also supports an editable `setup.py` project or
 `requirements.txt` plus an optional `requirements-dev.txt`. Keep the Python
 dependency boundary in either the repository root or direct `src/`, not both.
+The shared resolver also recognizes a `Pipfile` as a dependency boundary, but
+that does not make its environment installable by this template.
+
+Package builds additionally require `pyproject.toml` or `setup.py` at that
+boundary. The build wrapper resolves the selected interpreter before changing
+to the boundary, then runs the package build there. Root projects produce
+`dist/`; direct-src projects produce `src/dist/`. Missing, ambiguous, and
+non-buildable boundaries fail explicitly. Pytest discovery remains
+consumer-owned and is independent of the build boundary.
 
 Activate an isolated Python 3.12 environment before running the helper locally:
 

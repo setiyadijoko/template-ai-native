@@ -1,6 +1,6 @@
 # Python Project-Directory Build Design
 
-**Status:** Approved
+**Status:** Implemented 2026-08-10
 **Date:** 2026-08-10
 **Owner:** Project owner (@setiyadijoko)
 **Tracks:** TD-0018
@@ -87,8 +87,10 @@ Other stack commands remain unchanged.
 ### Artifact discovery
 
 The Python packaging branches in `.github/workflows/build.yml` and
-`.github/workflows/ci-monorepo.yml` call the same resolver and add
-`<project-directory>/dist` to the archive inputs.
+`.github/workflows/ci-monorepo.yml` call the same resolver and normalize the
+archive input to literal `dist` for a root project or `src/dist` for a
+direct-`src/` project. This preserves the established root archive member path
+and gives the direct-`src/` layout an explicit `src/dist` member path.
 
 The artifact name, archive name, deterministic tar options, upload behavior,
 workflow outputs, check names, and attestation handoff remain unchanged. Build
@@ -125,7 +127,7 @@ environment contents, or consumer source.
 ## Compatibility and security
 
 - Existing root Python projects keep the same effective build command and
-  `dist/` artifact contents.
+  literal `dist/` artifact member path.
 - Empty templates and non-Python stacks retain existing behavior.
 - Stable workflow names, job names, artifact names, and branch-protection check
   contexts do not change.

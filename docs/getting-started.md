@@ -199,13 +199,23 @@ build commands as described in `Makefile` and `scripts/stack-tools.sh`.
 
 ### Python dependency setup
 
-For Python consumers, put the dependency manifest in the repository root or
-directly under `src/`, but not both. `make setup` and the inherited Python
-quality, test, and build jobs use `scripts/setup-python-deps.sh` to install:
+A Python dependency boundary may be the repository root or direct `src/`, but
+not both. The shared resolver treats `pyproject.toml`, `setup.py`,
+`requirements.txt`, `requirements-dev.txt`, or `Pipfile` as boundary markers;
+this identifies where dependency setup runs, not whether the consumer is a
+buildable package. `make setup` and the inherited Python quality, test, and
+build jobs use `scripts/setup-python-deps.sh` to install:
 
 1. the editable project and its `dev` extra from `pyproject.toml`;
 2. an editable `setup.py` project; or
 3. `requirements.txt` followed by `requirements-dev.txt`.
+
+Package builds additionally require `pyproject.toml` or `setup.py` at that
+boundary. Requirements-only and Pipfile-only boundaries therefore fail the
+build with explicit guidance instead of relying on a package-backend error.
+Root projects produce `dist/`; direct-src projects produce `src/dist/`. The
+uploaded artifact name remains `build-python` in both layouts. Version-2
+components retain their declared component artifact identity.
 
 Create and activate an isolated environment before local setup:
 
@@ -231,6 +241,8 @@ This threshold also applies to the first application pull request; there is no
 hidden bootstrap bypass. For Python, the coverage mapper follows the consumer's
 pytest discovery configuration (`testpaths` when configured), so unit,
 integration, contract, and end-to-end suites can contribute to the aggregate.
+Pytest discovery remains consumer-owned and is independent of the build
+boundary.
 The category-specific commands still run separately so failures remain easy to
 locate. Coverage output states the active threshold before reporting the
 measured result.

@@ -76,6 +76,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Fixed
+- Unified root/direct-`src/` Python project resolution across dependency
+  bootstrap, build execution, and artifact packaging; non-buildable and
+  ambiguous boundaries now fail with explicit diagnostics.
 - Installed Python consumer runtime and development dependencies before local
   setup and inherited quality, test, and build commands, replacing duplicated
   tool-only workflow setup with a pinned fallback that respects consumer tools.
