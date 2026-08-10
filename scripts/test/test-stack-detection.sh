@@ -64,7 +64,8 @@ assert_exit "invalid action exit" 64 sh "$ROOT/scripts/stack-tools.sh" frobnicat
 printf '' > pyproject.toml
 assert_eq "python format" "$($TOOL format)" "ruff format ."
 assert_eq "python lint" "$($TOOL lint)" "ruff check ."
-assert_eq "python coverage" "$($TOOL coverage)" "pytest --cov=src --cov-report=xml --cov-report=term --cov-fail-under=80"
+assert_eq "python coverage" "$($TOOL coverage)" \
+  "pytest --ignore=tests/fixtures --import-mode=importlib --cov=src --cov-report=xml --cov-report=term --cov-fail-under=80"
 assert_eq "python build" "$($TOOL build)" \
   "sh \"$ROOT/scripts/run-python-build.sh\""
 rm -f pyproject.toml
