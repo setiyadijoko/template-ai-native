@@ -8,6 +8,7 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 . "$HERE/lib.sh"
 
 HELPER="$ROOT/scripts/setup-python-deps.sh"
+RESOLVER="$ROOT/scripts/resolve-python-project-dir.sh"
 TOOLS="$ROOT/scripts/python-ci-tools.txt"
 MAKEFILE="$ROOT/Makefile"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/template-ai-native-python-deps.XXXXXX")"
@@ -108,6 +109,13 @@ if [ -x "$HELPER" ]; then
 else
   FAIL=$((FAIL+1))
   printf 'FAIL Python dependency helper is executable\n' >&2
+fi
+
+if [ -x "$RESOLVER" ]; then
+  PASS=$((PASS+1))
+else
+  FAIL=$((FAIL+1))
+  printf 'FAIL Python project-directory resolver is executable\n' >&2
 fi
 
 if [ -f "$TOOLS" ]; then
