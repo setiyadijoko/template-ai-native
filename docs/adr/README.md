@@ -25,3 +25,4 @@ Use the template at [../templates/adr-template.md](../templates/adr-template.md)
 | [0005](0005-adopt-graphify-as-optional-codebase-memory.md) | Adopt Graphify as optional codebase memory | Accepted | 2026-08-07 |
 | [0006](0006-explicit-project-layout.md) | Declare project layout before stack detection | Accepted | 2026-08-08 |
 | [0007](0007-component-aware-monorepo-ci-contract.md) | Define a component-aware monorepo CI contract | Accepted — implemented; blocking adoption deferred | 2026-08-09 |
+| [0008](0008-profile-foundation.md) | Establish a declarative maturity-profile foundation | Accepted — foundation only; workflow activation deferred | 2026-08-10 |

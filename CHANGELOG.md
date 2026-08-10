@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added a declarative maturity-profile foundation: versioned schema, safe
+  example, Starter/Standard/Enterprise control mapping, compatibility-mode
+  validator, and ADR-0008. Profile files do not activate workflows yet.
 - Verified the hosted single-stack Java 21/Maven consumer path through quality,
   tests, build artifact creation, and signed provenance attestation.
 - Added a checked-in Python consumer fixture plus a shared, tested dependency

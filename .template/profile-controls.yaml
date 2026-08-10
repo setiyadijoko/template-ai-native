@@ -1,0 +1,39 @@
+# Normative profile defaults; declarative only until workflow activation is approved.
+version: 1
+profiles:
+  starter:
+    secret_scan: true
+    dependency_review: true
+    codeql: false
+    coverage: false
+    sbom: false
+    artifact_attestation: false
+    scorecard: false
+    ai_evaluation: optional
+    semantic_review: off
+    structural_review: off
+    production_governance: when-deployed
+  standard:
+    secret_scan: true
+    dependency_review: true
+    codeql: true
+    coverage: true
+    sbom: optional
+    artifact_attestation: optional
+    scorecard: optional
+    ai_evaluation: when-ai-enabled
+    semantic_review: advisory
+    structural_review: advisory
+    production_governance: when-deployed
+  enterprise:
+    secret_scan: true
+    dependency_review: true
+    codeql: true
+    coverage: true
+    sbom: true
+    artifact_attestation: true
+    scorecard: true
+    ai_evaluation: required-for-ai
+    semantic_review: enabled
+    structural_review: enabled
+    production_governance: required

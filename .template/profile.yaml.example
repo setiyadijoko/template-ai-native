@@ -1,0 +1,25 @@
+# Copy to .template/profile.yaml only after choosing a maturity profile.
+# This file is declarative foundation only; it does not activate workflows.
+# Keep credentials and provider endpoints out of profile configuration.
+version: 1
+profile: standard
+project:
+  type: web-app
+stack:
+  primary: auto
+ai:
+  enabled: true
+  evaluation: true
+  semantic_review: advisory
+  structural_review: advisory
+deployment:
+  enabled: false
+  target: none
+controls:
+  secret_scan: true
+  dependency_review: true
+  codeql: true
+  coverage: true
+  sbom: false
+  artifact_attestation: false
+  scorecard: false

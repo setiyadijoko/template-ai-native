@@ -1,0 +1,67 @@
+# Declarative maturity-profile schema; workflow activation is intentionally
+# deferred until required-check compatibility is approved.
+version: 1
+kind: maturity-profile
+profile:
+  type: enum
+  values: [starter, standard, enterprise]
+project:
+  type: map
+  required:
+    - type
+  fields:
+    type:
+      type: enum
+      values: [web-app, api, worker, library, data-app, integration, other]
+stack:
+  type: map
+  required:
+    - primary
+  fields:
+    primary:
+      type: enum
+      values: [auto, node, python, go, java, dotnet, other]
+ai:
+  type: map
+  required:
+    - enabled
+    - evaluation
+    - semantic_review
+    - structural_review
+  fields:
+    enabled: {type: boolean}
+    evaluation: {type: boolean}
+    semantic_review:
+      type: enum
+      values: [off, advisory, enabled]
+    structural_review:
+      type: enum
+      values: [off, advisory, enabled]
+deployment:
+  type: map
+  required:
+    - enabled
+    - target
+  fields:
+    enabled: {type: boolean}
+    target:
+      type: enum
+      values: [none, docker, kubernetes, cloud, self-hosted, other]
+controls:
+  type: map
+  required:
+    - secret_scan
+    - dependency_review
+    - codeql
+    - coverage
+    - sbom
+    - artifact_attestation
+    - scorecard
+  fields:
+    secret_scan: {type: boolean}
+    dependency_review: {type: boolean}
+    codeql: {type: boolean}
+    coverage: {type: boolean}
+    sbom: {type: boolean}
+    artifact_attestation: {type: boolean}
+    scorecard: {type: boolean}
