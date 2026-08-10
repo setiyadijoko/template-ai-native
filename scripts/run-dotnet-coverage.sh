@@ -77,7 +77,7 @@ is_safe_counter() {
 }
 
 parse_coverage_values() {
-  LC_ALL=C fold -w 1 "$1" | awk -v maximum="$MAX_ROOT_TAG_LENGTH" '
+  LC_ALL=C od -An -v -tu1 "$1" | awk -v maximum="$MAX_ROOT_TAG_LENGTH" '
     BEGIN { state = "before" }
     function is_space(value) {
       return value ~ /^[[:space:]]$/
@@ -152,18 +152,18 @@ parse_coverage_values() {
       print covered " " valid
     }
     {
-      value = $0
-      if (value == "") value = "\n"
-      if (invalid || done) next
+      for (field = 1; field <= NF; field++) {
+        value = sprintf("%c", $field)
+        if (invalid || done) continue
 
-      if (state == "before") {
-        if (is_space(value)) next
+        if (state == "before") {
+        if (is_space(value)) continue
         if (value != "<") {
           invalid = 1
-          next
+          continue
         }
         state = "open"
-      } else if (state == "open") {
+        } else if (state == "open") {
         if (value == "?") {
           state = "processing_instruction"
         } else if (value == "!") {
@@ -174,23 +174,23 @@ parse_coverage_values() {
           if (value != "c") invalid = 1
           else state = "root_name"
         }
-      } else if (state == "processing_instruction") {
+        } else if (state == "processing_instruction") {
         if (previous == "?" && value == ">") {
           state = "before"
           previous = ""
         } else {
           previous = value
         }
-      } else if (state == "comment_first_dash") {
+        } else if (state == "comment_first_dash") {
         if (value == "-") state = "comment_second_dash"
         else invalid = 1
-      } else if (state == "comment_second_dash") {
+        } else if (state == "comment_second_dash") {
         if (value == "-") {
           state = "comment"
           previous = ""
           before_previous = ""
         } else invalid = 1
-      } else if (state == "comment") {
+        } else if (state == "comment") {
         if (before_previous == "-" && previous == "-" && value == ">") {
           state = "before"
           previous = ""
@@ -199,18 +199,18 @@ parse_coverage_values() {
           before_previous = previous
           previous = value
         }
-      } else if (state == "root_name") {
+        } else if (state == "root_name") {
         append_tag(value)
         name_length = length(tag) - 1
         if (value != substr("coverage", name_length, 1)) invalid = 1
         else if (name_length == length("coverage")) state = "root_boundary"
-      } else if (state == "root_boundary") {
+        } else if (state == "root_boundary") {
         append_tag(value)
         if (is_space(value) || value == "/") state = "root_tag"
         else invalid = 1
-      } else if (state == "root_tag") {
+        } else if (state == "root_tag") {
         append_tag(value)
-        if (invalid) next
+        if (invalid) continue
         if (quote != "") {
           if (value == quote) quote = ""
         } else if (value == "\"" || value == "\047") {
@@ -219,6 +219,7 @@ parse_coverage_values() {
           emit_attributes()
           done = 1
           exit
+        }
         }
       }
     }

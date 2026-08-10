@@ -98,6 +98,16 @@ case "$DOTNET_FIXTURE_MODE" in
       printf '" lines-covered="8" lines-valid="10"></coverage>\n'
     } > "$result_root/run-a/coverage.cobertura.xml"
     ;;
+  newline-name)
+    mkdir -p "$result_root/run-a"
+    printf '<cover\nage lines-covered="8" lines-valid="10"></coverage>\n' \
+      > "$result_root/run-a/coverage.cobertura.xml"
+    ;;
+  multiline-root)
+    mkdir -p "$result_root/run-a"
+    printf '<coverage lines-covered="8"\n lines-valid="10"></coverage>\n' \
+      > "$result_root/run-a/coverage.cobertura.xml"
+    ;;
   truncated)
     mkdir -p "$result_root/run-a"
     printf '<coverage lines-covered="8" lines-valid="10"\n' \
@@ -169,6 +179,14 @@ assert_text_contains "collector requests cobertura" "$(cat "$WORK/exact/dotnet.l
   '^/p:CoverletOutputFormat=cobertura$'
 
 set +e
+multiline_output="$(run_case multiline-root multiline-root 2>&1)"
+multiline_status=$?
+set -e
+assert_eq "multiline root status" "$multiline_status" "0"
+assert_text_contains "multiline root output" "$multiline_output" \
+  '[.]NET coverage: 80[.]00% [(]8/10 lines[)]'
+
+set +e
 below_output="$(run_case below below 2>&1)"
 below_status=$?
 set -e
@@ -193,7 +211,7 @@ assert_eq "weighted calculation rejects unweighted false pass" \
 assert_text_contains "weighted failure output" "$weighted_fail_output" \
   '[.]NET coverage 72[.]00% < 80%'
 
-for failure_mode in missing malformed prefixed quoted-spoof duplicate overlong truncated nested oversized impossible zero; do
+for failure_mode in missing malformed prefixed quoted-spoof duplicate overlong newline-name truncated nested oversized impossible zero; do
   set +e
   failure_output="$(run_case "$failure_mode" "$failure_mode" 2>&1)"
   failure_status=$?
