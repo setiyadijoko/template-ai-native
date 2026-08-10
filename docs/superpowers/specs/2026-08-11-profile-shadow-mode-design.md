@@ -84,7 +84,10 @@ record per control.
 
 For the seven Boolean fields under `controls`, the declared Boolean determines
 the hypothetical `would-run` or `would-skip` decision. The normative profile
-mapping supplies the recommended default and alignment state:
+mapping supplies the recommended default and alignment state. The `sbom`,
+`artifact_attestation`, and `scorecard` defaults may also be `optional`; either
+Boolean consumer declaration is then `aligned` while the declaration still
+determines the hypothetical decision:
 
 - `aligned` when the declaration matches the default;
 - `stronger-than-default` when a consumer voluntarily enables a control whose

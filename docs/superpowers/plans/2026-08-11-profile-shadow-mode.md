@@ -193,7 +193,8 @@ Validate mapping version `1`, all three profile headings, all eleven controls
 for every profile, and these allowed values before resolving anything:
 
 ```text
-secret_scan dependency_review codeql coverage sbom artifact_attestation scorecard: true|false
+secret_scan dependency_review codeql coverage: true|false
+sbom artifact_attestation scorecard: true|false|optional
 ai_evaluation: optional|when-ai-enabled|required-for-ai
 semantic_review structural_review: off|advisory|enabled
 production_governance: when-deployed|required
@@ -226,7 +227,9 @@ For a present profile:
    `would-run` otherwise.
 5. Resolve production governance from `deployment.enabled`.
 6. Compare Boolean defaults as `aligned`, `stronger-than-default`, or
-   `policy-mismatch`.
+   `policy-mismatch`; treat an `optional` default for `sbom`,
+   `artifact_attestation`, or `scorecard` as `aligned` for either Boolean
+   declaration.
 7. Compare review enums by rank `off=0`, `advisory=1`, `enabled=2`.
 8. Treat `optional` AI evaluation as aligned; for `when-ai-enabled` and
    `required-for-ai`, compare the resolved decision to `ai.enabled`.
