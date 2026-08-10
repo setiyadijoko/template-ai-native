@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Verified the hosted single-stack Java 21/Maven consumer path through quality,
+  tests, build artifact creation, and signed provenance attestation.
 - Added a checked-in Python consumer fixture plus a shared, tested dependency
   bootstrap contract for PEP 621, setup.py, and requirements-based projects.
 - Added a checked-in consumer monorepo fixture and regression contract covering
