@@ -212,7 +212,9 @@ assert_contains "monorepo build check name" "$MONO" 'monorepo / build /'
 assert_contains "monorepo aggregate check" "$MONO" 'monorepo / aggregate'
 assert_contains "monorepo preserves Go coverage gate" "$MONO" 'Enforce go coverage >= 80%'
 assert_contains "monorepo retains recursive .NET coverage" "$MONO" \
-  'matrix[.]component[.]path.*TestResults/[*][*]/coverage[.]cobertura[.]xml'
+  '^[[:space:]]+[$][{][{][[:space:]]matrix[.]component[.]path[[:space:]][}][}]/[*][*]/TestResults/[*][*]/coverage[.]cobertura[.]xml[[:space:]]*$'
+assert_not_contains "monorepo .NET coverage glob has no literal quotes" "$MONO" \
+  '^[[:space:]]+"[$][{][{].*TestResults/[*][*]/coverage[.]cobertura[.]xml"[[:space:]]*$'
 assert_contains "single-stack quality uses Python dependency helper" "$CI_QUALITY" \
   'run: sh scripts/setup-python-deps\.sh'
 assert_contains "single-stack test uses Python dependency helper" "$CI_TEST" \

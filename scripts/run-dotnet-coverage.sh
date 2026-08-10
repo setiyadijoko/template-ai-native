@@ -42,8 +42,12 @@ REPORT_LIST="$(mktemp "${TMPDIR:-/tmp}/dotnet-coverage-reports.XXXXXX")"
 cleanup() { rm -f "$REPORT_LIST"; }
 trap cleanup EXIT HUP INT TERM
 
-find "$RESULTS_DIR" -type f -name coverage.cobertura.xml -print \
-  | LC_ALL=C sort > "$REPORT_LIST"
+if ! find "$RESULTS_DIR" -type f -name coverage.cobertura.xml -print \
+  > "$REPORT_LIST"; then
+  printf '::error::Failed to discover current-run .NET coverage reports under %s.\n' \
+    "$RESULTS_DIR" >&2
+  exit 1
+fi
 
 if [ ! -s "$REPORT_LIST" ]; then
   printf '::error::No current-run .NET coverage report found under %s.\n' \
@@ -54,25 +58,40 @@ fi
 total_covered=0
 total_valid=0
 
-is_safe_counter() {
+normalize_safe_counter() {
   printf '%s\n' "$1" | awk '
     {
       value = $0
       sub(/^0+/, "", value)
       if (value == "") value = "0"
-      if (length(value) < 10) exit 0
-      if (length(value) > 10) exit 1
+      if (length(value) < 10) {
+        normalized = value
+        next
+      }
+      if (length(value) > 10) {
+        invalid = 1
+        next
+      }
 
       limit = "2147483647"
       for (position = 1; position <= 10; position++) {
         digit = substr(value, position, 1)
         limit_digit = substr(limit, position, 1)
-        if (digit < limit_digit) exit 0
-        if (digit > limit_digit) exit 1
+        if (digit < limit_digit) {
+          normalized = value
+          next
+        }
+        if (digit > limit_digit) {
+          invalid = 1
+          next
+        }
       }
-      exit 0
+      normalized = value
     }
-    END { if (NR != 1) exit 1 }
+    END {
+      if (NR != 1 || invalid || normalized == "") exit 1
+      print normalized
+    }
   '
 }
 
@@ -250,7 +269,8 @@ while IFS= read -r report; do
       exit 1
       ;;
   esac
-  if ! is_safe_counter "$covered" || ! is_safe_counter "$valid"; then
+  if ! covered="$(normalize_safe_counter "$covered")" || \
+    ! valid="$(normalize_safe_counter "$valid")"; then
     printf '::error::.NET coverage counter exceeds safe shell range: %s\n' \
       "$report" >&2
     exit 1

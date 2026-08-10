@@ -468,7 +468,9 @@ Add after the build artifact assertions:
 
 ```sh
 assert_contains "single-stack retains recursive .NET coverage" "$CI_TEST" \
-  'TestResults/[*][*]/coverage[.]cobertura[.]xml'
+  '^[[:space:]]+[*][*]/TestResults/[*][*]/coverage[.]cobertura[.]xml[[:space:]]*$'
+assert_not_contains "single-stack .NET coverage glob has no literal quotes" \
+  "$CI_TEST" '^[[:space:]]+"[*][*]/TestResults/[*][*]/coverage[.]cobertura[.]xml"[[:space:]]*$'
 ```
 
 Include `$CI_TEST` in the existing `assert_action_pins` invocation.
@@ -478,7 +480,9 @@ shared Go coverage assertions to add:
 
 ```sh
 assert_contains "monorepo retains recursive .NET coverage" "$MONO" \
-  'matrix[.]component[.]path.*TestResults/[*][*]/coverage[.]cobertura[.]xml'
+  '^[[:space:]]+[$][{][{][[:space:]]matrix[.]component[.]path[[:space:]][}][}]/[*][*]/TestResults/[*][*]/coverage[.]cobertura[.]xml[[:space:]]*$'
+assert_not_contains "monorepo .NET coverage glob has no literal quotes" "$MONO" \
+  '^[[:space:]]+"[$][{][{].*TestResults/[*][*]/coverage[.]cobertura[.]xml"[[:space:]]*$'
 ```
 
 - [ ] **Step 2: Run the workflow contracts to verify RED**
@@ -499,10 +503,11 @@ Use `apply_patch` in `.github/workflows/ci-test.yml` to add this path after the
 root `coverage.cobertura.xml` entry:
 
 ```yaml
-            "**/TestResults/**/coverage.cobertura.xml"
+            **/TestResults/**/coverage.cobertura.xml
 ```
 
-Keep the quotes so YAML does not interpret the leading glob syntax.
+Do not add quote characters inside the YAML block scalar. Its lines are passed
+to the upload action literally, so quotes would become part of the glob.
 
 - [ ] **Step 4: Add the component-aware recursive artifact path**
 
@@ -510,7 +515,7 @@ Use `apply_patch` in `.github/workflows/ci-monorepo.yml` to add this path after
 the component root `coverage.cobertura.xml` entry:
 
 ```yaml
-            "${{ matrix.component.path }}/**/TestResults/**/coverage.cobertura.xml"
+            ${{ matrix.component.path }}/**/TestResults/**/coverage.cobertura.xml
 ```
 
 Do not modify the job condition, artifact name, action pin, or

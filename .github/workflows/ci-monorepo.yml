@@ -197,7 +197,7 @@ jobs:
             ${{ matrix.component.path }}/coverage.xml
             ${{ matrix.component.path }}/coverage.out
             ${{ matrix.component.path }}/coverage.cobertura.xml
-            "${{ matrix.component.path }}/**/TestResults/**/coverage.cobertura.xml"
+            ${{ matrix.component.path }}/**/TestResults/**/coverage.cobertura.xml
             ${{ matrix.component.path }}/target/site/jacoco/jacoco.xml
           if-no-files-found: ignore
 

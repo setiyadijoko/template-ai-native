@@ -92,6 +92,6 @@ jobs:
             coverage.xml
             coverage.out
             coverage.cobertura.xml
-            "**/TestResults/**/coverage.cobertura.xml"
+            **/TestResults/**/coverage.cobertura.xml
             target/site/jacoco/jacoco.xml
           if-no-files-found: ignore

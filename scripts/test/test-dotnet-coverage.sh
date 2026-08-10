@@ -14,6 +14,7 @@ trap cleanup EXIT HUP INT TERM
 HELPER="$ROOT/scripts/run-dotnet-coverage.sh"
 FAKE_BIN="$WORK/bin"
 mkdir -p "$FAKE_BIN"
+SYSTEM_FIND="$(command -v find)"
 
 assert_text_contains() {
   label="$1"
@@ -49,6 +50,11 @@ case "$DOTNET_FIXTURE_MODE" in
     printf '<coverage lines-covered="8" lines-valid="10"></coverage>\n' \
       > "$result_root/run-a/coverage.cobertura.xml"
     ;;
+  exact-leading-zero)
+    mkdir -p "$result_root/run-a"
+    printf '<coverage lines-covered="08" lines-valid="010"></coverage>\n' \
+      > "$result_root/run-a/coverage.cobertura.xml"
+    ;;
   below)
     mkdir -p "$result_root/run-a"
     printf '<coverage lines-covered="79" lines-valid="100"></coverage>\n' \
@@ -67,6 +73,18 @@ case "$DOTNET_FIXTURE_MODE" in
       > "$result_root/run-a/coverage.cobertura.xml"
     printf '<coverage lines-covered="620" lines-valid="900"></coverage>\n' \
       > "$result_root/run-b/coverage.cobertura.xml"
+    ;;
+  weighted-leading-zero)
+    mkdir -p "$result_root/run-a" "$result_root/run-b"
+    printf '<coverage lines-covered="0008" lines-valid="0010"></coverage>\n' \
+      > "$result_root/run-a/coverage.cobertura.xml"
+    printf '<coverage lines-covered="0072" lines-valid="0090"></coverage>\n' \
+      > "$result_root/run-b/coverage.cobertura.xml"
+    ;;
+  discovery-fail)
+    mkdir -p "$result_root/run-a"
+    printf '<coverage lines-covered="8" lines-valid="10"></coverage>\n' \
+      > "$result_root/run-a/coverage.cobertura.xml"
     ;;
   missing)
     ;;
@@ -144,6 +162,19 @@ esac
 EOF
 chmod +x "$FAKE_BIN/dotnet"
 
+cat > "$FAKE_BIN/find" <<'EOF'
+#!/usr/bin/env sh
+set -eu
+
+if [ "${DOTNET_FIXTURE_MODE:-}" = "discovery-fail" ]; then
+  "$SYSTEM_FIND" "$@"
+  exit 73
+fi
+
+exec "$SYSTEM_FIND" "$@"
+EOF
+chmod +x "$FAKE_BIN/find"
+
 run_case() {
   name="$1"
   mode="$2"
@@ -155,6 +186,7 @@ run_case() {
       DOTNET_BIN=dotnet \
       DOTNET_FIXTURE_MODE="$mode" \
       DOTNET_LOG="$case_dir/dotnet.log" \
+      SYSTEM_FIND="$SYSTEM_FIND" \
       sh "$HELPER"
   )
 }
@@ -177,6 +209,14 @@ assert_text_contains "collector uses controlled results path" \
   "$(cat "$WORK/exact/dotnet.log")" '^TestResults/template-ai-native-coverage$'
 assert_text_contains "collector requests cobertura" "$(cat "$WORK/exact/dotnet.log")" \
   '^/p:CoverletOutputFormat=cobertura$'
+
+set +e
+leading_zero_output="$(run_case exact-leading-zero exact-leading-zero 2>&1)"
+leading_zero_status=$?
+set -e
+assert_eq "leading-zero threshold status" "$leading_zero_status" "0"
+assert_text_contains "leading-zero counters are canonical" "$leading_zero_output" \
+  '[.]NET coverage: 80[.]00% [(]8/10 lines[)]'
 
 set +e
 multiline_output="$(run_case multiline-root multiline-root 2>&1)"
@@ -211,6 +251,28 @@ assert_eq "weighted calculation rejects unweighted false pass" \
 assert_text_contains "weighted failure output" "$weighted_fail_output" \
   '[.]NET coverage 72[.]00% < 80%'
 
+set +e
+weighted_leading_zero_output="$(
+  run_case weighted-leading-zero weighted-leading-zero 2>&1
+)"
+weighted_leading_zero_status=$?
+set -e
+assert_eq "weighted leading-zero threshold status" \
+  "$weighted_leading_zero_status" "0"
+assert_text_contains "weighted leading-zero counters are canonical" \
+  "$weighted_leading_zero_output" \
+  '[.]NET coverage: 80[.]00% [(]80/100 lines[)]'
+
+set +e
+discovery_failure_output="$(run_case discovery-fail discovery-fail 2>&1)"
+discovery_failure_status=$?
+set -e
+assert_eq "report discovery failure is fail closed" \
+  "$discovery_failure_status" "1"
+assert_text_contains "report discovery failure is explicit" \
+  "$discovery_failure_output" \
+  '^::error::Failed to discover current-run [.]NET coverage reports'
+
 for failure_mode in missing malformed prefixed quoted-spoof duplicate overlong newline-name truncated nested oversized impossible zero; do
   set +e
   failure_output="$(run_case "$failure_mode" "$failure_mode" 2>&1)"
@@ -229,6 +291,42 @@ set -e
 assert_eq "stale report is removed" "$stale_status" "1"
 assert_text_contains "stale report cannot satisfy gate" "$stale_output" \
   'No current-run [.]NET coverage report found'
+
+sibling_dir="$WORK/sibling-preservation/TestResults/consumer-owned"
+mkdir -p "$sibling_dir"
+printf 'preserve-me\n' > "$sibling_dir/sentinel.txt"
+run_case sibling-preservation exact >/dev/null 2>&1
+assert_eq "consumer-owned TestResults sibling survives" \
+  "$(cat "$sibling_dir/sentinel.txt")" "preserve-me"
+
+symlink_case="$WORK/symlink-parent"
+symlink_target="$WORK/external-test-results"
+mkdir -p "$symlink_case" "$symlink_target"
+printf 'external-sentinel\n' > "$symlink_target/sentinel.txt"
+ln -s "$symlink_target" "$symlink_case/TestResults"
+set +e
+symlink_output="$(
+  cd "$symlink_case"
+  PATH="$FAKE_BIN:$PATH" \
+    DOTNET_BIN=dotnet \
+    DOTNET_FIXTURE_MODE=exact \
+    DOTNET_LOG="$symlink_case/dotnet.log" \
+    SYSTEM_FIND="$SYSTEM_FIND" \
+    sh "$HELPER" 2>&1
+)"
+symlink_status=$?
+set -e
+assert_eq "symlinked TestResults parent is refused" "$symlink_status" "65"
+assert_text_contains "symlink refusal is explicit" "$symlink_output" \
+  '^::error::Refusing [.]NET coverage results through symlink: TestResults$'
+assert_eq "symlink target sentinel survives" \
+  "$(cat "$symlink_target/sentinel.txt")" "external-sentinel"
+if [ ! -e "$symlink_target/template-ai-native-coverage" ]; then
+  PASS=$((PASS+1))
+else
+  FAIL=$((FAIL+1))
+  printf 'FAIL symlink target receives no wrapper-owned directory\n' >&2
+fi
 
 set +e
 run_case collector-fail collector-fail >/dev/null 2>&1

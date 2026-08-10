@@ -185,7 +185,9 @@ assert_contains "build packages one file" "$BUILD" 'template-ai-native-build-.*\
 assert_contains "build fails without output" "$BUILD" 'No supported build output found'
 assert_contains "upload fails without package" "$BUILD" 'if-no-files-found: error'
 assert_contains "single-stack retains recursive .NET coverage" "$CI_TEST" \
-  'TestResults/[*][*]/coverage[.]cobertura[.]xml'
+  '^[[:space:]]+[*][*]/TestResults/[*][*]/coverage[.]cobertura[.]xml[[:space:]]*$'
+assert_not_contains "single-stack .NET coverage glob has no literal quotes" \
+  "$CI_TEST" '^[[:space:]]+"[*][*]/TestResults/[*][*]/coverage[.]cobertura[.]xml"[[:space:]]*$'
 
 # --- ci.yml: same-run attestation only for governed main pushes ---
 assert_contains "ci calls attestation" "$CI" 'uses: ./\.github/workflows/artifact-attestation\.yml'

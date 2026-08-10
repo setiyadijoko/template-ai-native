@@ -110,6 +110,9 @@ Update both existing test workflows without introducing another job or action:
   uploads `**/TestResults/**/coverage.cobertura.xml`;
 - `.github/workflows/ci-monorepo.yml` uploads the same recursive pattern below
   `${{ matrix.component.path }}`;
+- recursive paths remain unquoted inside the YAML block scalar because each
+  line is passed to the upload action literally and quote characters would
+  become part of the glob;
 - artifact upload remains `if: always()` and `if-no-files-found: ignore`, while
   the wrapper itself is the blocking evidence gate;
 - no workflow permission, trigger, concurrency group, action SHA, timeout, or
@@ -146,7 +149,11 @@ installed .NET SDK and cover:
 7. zero aggregate valid lines fails;
 8. a stale report alone is not accepted;
 9. a collector command failure is preserved;
-10. the mapper returns the wrapper command.
+10. report discovery errors fail closed even if partial output exists;
+11. leading-zero counters are normalized before shell arithmetic;
+12. consumer-owned sibling results survive cleanup and a symlinked results
+    parent is rejected without changing its external target;
+13. the mapper returns the wrapper command.
 
 Extend existing delivery and monorepo workflow contract tests to assert the
 recursive .NET coverage paths. Add the new test script to `make test-scripts`.
