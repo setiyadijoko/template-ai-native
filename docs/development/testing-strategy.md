@@ -19,6 +19,10 @@
   unit-test directory; tests must remain in their correct unit, contract,
   integration, or E2E category. The first application PR has no bootstrap
   bypass; below-threshold results fail with the active threshold in the log.
+  .NET runs its consumer-owned XPlat collector in an isolated current-run
+  results directory; the repository wrapper aggregates Cobertura line counters
+  across test projects and fails closed below 80% or when evidence is missing
+  or invalid.
   The initializer remains stack-agnostic and does not generate application
   tests. See the minimal tested consumer fixture under
   `tests/fixtures/consumer-monorepo/`.

@@ -8,6 +8,7 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 . "$HERE/lib.sh"
 
 BUILD="$ROOT/.github/workflows/build.yml"
+CI_TEST="$ROOT/.github/workflows/ci-test.yml"
 CI="$ROOT/.github/workflows/ci.yml"
 ATTEST="$ROOT/.github/workflows/artifact-attestation.yml"
 RELEASE="$ROOT/.github/workflows/release.yml"
@@ -183,6 +184,10 @@ assert_not_contains "Python packaging does not hardcode root dist" "$BUILD" \
 assert_contains "build packages one file" "$BUILD" 'template-ai-native-build-.*\.tar\.gz'
 assert_contains "build fails without output" "$BUILD" 'No supported build output found'
 assert_contains "upload fails without package" "$BUILD" 'if-no-files-found: error'
+assert_contains "single-stack retains recursive .NET coverage" "$CI_TEST" \
+  '^[[:space:]]+[*][*]/TestResults/[*][*]/coverage[.]cobertura[.]xml[[:space:]]*$'
+assert_not_contains "single-stack .NET coverage glob has no literal quotes" \
+  "$CI_TEST" '^[[:space:]]+"[*][*]/TestResults/[*][*]/coverage[.]cobertura[.]xml"[[:space:]]*$'
 
 # --- ci.yml: same-run attestation only for governed main pushes ---
 assert_contains "ci calls attestation" "$CI" 'uses: ./\.github/workflows/artifact-attestation\.yml'
@@ -252,7 +257,7 @@ assert_not_contains "release does not rebuild" "$RELEASE" 'stack-tools\.sh build
 assert_not_contains "release does not request OIDC" "$RELEASE" 'id-token: write'
 
 assert_action_pins "delivery workflows pin third-party actions" \
-  "$BUILD" "$CI" "$ATTEST" "$RELEASE"
+  "$BUILD" "$CI_TEST" "$CI" "$ATTEST" "$RELEASE"
 
 # Execute the real package step against controlled root and direct-src fixtures.
 # macOS ships BSD tar, so the test adapter removes GNU metadata flags while

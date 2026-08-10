@@ -78,6 +78,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Fixed
+- Enforced the documented 80% .NET line-coverage baseline through a shared,
+  fail-closed current-run Cobertura aggregator and retained recursive collector
+  reports in single-stack and component-aware CI.
 - Unified root/direct-`src/` Python project resolution across dependency
   bootstrap, build execution, and artifact packaging; non-buildable and
   ambiguous boundaries now fail with explicit diagnostics.
