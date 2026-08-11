@@ -78,12 +78,12 @@ assert_eq "external cwd preserves shadow output" "$external_standard" "$standard
 PATH_WITH_RESOLVER="$ROOT/scripts:$PATH"
 mkdir "$WORK/path-cwd"
 assert_exit "resolver runs through PATH from external cwd" 0 \
-  sh -c 'cd "$1" && PATH="$2" sh resolve-profile-shadow.sh "$3" "$4" "$5"' shadow-test \
+  sh -c 'cd "$1" && PATH="$2" resolve-profile-shadow.sh "$3" "$4" "$5"' shadow-test \
   "$WORK/path-cwd" "$PATH_WITH_RESOLVER" "$ROOT/.template/profile.yaml.example" \
   "$MAPPING" "$PROJECT"
 path_standard="$(
   cd "$WORK/path-cwd"
-  PATH="$PATH_WITH_RESOLVER" sh resolve-profile-shadow.sh \
+  PATH="$PATH_WITH_RESOLVER" resolve-profile-shadow.sh \
     "$ROOT/.template/profile.yaml.example" "$MAPPING" "$PROJECT" \
     2>"$WORK/path.err" || true
 )"
