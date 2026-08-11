@@ -136,6 +136,11 @@ fork-safety observation steps. The decision is **GO only for writing a separate
 activation ADR**. Actual workflow conditions, required contexts, initializer
 changes, and consumer migration remain **NO-GO** until that ADR is approved.
 
+Follow-up: ADR-0010 accepts the activation architecture while keeping
+implementation and enforcement staged behind new hosted evidence. This ADR's
+shadow observations remain the evidence baseline; they do not authorize a
+branch-protection change.
+
 ## Migration strategy
 
 1. Implement and test the resolver and isolated advisory workflow.
