@@ -162,11 +162,12 @@ promote the exact artifact validated in staging (no rebuild). See
 
 ## Adoption profiles (required for initialized consumers)
 
-Every consumer initialized with `scripts/init-project.sh` must explicitly select
-exactly one of `starter`, `standard`, or `enterprise` with `--profile`; the
-initializer never infers a profile. `--project-type` defaults to `other` and
-`--ai-enabled` defaults to `false`. An Enterprise selection must also provide a
-non-`none` `--deployment-target`. A successful initialization writes both the
+Every consumer initialized with `scripts/init-project.sh` must select exactly
+one of `starter`, `standard`, or `enterprise`; the initializer never infers a
+profile. Non-interactive use must pass `--profile`; interactive use prompts for
+the selection. `--project-type` defaults to `other` and `--ai-enabled` defaults
+to `false`. An Enterprise selection must also provide a non-`none`
+`--deployment-target`. A successful initialization writes both the
 credential-free `.template/project.yaml` and `.template/profile.yaml` files.
 
 Review the generated profile and validate its effective policy locally with:

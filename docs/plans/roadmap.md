@@ -131,11 +131,12 @@ authorized by the shadow pilot itself.
 - [ADR-0010](../adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md)
   selects a hybrid two-layer architecture: five invariant governance contexts
   plus one stable `Profile policy / Required controls` aggregate.
-- Implemented foundation: new consumers explicitly choose Starter, Standard, or
-  Enterprise during initialization; the template remains profile-free in
-  compatibility mode; and the central effective-policy resolver fails closed
-  for an initialized consumer with a missing or invalid profile. The shadow
-  presentation delegates to that resolver.
+- Implemented foundation: new consumers choose Starter, Standard, or Enterprise
+  during initialization; non-interactive use requires `--profile`, while
+  interactive use prompts for it, and selection is never inferred. The template
+  remains profile-free in compatibility mode; the central effective-policy
+  resolver fails closed for an initialized consumer with a missing or invalid
+  profile. The shadow presentation delegates to that resolver.
 - Pending: an advisory profile-policy orchestrator and stable aggregate must be
   implemented while all baseline workflows continue to run. Disposable
   historical pilots will not be migrated.
@@ -196,8 +197,8 @@ The contract is recorded in [ADR-0007](../adr/0007-component-aware-monorepo-ci-c
 
 - Keep identity updates and explicit reconfiguration protection stable after
   the required P1 profile selection is implemented.
-- Consider additional non-interactive UX only after the required `--profile`
-  contract is reliable.
+- Consider additional non-interactive UX only after the required
+  non-interactive `--profile` contract is reliable.
 - Do not add profile variants or generated workflow files outside ADR-0010.
 
 ## Exit criteria for profile-aware enforcement
