@@ -2,6 +2,9 @@
 # Contract tests for the README identity and project-layout initializer.
 set -eu
 
+# Automated contracts must not inherit an interactive terminal.
+exec </dev/null
+
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
 # shellcheck source=scripts/test/lib.sh
@@ -132,7 +135,7 @@ fi
 if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
   rm -f .template/project.yaml .template/profile.yaml && \
   sh "$ROOT/scripts/init-project.sh" --name missing-profile \
-    --layout single) >/dev/null 2>&1; then
+    --layout single </dev/null) >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL accepts non-interactive init without profile\n' >&2
 else
   PASS=$((PASS+1))
