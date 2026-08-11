@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Completed hosted shadow observations for Starter and Enterprise profiles;
+  both retained all existing workflows, and their aligned/mismatch reports
+  matched the normative mapping. This opens only the separate activation-design
+  gate; workflow activation and required-check changes remain prohibited.
 - Recorded hosted profile-shadow evidence for template compatibility mode, a
   Standard Python consumer, and an external public fork. The fork check passed
   with read-only contents permission and no secret source; activation remains

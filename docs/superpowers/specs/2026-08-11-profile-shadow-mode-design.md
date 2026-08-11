@@ -1,6 +1,6 @@
 # Profile-Aware CI Shadow Mode Design
 
-**Status:** Hosted compatibility, Standard, and fork paths verified; activation deferred
+**Status:** All-profile and fork shadow paths hosted-verified; activation design only
 **Date:** 2026-08-11
 **Owner:** Template maintainers
 
@@ -25,6 +25,14 @@ Hosted runs on 2026-08-11 verified the bounded paths approved by ADR-0009:
 - the disposable Python consumer reported `profile=standard`, kept CodeQL and
   coverage at `would-run`, and continued to execute its existing quality,
   test, coverage, build, and security jobs;
+- config-only Starter and Enterprise pull requests each passed all eleven
+  workflows while leaving the consumer application and workflow files
+  unchanged;
+- Starter reported `status=aligned`, with CodeQL, coverage, and artifact
+  attestation correctly classified as stronger than its defaults;
+- Enterprise reported `status=warning` for the five expected policy gaps:
+  SBOM, Scorecard, semantic review, structural review, and production
+  governance;
 - an external public fork was held for first-time-contributor approval, then
   completed the same stable shadow context with `Contents: read`, implicit
   metadata read, and `Secret source: None`;
@@ -32,11 +40,12 @@ Hosted runs on 2026-08-11 verified the bounded paths approved by ADR-0009:
   were declared `off` while their Standard defaults are `advisory`; the
   warnings did not fail or alter any workflow.
 
-These observations validate the compatibility, Standard, and fork-safe shadow
-paths. They do not authorize activation. Starter and Enterprise still lack
-hosted evidence, scheduled and manual classifications have not been correlated
-with real activation behavior, and the pilot sample is too small to establish
-cost or noise bounds.
+These observations satisfy the shadow-mode evidence gate for compatibility,
+Starter, Standard, Enterprise, rerun, and fork paths. They authorize only the
+preparation of a separate activation ADR. Actual workflow conditions, required
+checks, initializer changes, and consumer migration remain **NO-GO** until that
+ADR defines classification semantics, stable contexts, missing-profile
+compatibility, rollout, rollback, and measurable cost/noise safeguards.
 
 ## Goals
 
@@ -281,5 +290,5 @@ through to an inferred profile or direct workflow conditions.
 8. No initializer, deployment, production, provider, or profile activation is
    introduced.
 9. Focused tests and repository-native checks pass.
-10. Hosted compatibility, Standard consumer, and fork evidence are recorded
-    before a separate activation design is considered.
+10. Hosted compatibility, Starter, Standard, Enterprise, rerun, and fork
+    evidence are recorded before a separate activation design is considered.

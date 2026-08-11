@@ -80,7 +80,7 @@ unchanged until the compatibility design is approved.
 - Record workflow activation, required check contexts, and consumer migration
   as deferred work requiring a separate ADR and hosted pilot.
 
-### P1 — profile shadow mode (hosted observation verified; activation deferred)
+### P1 — profile shadow mode (all-profile evidence verified; design gate open)
 
 - ADR-0009 approves one isolated, advisory observation workflow and a
   deterministic resolver.
@@ -100,16 +100,29 @@ unchanged until the compatibility design is approved.
   [run 31458012221](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot/actions/runs/31458012221)
   with `Contents: read` and `Secret source: None`; Python CI and CodeQL also
   passed without changing the application or profile.
-- The shadow resolution took about three seconds in the observed jobs. The
+- Config-only [Starter PR #5](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot/pull/5)
+  passed all eleven workflows. Its
+  [shadow run 31460087254](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot/actions/runs/31460087254)
+  reported `status=aligned`; CodeQL, coverage, and artifact attestation were
+  correctly stronger than Starter defaults. The PR was closed without merge.
+- Config-only [Enterprise PR #6](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot/pull/6)
+  passed all eleven workflows. Its
+  [shadow run 31460090901](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot/actions/runs/31460090901)
+  reported the expected SBOM, Scorecard, semantic-review, structural-review,
+  and production-governance mismatches. The PR was closed without merge.
+- The shadow resolution took under three seconds in the observed profile jobs. The
   Standard consumer consistently warned that semantic and structural review
   were declared `off` while the profile defaults are `advisory`; this was
   accurate observation, not execution failure.
+- Process finding: fork evidence PR #4 was later merged despite its evidence-only
+  boundary. Its diff was limited to one README sentence and changed no runtime,
+  workflow, or profile behavior. Subsequent evidence PRs were closed promptly.
 
-Activation decision: **NO-GO**. Profile-aware execution and check-policy
-changes remain deferred because Starter and Enterprise lack hosted evidence,
-scheduled/manual classifications remain observational, and the current sample
-does not establish representative cost or noise bounds. A separate activation
-ADR and consumer migration plan are still mandatory.
+Decision: **GO for a separate activation design only; NO-GO for activation**.
+The ADR must define stable required-check contexts, blocking/advisory/
+post-merge/scheduled/manual semantics, compatibility and invalid-profile
+behavior, consumer migration, rollout, rollback, and cost/noise measurement.
+No workflow condition or branch-protection change is authorized by this pilot.
 
 ### P0 — component-aware monorepo CI (implemented; hosted pilot passed)
 
