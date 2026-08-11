@@ -75,13 +75,71 @@ assert_config_directory_rejected() {
     rejected=yes
   fi
 
-  target_entries="$(find "$case_work/.template/$target" -mindepth 1 -print -quit)"
+  target_entries="$(find "$case_work/.template/$target" -type f -print)"
   if [ "$rejected" = yes ] \
     && cmp -s "$README_FIXTURE" "$case_work/README.md" \
     && [ -d "$case_work/.template/$target" ] \
     && [ ! -f "$case_work/.template/project.yaml" ] \
     && [ ! -f "$case_work/.template/profile.yaml" ] \
     && [ -z "$target_entries" ]; then
+    PASS=$((PASS+1))
+  else
+    FAIL=$((FAIL+1)); printf 'FAIL %s\n' "$label" >&2
+  fi
+}
+
+assert_config_symlink_rejected() {
+  label="$1"; target="$2"; link_kind="$3"; reconfigure="$4"
+  case_work="$WORK/config-symlink-$target-$link_kind-$reconfigure"
+  link_path="$case_work/.template/$target"
+  link_target="$case_work/$target-target"
+  mkdir -p "$case_work/.template"
+  cp "$README_FIXTURE" "$case_work/README.md"
+
+  if [ "$link_kind" = regular ]; then
+    printf '%s\n' 'preserve symlink target' > "$link_target"
+  fi
+  ln -s "../$target-target" "$link_path"
+
+  if [ "$reconfigure" = yes ]; then
+    if (cd "$case_work" && sh "$ROOT/scripts/init-project.sh" \
+      --reconfigure --name symlink-target --profile standard \
+      --layout single) >/dev/null 2>&1; then
+      rejected=no
+    else
+      rejected=yes
+    fi
+  elif (cd "$case_work" && sh "$ROOT/scripts/init-project.sh" \
+    --name symlink-target --profile standard \
+    --layout single) >/dev/null 2>&1; then
+    rejected=no
+  else
+    rejected=yes
+  fi
+
+  if [ "$link_kind" = regular ]; then
+    if [ -L "$link_path" ] && [ -f "$link_path" ] \
+      && grep -Fxq 'preserve symlink target' "$link_target"; then
+      link_preserved=yes
+    else
+      link_preserved=no
+    fi
+  elif [ -L "$link_path" ] && [ ! -e "$link_path" ] \
+    && [ ! -e "$link_target" ]; then
+    link_preserved=yes
+  else
+    link_preserved=no
+  fi
+
+  if [ "$target" = project.yaml ]; then
+    other_target="$case_work/.template/profile.yaml"
+  else
+    other_target="$case_work/.template/project.yaml"
+  fi
+
+  if [ "$rejected" = yes ] && [ "$link_preserved" = yes ] \
+    && cmp -s "$README_FIXTURE" "$case_work/README.md" \
+    && [ ! -e "$other_target" ] && [ ! -L "$other_target" ]; then
     PASS=$((PASS+1))
   else
     FAIL=$((FAIL+1)); printf 'FAIL %s\n' "$label" >&2
@@ -197,6 +255,16 @@ assert_config_directory_rejected \
   'rejects profile config directory target' profile.yaml no
 assert_config_directory_rejected \
   'rejects profile config directory target with reconfigure' profile.yaml yes
+assert_config_symlink_rejected \
+  'rejects project config symlink to regular file' project.yaml regular no
+assert_config_symlink_rejected \
+  'rejects project config symlink to regular file with reconfigure' \
+  project.yaml regular yes
+assert_config_symlink_rejected \
+  'rejects dangling profile config symlink' profile.yaml dangling no
+assert_config_symlink_rejected \
+  'rejects dangling profile config symlink with reconfigure' \
+  profile.yaml dangling yes
 
 STARTER_WORK="$WORK/starter-defaults"
 mkdir -p "$STARTER_WORK"

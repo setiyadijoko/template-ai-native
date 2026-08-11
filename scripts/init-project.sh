@@ -268,10 +268,12 @@ PROFILE_FILE="$CONFIG_DIR/profile.yaml"
 if grep -Fq "$GENERATED" "$README" && [ "$RECONFIGURE" != 'yes' ]; then
   die 'README identity was already generated; rerun with --reconfigure to replace it'
 fi
-if [ -e "$CONFIG_FILE" ] && [ ! -f "$CONFIG_FILE" ]; then
+if [ -L "$CONFIG_FILE" ] \
+  || { [ -e "$CONFIG_FILE" ] && [ ! -f "$CONFIG_FILE" ]; }; then
   die 'project config target must be a regular file'
 fi
-if [ -e "$PROFILE_FILE" ] && [ ! -f "$PROFILE_FILE" ]; then
+if [ -L "$PROFILE_FILE" ] \
+  || { [ -e "$PROFILE_FILE" ] && [ ! -f "$PROFILE_FILE" ]; }; then
   die 'profile config target must be a regular file'
 fi
 if [ -f "$CONFIG_FILE" ] && [ "$RECONFIGURE" != 'yes' ]; then
