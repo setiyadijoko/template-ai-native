@@ -178,6 +178,12 @@ future activation gate are recorded in
 The machine-readable default mapping is in
 `.template/profile-controls.yaml`.
 
+The separate `Profile shadow / Profile policy observation` check reports how a
+valid profile would map controls while every current workflow continues to run.
+The check is advisory and is not part of the recommended branch-protection
+contexts. Missing profiles retain compatibility mode; shadow evidence does not
+authorize profile-aware activation.
+
 ## Documentation index
 
 - [PRODUCT.md](PRODUCT.md) — why (vision, problem, users, metrics, scope)

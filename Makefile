@@ -81,5 +81,7 @@ test-scripts:
 	@sh scripts/test/test-openapi-contract.sh
 	@sh scripts/test/test-monorepo-ci.sh
 	@sh scripts/test/test-profile-config.sh
+	@sh scripts/test/test-profile-shadow.sh
+	@sh scripts/test/test-profile-shadow-workflow.sh
 ci: format-check lint docs-check readiness-check project-config-check profile-config-check test-scripts
 	@echo "[ci] local gate (best-effort) complete"

@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added the profile-shadow resolver, advisory workflow, stable
+  `Profile shadow / Profile policy observation` context, and focused contracts.
+  Existing workflow execution, required checks, branch protection, and
+  initializer behavior remain unchanged.
+- Recorded the hosted Standard-profile Python coverage pilot, including
+  duplicate-basename-safe 100% coverage, build artifacts, blocking security,
+  and strictly verified post-merge provenance.
 - Added a declarative maturity-profile foundation: versioned schema, safe
   example, Starter/Standard/Enterprise control mapping, compatibility-mode
   validator, and ADR-0008. Profile files do not activate workflows yet.
