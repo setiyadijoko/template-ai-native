@@ -1,7 +1,6 @@
 #!/usr/bin/env sh
 set -eu
 
-HERE="$(cd "$(dirname "$0")" && pwd)"
 PROFILE_CONFIG="${1:-.template/profile.yaml}"
 CONTROL_MAP="${2:-.template/profile-controls.yaml}"
 PROJECT_CONFIG="${3:-.template/project.yaml}"
@@ -14,6 +13,26 @@ die() {
   printf 'profile-shadow: %s\n' "$1" >&2
   exit 1
 }
+
+case "$0" in
+  */*) SCRIPT_PATH="$0" ;;
+  *)
+    SCRIPT_PATH=''
+    SAVED_IFS="$IFS"
+    IFS=:
+    for directory in $PATH; do
+      [ -n "$directory" ] || directory=.
+      if [ -f "$directory/$0" ]; then
+        SCRIPT_PATH="$directory/$0"
+        break
+      fi
+    done
+    IFS="$SAVED_IFS"
+    [ -n "$SCRIPT_PATH" ] || die "unable to resolve script path '$0'"
+    ;;
+esac
+HERE="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)" \
+  || die "unable to resolve script directory for '$SCRIPT_PATH'"
 
 report_value() {
   control="$1"

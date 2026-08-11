@@ -74,6 +74,21 @@ external_standard="$(
 )"
 assert_eq "external cwd preserves shadow output" "$external_standard" "$standard"
 
+# Bare script names resolve through PATH from an external caller directory.
+PATH_WITH_RESOLVER="$ROOT/scripts:$PATH"
+mkdir "$WORK/path-cwd"
+assert_exit "resolver runs through PATH from external cwd" 0 \
+  sh -c 'cd "$1" && PATH="$2" sh resolve-profile-shadow.sh "$3" "$4" "$5"' shadow-test \
+  "$WORK/path-cwd" "$PATH_WITH_RESOLVER" "$ROOT/.template/profile.yaml.example" \
+  "$MAPPING" "$PROJECT"
+path_standard="$(
+  cd "$WORK/path-cwd"
+  PATH="$PATH_WITH_RESOLVER" sh resolve-profile-shadow.sh \
+    "$ROOT/.template/profile.yaml.example" "$MAPPING" "$PROJECT" \
+    2>"$WORK/path.err" || true
+)"
+assert_eq "PATH invocation preserves shadow output" "$path_standard" "$standard"
+
 # Profiles accepted by the canonical validator must resolve identically when
 # comments and trailing whitespace are present.
 sed \
