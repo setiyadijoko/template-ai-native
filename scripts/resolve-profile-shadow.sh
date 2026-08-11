@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
+HERE="$(cd "$(dirname "$0")" && pwd)"
 PROFILE_CONFIG="${1:-.template/profile.yaml}"
 CONTROL_MAP="${2:-.template/profile-controls.yaml}"
 PROJECT_CONFIG="${3:-.template/project.yaml}"
@@ -26,13 +27,18 @@ report_value() {
   ' "$REPORT"
 }
 
-if ! sh scripts/resolve-profile-policy.sh "$PROFILE_CONFIG" "$CONTROL_MAP" \
+present_diagnostics() {
+  sed 's/^::warning title=Profile policy mismatch::/::warning title=Profile shadow policy mismatch::/' \
+    "$ERROR" >&2
+}
+
+if ! sh "$HERE/resolve-profile-policy.sh" "$PROFILE_CONFIG" "$CONTROL_MAP" \
   "$PROJECT_CONFIG" > "$REPORT" 2> "$ERROR"; then
   printf 'profile-shadow: effective policy resolution failed\n' >&2
-  cat "$ERROR" >&2
+  present_diagnostics
   exit 1
 fi
-cat "$ERROR" >&2
+present_diagnostics
 
 MODE="$(awk -F= '$1 == "mode" { print $2; exit }' "$REPORT")"
 PROFILE="$(awk -F= '$1 == "profile" { print $2; exit }' "$REPORT")"

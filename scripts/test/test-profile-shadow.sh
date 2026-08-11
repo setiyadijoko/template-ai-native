@@ -28,7 +28,7 @@ run_shadow() {
   sh "$RESOLVER" "$1" "${2:-$MAPPING}" "$PROJECT"
 }
 
-if grep -Fq 'sh scripts/resolve-profile-policy.sh' "$RESOLVER" \
+if grep -Fq 'sh "$HERE/resolve-profile-policy.sh' "$RESOLVER" \
   && ! grep -Fq 'mapping_value()' "$RESOLVER" \
   && ! grep -Fq 'review_alignment()' "$RESOLVER"; then
   PASS=$((PASS+1))
@@ -60,6 +60,19 @@ assert_output_contains "standard codeql runs" "$standard" \
   '^control\.codeql\.decision=would-run$'
 assert_output_contains "standard codeql class" "$standard" \
   '^control\.codeql\.class=pull-request-blocking$'
+
+# Absolute configuration paths work when the caller is outside the repository.
+mkdir "$WORK/external-cwd"
+assert_exit "resolver runs outside repository cwd" 0 \
+  sh -c 'cd "$1" && sh "$2" "$3" "$4" "$5"' shadow-test \
+  "$WORK/external-cwd" "$RESOLVER" "$ROOT/.template/profile.yaml.example" \
+  "$MAPPING" "$PROJECT"
+external_standard="$(
+  cd "$WORK/external-cwd"
+  sh "$RESOLVER" "$ROOT/.template/profile.yaml.example" "$MAPPING" "$PROJECT" \
+    2>"$WORK/external.err" || true
+)"
+assert_eq "external cwd preserves shadow output" "$external_standard" "$standard"
 
 # Profiles accepted by the canonical validator must resolve identically when
 # comments and trailing whitespace are present.
@@ -97,7 +110,8 @@ assert_output_contains "enterprise warning status" "$enterprise" '^status=warnin
 assert_output_contains "enterprise sbom mismatch" "$enterprise" \
   '^control\.sbom\.alignment=policy-mismatch$'
 assert_output_contains "enterprise warning annotation" \
-  "$(cat "$WORK/enterprise.err")" '^::warning.*sbom'
+  "$(cat "$WORK/enterprise.err")" \
+  '^::warning title=Profile shadow policy mismatch::sbom declaration differs from enterprise default$'
 
 # AI-disabled Standard resolves evaluation and reviews to would-skip.
 sed -e 's/^  enabled: true$/  enabled: false/' \
