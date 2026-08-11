@@ -27,6 +27,67 @@ EXPECTED_AUTO_STACK="**Stack:** ${TICK}auto${TICK}"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/template-ai-native-init.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT HUP INT TERM
 
+profile_scalar() {
+  file="$1"; key="$2"
+  awk -v key="$key" '
+    $0 ~ "^" key ":[[:space:]]*" {
+      value = $0
+      sub("^" key ":[[:space:]]*", "", value)
+      print value
+      exit
+    }
+  ' "$file"
+}
+
+profile_value() {
+  file="$1"; section="$2"; key="$3"
+  awk -v section="$section" -v key="$key" '
+    $0 == section ":" { inside=1; next }
+    inside && /^[^ ]/ { exit }
+    inside && $0 ~ "^  " key ":[[:space:]]*" {
+      value = $0
+      sub("^  " key ":[[:space:]]*", "", value)
+      print value
+      exit
+    }
+  ' "$file"
+}
+
+assert_config_directory_rejected() {
+  label="$1"; target="$2"; reconfigure="$3"
+  case_work="$WORK/config-directory-$target-$reconfigure"
+  mkdir -p "$case_work/.template/$target"
+  cp "$README_FIXTURE" "$case_work/README.md"
+
+  if [ "$reconfigure" = yes ]; then
+    if (cd "$case_work" && sh "$ROOT/scripts/init-project.sh" \
+      --reconfigure --name directory-target --profile standard \
+      --layout single) >/dev/null 2>&1; then
+      rejected=no
+    else
+      rejected=yes
+    fi
+  elif (cd "$case_work" && sh "$ROOT/scripts/init-project.sh" \
+    --name directory-target --profile standard \
+    --layout single) >/dev/null 2>&1; then
+    rejected=no
+  else
+    rejected=yes
+  fi
+
+  target_entries="$(find "$case_work/.template/$target" -mindepth 1 -print -quit)"
+  if [ "$rejected" = yes ] \
+    && cmp -s "$README_FIXTURE" "$case_work/README.md" \
+    && [ -d "$case_work/.template/$target" ] \
+    && [ ! -f "$case_work/.template/project.yaml" ] \
+    && [ ! -f "$case_work/.template/profile.yaml" ] \
+    && [ -z "$target_entries" ]; then
+    PASS=$((PASS+1))
+  else
+    FAIL=$((FAIL+1)); printf 'FAIL %s\n' "$label" >&2
+  fi
+}
+
 cp "$README_FIXTURE" "$WORK/README.md"
 
 if [ -x "$ROOT/scripts/init-project.sh" ]; then
@@ -58,7 +119,8 @@ fi
 if grep -Fq 'profile: standard' "$WORK/.template/profile.yaml" \
   && grep -Fq 'type: other' "$WORK/.template/profile.yaml" \
   && grep -Fq 'primary: node' "$WORK/.template/profile.yaml" \
-  && grep -Fq 'enabled: false' "$WORK/.template/profile.yaml" \
+  && [ "$(profile_value "$WORK/.template/profile.yaml" ai enabled)" = false ] \
+  && [ "$(profile_value "$WORK/.template/profile.yaml" deployment enabled)" = false ] \
   && grep -Fq 'semantic_review: advisory' "$WORK/.template/profile.yaml" \
   && grep -Fq 'structural_review: advisory' "$WORK/.template/profile.yaml" \
   && grep -Fq 'codeql: true' "$WORK/.template/profile.yaml" \
@@ -108,7 +170,7 @@ if (cd "$WORK" && sh "$ROOT/scripts/init-project.sh" \
   && sh "$ROOT/scripts/validate-project-config.sh" "$WORK/.template/project.yaml" >/dev/null 2>&1 \
   && grep -Fq 'profile: enterprise' "$WORK/.template/profile.yaml" \
   && grep -Fq 'type: api' "$WORK/.template/profile.yaml" \
-  && grep -Fq 'enabled: true' "$WORK/.template/profile.yaml" \
+  && [ "$(profile_value "$WORK/.template/profile.yaml" ai enabled)" = true ] \
   && grep -Fq 'evaluation: true' "$WORK/.template/profile.yaml" \
   && grep -Fq 'semantic_review: enabled' "$WORK/.template/profile.yaml" \
   && grep -Fq 'structural_review: enabled' "$WORK/.template/profile.yaml" \
@@ -118,18 +180,77 @@ if (cd "$WORK" && sh "$ROOT/scripts/init-project.sh" \
   && grep -Fq 'sbom: true' "$WORK/.template/profile.yaml" \
   && grep -Fq 'artifact_attestation: true' "$WORK/.template/profile.yaml" \
   && grep -Fq 'scorecard: true' "$WORK/.template/profile.yaml" \
-  && awk '
-    $0 == "deployment:" { in_deployment=1; next }
-    in_deployment && /^[^ ]/ { exit }
-    in_deployment && $0 == "  enabled: true" { found=1 }
-    END { exit !found }
-  ' "$WORK/.template/profile.yaml" \
+  && [ "$(profile_value "$WORK/.template/profile.yaml" deployment enabled)" = true ] \
   && sh "$ROOT/scripts/validate-profile-config.sh" "$WORK/.template/profile.yaml" >/dev/null 2>&1 \
   && [ "$(sh "$ROOT/scripts/resolve-components.sh" --json "$WORK/.template/project.yaml")" = '[{"id":"backend","path":"src/backend","stack":"go","required":true,"artifact":"backend"},{"id":"frontend","path":"src/frontend","stack":"node","required":true,"artifact":"frontend"}]' ] \
   && grep -Fq 'Consumer documentation outside the identity block.' "$WORK/README.md"; then
   PASS=$((PASS+1))
 else
   FAIL=$((FAIL+1)); printf 'FAIL explicitly reconfigures README\n' >&2
+fi
+
+assert_config_directory_rejected \
+  'rejects project config directory target' project.yaml no
+assert_config_directory_rejected \
+  'rejects project config directory target with reconfigure' project.yaml yes
+assert_config_directory_rejected \
+  'rejects profile config directory target' profile.yaml no
+assert_config_directory_rejected \
+  'rejects profile config directory target with reconfigure' profile.yaml yes
+
+STARTER_WORK="$WORK/starter-defaults"
+mkdir -p "$STARTER_WORK"
+cp "$README_FIXTURE" "$STARTER_WORK/README.md"
+if (cd "$STARTER_WORK" && sh "$ROOT/scripts/init-project.sh" \
+  --name starter-defaults --profile starter --layout single) >/dev/null 2>&1; then
+  PASS=$((PASS+1))
+else
+  FAIL=$((FAIL+1)); printf 'FAIL generates a default Starter profile\n' >&2
+fi
+
+STARTER_PROFILE="$STARTER_WORK/.template/profile.yaml"
+STARTER_PROJECT="$STARTER_WORK/.template/project.yaml"
+assert_eq 'Starter version' "$(profile_scalar "$STARTER_PROFILE" version)" '1'
+assert_eq 'Starter profile' "$(profile_scalar "$STARTER_PROFILE" profile)" 'starter'
+while IFS='|' read -r section key expected; do
+  assert_eq "Starter $section.$key" \
+    "$(profile_value "$STARTER_PROFILE" "$section" "$key")" "$expected"
+done <<'STARTER_MATRIX'
+project|type|other
+stack|primary|auto
+ai|enabled|false
+ai|evaluation|false
+ai|semantic_review|off
+ai|structural_review|off
+deployment|enabled|false
+deployment|target|none
+controls|secret_scan|true
+controls|dependency_review|true
+controls|codeql|false
+controls|coverage|false
+controls|sbom|false
+controls|artifact_attestation|false
+controls|scorecard|false
+STARTER_MATRIX
+
+if sh "$ROOT/scripts/validate-project-config.sh" "$STARTER_PROJECT" >/dev/null 2>&1 \
+  && sh "$ROOT/scripts/validate-profile-config.sh" "$STARTER_PROFILE" >/dev/null 2>&1; then
+  PASS=$((PASS+1))
+else
+  FAIL=$((FAIL+1)); printf 'FAIL generated Starter configs validate\n' >&2
+fi
+
+if STARTER_POLICY="$(sh "$ROOT/scripts/resolve-profile-policy.sh" \
+  "$STARTER_PROFILE" "$ROOT/.template/profile-controls.yaml" \
+  "$STARTER_PROJECT" 2>/dev/null)"; then
+  assert_eq 'generated Starter policy mode' \
+    "$(printf '%s\n' "$STARTER_POLICY" | sed -n 's/^mode=//p')" 'profile'
+  assert_eq 'generated Starter policy profile' \
+    "$(printf '%s\n' "$STARTER_POLICY" | sed -n 's/^profile=//p')" 'starter'
+  assert_eq 'generated Starter policy alignment' \
+    "$(printf '%s\n' "$STARTER_POLICY" | sed -n 's/^status=//p')" 'aligned'
+else
+  FAIL=$((FAIL+1)); printf 'FAIL resolves generated Starter policy\n' >&2
 fi
 
 if (cd "$WORK" && cp "$README_FIXTURE" README.md && \

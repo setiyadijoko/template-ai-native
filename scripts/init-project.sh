@@ -268,6 +268,12 @@ PROFILE_FILE="$CONFIG_DIR/profile.yaml"
 if grep -Fq "$GENERATED" "$README" && [ "$RECONFIGURE" != 'yes' ]; then
   die 'README identity was already generated; rerun with --reconfigure to replace it'
 fi
+if [ -e "$CONFIG_FILE" ] && [ ! -f "$CONFIG_FILE" ]; then
+  die 'project config target must be a regular file'
+fi
+if [ -e "$PROFILE_FILE" ] && [ ! -f "$PROFILE_FILE" ]; then
+  die 'profile config target must be a regular file'
+fi
 if [ -f "$CONFIG_FILE" ] && [ "$RECONFIGURE" != 'yes' ]; then
   die 'project config already exists; rerun with --reconfigure to replace it'
 fi
@@ -395,6 +401,14 @@ awk -v start="$START" -v end="$END" -v block_file="$BLOCK_FILE" '
 mv "$TEMP_FILE" "$README"
 mv "$CONFIG_TEMP" "$CONFIG_FILE"
 mv "$PROFILE_TEMP" "$PROFILE_FILE"
+[ -f "$README" ] && grep -Fq "$GENERATED" "$README" \
+  || die 'initialized README is invalid'
+[ -f "$CONFIG_FILE" ] \
+  && sh "$(dirname "$0")/validate-project-config.sh" "$CONFIG_FILE" >/dev/null 2>&1 \
+  || die 'initialized project config is invalid'
+[ -f "$PROFILE_FILE" ] \
+  && sh "$(dirname "$0")/validate-profile-config.sh" "$PROFILE_FILE" >/dev/null 2>&1 \
+  || die 'initialized profile config is invalid'
 trap - EXIT HUP INT TERM
 rm -f "$BLOCK_FILE"
 printf 'Initialized project identity for %s (profile: %s, layout: %s, stack: %s).\n' \
