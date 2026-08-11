@@ -7,6 +7,8 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 
 POLICY="$ROOT/scripts/resolve-profile-policy.sh"
 MAPPING="$ROOT/.template/profile-controls.yaml"
+CONTROLS='secret_scan dependency_review codeql coverage sbom artifact_attestation scorecard ai_evaluation semantic_review structural_review production_governance'
+CONTROL_FIELDS='declared default enabled class policy_required pr_required alignment'
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/template-ai-native-profile-policy.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT HUP INT TERM
 
@@ -35,6 +37,23 @@ error_output() {
   return "$status"
 }
 
+assert_policy_failure() {
+  label="$1"; shift
+  assert_exit "$label" 1 sh "$@"
+  output="$(error_output "$@" || true)"
+  assert_output_contains "$label error prefix" "$output" '^profile-policy:'
+}
+
+assert_control_field_matrix() {
+  output="$1"
+  for control in $CONTROLS; do
+    for field in $CONTROL_FIELDS; do
+      assert_output_count "$control has one $field field" "$output" \
+        "^control\\.$control\\.$field=" "1"
+    done
+  done
+}
+
 printf 'version: 1\nlayout: single\nprimary_stack: node\nprimary_path: src\n' \
   > "$WORK/project.yaml"
 
@@ -49,15 +68,11 @@ assert_output_count "template reports every current baseline control" "$template
   '^control\.[^.]+\.enabled=current-baseline$' "11"
 
 # A consumer marker without a profile fails closed.
-assert_exit "consumer missing profile fails" 1 sh "$POLICY" \
+assert_policy_failure "consumer missing profile fails" "$POLICY" \
   "$WORK/missing-profile.yaml" "$MAPPING" "$WORK/project.yaml"
-missing_profile_output="$(error_output "$POLICY" "$WORK/missing-profile.yaml" \
-  "$MAPPING" "$WORK/project.yaml" || true)"
-assert_output_contains "consumer missing profile error prefix" "$missing_profile_output" \
-  '^profile-policy:'
 
 # A profile without a project marker also fails closed.
-assert_exit "profile without project config fails" 1 sh "$POLICY" \
+assert_policy_failure "profile without project config fails" "$POLICY" \
   "$ROOT/.template/profile.yaml.example" "$MAPPING" "$WORK/missing-project.yaml"
 
 # Standard produces blocking CodeQL and advisory semantic review.
@@ -86,6 +101,7 @@ assert_output_contains "semantic review not PR blocking" "$standard" \
 assert_output_count "standard emits seven fields per control" "$standard" \
   '^control\.[^.]+\.(declared|default|enabled|class|policy_required|pr_required|alignment)=' \
   "77"
+assert_control_field_matrix "$standard"
 
 # A stronger Starter declaration remains valid.
 sed 's/^profile: standard$/profile: starter/' \
@@ -111,18 +127,34 @@ assert_output_contains "Enterprise warning annotation" "$(cat "$WORK/enterprise.
 
 # Invalid mapping/configuration paths fail closed with the resolver prefix.
 sed '/^    codeql:/d' "$MAPPING" > "$WORK/malformed-controls.yaml"
-assert_exit "malformed mapping fails" 1 sh "$POLICY" \
+assert_policy_failure "malformed mapping fails" "$POLICY" \
   "$ROOT/.template/profile.yaml.example" "$WORK/malformed-controls.yaml" "$WORK/project.yaml"
+cp "$MAPPING" "$WORK/unknown-profile-controls.yaml"
+printf '  premium:\n' >> "$WORK/unknown-profile-controls.yaml"
+assert_policy_failure "unknown mapping profile fails" "$POLICY" \
+  "$ROOT/.template/profile.yaml.example" "$WORK/unknown-profile-controls.yaml" "$WORK/project.yaml"
+cp "$MAPPING" "$WORK/duplicate-profile-controls.yaml"
+printf '  starter:\n' >> "$WORK/duplicate-profile-controls.yaml"
+assert_policy_failure "duplicate mapping profile fails" "$POLICY" \
+  "$ROOT/.template/profile.yaml.example" "$WORK/duplicate-profile-controls.yaml" "$WORK/project.yaml"
+awk '1; /^    codeql: true$/ { print "    unknown_control: true" }' "$MAPPING" \
+  > "$WORK/unknown-control-controls.yaml"
+assert_policy_failure "unknown mapping control fails" "$POLICY" \
+  "$ROOT/.template/profile.yaml.example" "$WORK/unknown-control-controls.yaml" "$WORK/project.yaml"
+awk '1; /^    codeql: true$/ { print }' "$MAPPING" \
+  > "$WORK/duplicate-control-controls.yaml"
+assert_policy_failure "duplicate mapping control fails" "$POLICY" \
+  "$ROOT/.template/profile.yaml.example" "$WORK/duplicate-control-controls.yaml" "$WORK/project.yaml"
 mkdir "$WORK/profile-directory" "$WORK/mapping-directory" "$WORK/project-directory"
-assert_exit "profile directory fails" 1 sh "$POLICY" \
+assert_policy_failure "profile directory fails" "$POLICY" \
   "$WORK/profile-directory" "$MAPPING" "$WORK/project.yaml"
-assert_exit "mapping directory fails" 1 sh "$POLICY" \
+assert_policy_failure "mapping directory fails" "$POLICY" \
   "$ROOT/.template/profile.yaml.example" "$WORK/mapping-directory" "$WORK/project.yaml"
-assert_exit "project directory fails" 1 sh "$POLICY" \
+assert_policy_failure "project directory fails" "$POLICY" \
   "$ROOT/.template/profile.yaml.example" "$MAPPING" "$WORK/project-directory"
 sed 's/^profile: standard$/profile: premium/' \
   "$ROOT/.template/profile.yaml.example" > "$WORK/invalid-profile.yaml"
-assert_exit "invalid profile fails" 1 sh "$POLICY" \
+assert_policy_failure "invalid profile fails" "$POLICY" \
   "$WORK/invalid-profile.yaml" "$MAPPING" "$WORK/project.yaml"
 
 # Repeated policy decisions are byte-identical.

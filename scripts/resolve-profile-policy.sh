@@ -94,14 +94,80 @@ validate_mapping_value() {
   esac
 }
 
+validate_mapping_shape() {
+  awk -v controls="$CONTROLS" '
+    function fail() {
+      invalid = 1
+      exit
+    }
+    function known_control(control) {
+      return index(" " controls " ", " " control " ") > 0
+    }
+    {
+      line = $0
+      sub(/[[:space:]]+#.*$/, "", line)
+      sub(/[[:space:]]+$/, "", line)
+      if (line == "" || line ~ /^[[:space:]]*#/) next
+      if (line ~ /[\t\r]/) fail()
+
+      if (line ~ /^version:[[:space:]]*[^[:space:]#].*$/) {
+        if (state != 0) fail()
+        value = line
+        sub(/^version:[[:space:]]*/, "", value)
+        version_count++
+        version_value = value
+        state = 1
+        next
+      }
+      if (line == "profiles:") {
+        if (state != 1) fail()
+        profiles_count++
+        state = 2
+        next
+      }
+      if (line ~ /^  [a-z][a-z0-9_]*:[[:space:]]*$/) {
+        if (state < 2) fail()
+        profile = line
+        sub(/^  /, "", profile)
+        sub(/:.*/, "", profile)
+        if (profile != "starter" && profile != "standard" && profile != "enterprise") fail()
+        if (++profile_count[profile] != 1) fail()
+        active_profile = profile
+        state = 3
+        next
+      }
+      if (line ~ /^    [a-z][a-z0-9_]*:[[:space:]]*[^[:space:]#].*$/) {
+        if (state != 3 || active_profile == "") fail()
+        control = line
+        sub(/^    /, "", control)
+        sub(/:.*/, "", control)
+        if (!known_control(control)) fail()
+        if (++control_count[active_profile SUBSEP control] != 1) fail()
+        next
+      }
+      fail()
+    }
+    END {
+      if (invalid || version_count != 1 || version_value != "1" || profiles_count != 1) exit 2
+      split("starter standard enterprise", profiles, " ")
+      split(controls, control_names, " ")
+      for (profile_index in profiles) {
+        profile = profiles[profile_index]
+        if (profile_count[profile] != 1) exit 2
+        for (control_index in control_names) {
+          control = control_names[control_index]
+          if (control_count[profile SUBSEP control] != 1) exit 2
+        }
+      }
+    }
+  ' "$CONTROL_MAP" || die 'mapping must use the documented profile/control shape'
+}
+
 validate_mapping() {
   [ -f "$CONTROL_MAP" ] || die "mapping not found at $CONTROL_MAP"
-  version="$(awk -F ':[[:space:]]*' '$1 == "version" { print $2; exit }' "$CONTROL_MAP")"
-  [ "$version" = '1' ] || die "unsupported mapping version '$version'"
+  validate_mapping_shape
 
   for profile in starter standard enterprise; do
-    grep -Eq "^  $profile:[[:space:]]*$" "$CONTROL_MAP" \
-      || die "missing mapping profile '$profile'"
     for control in $CONTROLS; do
       value="$(mapping_value "$profile" "$control")"
       [ -n "$value" ] || die "missing mapping value for $profile.$control"
