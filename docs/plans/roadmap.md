@@ -126,22 +126,27 @@ Decision: the observation gate is complete. ADR-0010 now defines the approved
 activation architecture; no workflow condition or branch-protection change was
 authorized by the shadow pilot itself.
 
-### P1 — profile-aware activation (design accepted; implementation staged)
+### P1 — profile-aware activation (foundation implemented; orchestration and enforcement pending)
 
 - [ADR-0010](../adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md)
   selects a hybrid two-layer architecture: five invariant governance contexts
   plus one stable `Profile policy / Required controls` aggregate.
-- New consumers must explicitly choose Starter, Standard, or Enterprise during
-  initialization. Disposable historical pilots will not be migrated.
-- The template remains profile-free in compatibility mode; an initialized
-  consumer with a missing or invalid profile fails closed.
-- Profile-aware implementation must first run with the aggregate advisory and
-  preserve all baseline workflows.
+- Implemented foundation: new consumers explicitly choose Starter, Standard, or
+  Enterprise during initialization; the template remains profile-free in
+  compatibility mode; and the central effective-policy resolver fails closed
+  for an initialized consumer with a missing or invalid profile. The shadow
+  presentation delegates to that resolver.
+- Pending: an advisory profile-policy orchestrator and stable aggregate must be
+  implemented while all baseline workflows continue to run. Disposable
+  historical pilots will not be migrated.
+- Pending: hosted Starter, Standard, and Enterprise activation pilots must
+  prove the advisory aggregate before enforcement.
 - Enforcement remains **NO-GO** until three fresh profile pilots, rerun/push,
   external-fork, required-failure, no-pending-context, cost/noise, and rollback
   evidence satisfy ADR-0010.
-- Branch protection must keep its invariant contexts and add only the stable
-  aggregate after the hosted activation gate passes.
+- Pending: branch protection must keep its invariant contexts and add only the
+  stable aggregate after the hosted activation gate passes; duplicate
+  profile-dependent workflow execution may be removed only afterward.
 
 ### P0 — component-aware monorepo CI (implemented; hosted pilot passed)
 

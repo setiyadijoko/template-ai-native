@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Required explicit Starter, Standard, or Enterprise profile selection during
+  consumer initialization, with a credential-free project/profile configuration
+  pair. Added central effective-policy resolution, local `make
+  profile-policy-check`, and shadow delegation to that resolver. Existing
+  workflow execution, branch protection, and production behavior remain
+  unchanged.
 - Accepted ADR-0010 for future profile-aware activation through invariant
   governance checks and one stable required-controls aggregate. New consumers
   must explicitly select a profile; implementation, hosted activation evidence,

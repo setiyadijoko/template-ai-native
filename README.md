@@ -23,7 +23,7 @@ itself. The shortest safe path is:
 3. Personalize the README identity:
 
    ```sh
-   ./scripts/init-project.sh --name my-app --description "My application" --stack auto --layout single
+   ./scripts/init-project.sh --name my-app --description "My application" --stack auto --layout single --profile standard
    ```
 
 4. Write the business goal in `PRODUCT.md` and the approved design in
@@ -46,7 +46,7 @@ explains the terms, expected results, optional controls, and common problems.
 
 | Do this first | Add when needed | Consumer-specific |
 |---|---|---|
-| `PRODUCT.md`, `DESIGN.md`, layout choice, `src/`, tests, `make ci`, secret handling | AI evaluations, Alibaba review, Graphify, Code Review Graph promotion | Runtime provider, database, deployment target, health endpoint, GitHub Environments |
+| `PRODUCT.md`, `DESIGN.md`, layout choice, `src/`, tests, `make ci`, secret handling | AI evaluations when required by an AI-enabled Standard/Enterprise profile, Alibaba review, Graphify, Code Review Graph promotion | Runtime provider, database, deployment target, health endpoint, GitHub Environments |
 
 The template is useful even when no stack has been chosen yet. In that state,
 stack-dependent commands report a clean no-op; this is expected, not a failure.
@@ -136,6 +136,7 @@ make setup                # bootstrap (no-op until a stack is wired)
 | `make run` | Run the built artifact |
 | `make smoke-test` | Post-deploy smoke |
 | `make docs-check` | Markdown lint + link check + TBD/TODO scan |
+| `make profile-policy-check` | Validate the effective profile policy; the empty template remains compatible |
 | `make ci` | Local mirror of the primary CI gate |
 
 Single-stack targets no-op cleanly until a stack is detected. A declared
@@ -159,30 +160,35 @@ corresponding GitHub Environments. Production must remain human-gated and must
 promote the exact artifact validated in staging (no rebuild). See
 [`docs/operations/deployment-guide.md`](docs/operations/deployment-guide.md).
 
-## Adoption profiles (declarative foundation)
+## Adoption profiles (required for initialized consumers)
 
-The template now defines a versioned, credential-free profile contract for
-`starter`, `standard`, and `enterprise`. Copy
-`.template/profile.yaml.example` to `.template/profile.yaml`, edit the values,
-and validate it with:
+Every consumer initialized with `scripts/init-project.sh` must explicitly select
+exactly one of `starter`, `standard`, or `enterprise` with `--profile`; the
+initializer never infers a profile. `--project-type` defaults to `other` and
+`--ai-enabled` defaults to `false`. An Enterprise selection must also provide a
+non-`none` `--deployment-target`. A successful initialization writes both the
+credential-free `.template/project.yaml` and `.template/profile.yaml` files.
+
+Review the generated profile and validate its effective policy locally with:
 
 ```sh
 sh scripts/validate-profile-config.sh .template/profile.yaml
+make profile-policy-check
 ```
 
-Profile files currently document the intended control posture only; they do
-not activate, skip, or downgrade workflows. Repositories without the file stay
-in compatibility mode and retain the current security defaults. The mapping and
-future activation gate are recorded in
-[`docs/adr/0008-profile-foundation.md`](docs/adr/0008-profile-foundation.md).
-The machine-readable default mapping is in
-`.template/profile-controls.yaml`.
+The template repository intentionally has neither configuration file and stays
+valid in compatibility mode. In contrast, an initialized consumer with a
+missing or invalid profile fails `make ci`; it cannot infer a profile. The
+mapping and future activation gate are recorded in
+[`docs/adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md`](docs/adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md),
+with defaults in `.template/profile-controls.yaml`.
 
 The separate `Profile shadow / Profile policy observation` check reports how a
 valid profile would map controls while every current workflow continues to run.
 The check is advisory and is not part of the recommended branch-protection
 contexts. Missing profiles retain compatibility mode; shadow evidence does not
-authorize profile-aware activation.
+authorize profile-aware activation. This foundation does not change workflow
+execution or branch protection.
 
 ## Documentation index
 
