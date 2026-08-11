@@ -104,6 +104,28 @@ and fork events and must stay out of branch protection during the pilot. Pilot
 evidence records duration, warnings, skipped observations, and discrepancies.
 All baseline workflows remain the authority for current execution.
 
+## Hosted evidence — 2026-08-11
+
+Compatibility mode passed in the template on pull-request and push events with
+the stable context and all eleven controls preserved as `current-baseline`. A
+public Standard-profile Python consumer then passed the same context on its
+pull request and `main` push while existing Python quality, tests, coverage,
+build, CodeQL, and security execution remained active.
+
+An external public fork was initially held for first-time-contributor workflow
+approval. After explicit maintainer approval, attempt 2 passed with
+`Contents: read`, implicit metadata read, and `Secret source: None`. The
+resolver consistently reported accurate policy mismatches for the consumer's
+disabled semantic and structural review declarations without changing or
+failing baseline workflows.
+
+This evidence satisfies the ADR's compatibility, Standard, and fork-safety
+observation steps. It does not change the activation decision: Starter and
+Enterprise have no hosted evidence, scheduled/manual classifications remain
+unproven as execution policy, and the sample is insufficient for representative
+cost/noise conclusions. Activation therefore remains deferred and requires a
+separate ADR.
+
 ## Migration strategy
 
 1. Implement and test the resolver and isolated advisory workflow.

@@ -80,15 +80,36 @@ unchanged until the compatibility design is approved.
 - Record workflow activation, required check contexts, and consumer migration
   as deferred work requiring a separate ADR and hosted pilot.
 
-### P1 — profile shadow mode (implemented locally; hosted pilot pending)
+### P1 — profile shadow mode (hosted observation verified; activation deferred)
 
 - ADR-0009 approves one isolated, advisory observation workflow and a
   deterministic resolver.
 - All current workflows, required checks, branch protection, initializer
   behavior, and production controls remain unchanged.
-- The implementation must prove missing-profile compatibility, Standard
-  consumer behavior, and fork safety before any activation design.
-- Profile-aware execution and check-policy changes remain deferred.
+- Template compatibility mode passed on
+  [push run 31445189380](https://github.com/setiyadijoko/template-ai-native/actions/runs/31445189380)
+  with all eleven controls at `current-baseline` and read-only permissions.
+- The public Standard-profile Python consumer passed
+  [PR shadow run 31454139223](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot/actions/runs/31454139223),
+  [CI run 31454139325](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot/actions/runs/31454139325),
+  and
+  [push shadow run 31457093780](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot/actions/runs/31457093780).
+- External [fork PR #4](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot/pull/4)
+  was first held with `action_required`. After explicit maintainer approval,
+  attempt 2 passed the stable shadow context in
+  [run 31458012221](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot/actions/runs/31458012221)
+  with `Contents: read` and `Secret source: None`; Python CI and CodeQL also
+  passed without changing the application or profile.
+- The shadow resolution took about three seconds in the observed jobs. The
+  Standard consumer consistently warned that semantic and structural review
+  were declared `off` while the profile defaults are `advisory`; this was
+  accurate observation, not execution failure.
+
+Activation decision: **NO-GO**. Profile-aware execution and check-policy
+changes remain deferred because Starter and Enterprise lack hosted evidence,
+scheduled/manual classifications remain observational, and the current sample
+does not establish representative cost or noise bounds. A separate activation
+ADR and consumer migration plan are still mandatory.
 
 ### P0 — component-aware monorepo CI (implemented; hosted pilot passed)
 
