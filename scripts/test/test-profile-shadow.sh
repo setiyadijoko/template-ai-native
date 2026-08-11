@@ -10,6 +10,9 @@ VALIDATOR="$ROOT/scripts/validate-profile-config.sh"
 MAPPING="$ROOT/.template/profile-controls.yaml"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/template-ai-native-profile-shadow.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT HUP INT TERM
+PROJECT="$WORK/project.yaml"
+printf 'version: 1\nlayout: single\nprimary_stack: node\nprimary_path: src\n' \
+  > "$PROJECT"
 
 assert_output_contains() {
   label="$1"; output="$2"; pattern="$3"
@@ -22,17 +25,32 @@ assert_output_contains() {
 }
 
 run_shadow() {
-  sh "$RESOLVER" "$1" "${2:-$MAPPING}"
+  sh "$RESOLVER" "$1" "${2:-$MAPPING}" "$PROJECT"
 }
 
+if grep -Fq 'sh scripts/resolve-profile-policy.sh' "$RESOLVER" \
+  && ! grep -Fq 'mapping_value()' "$RESOLVER" \
+  && ! grep -Fq 'review_alignment()' "$RESOLVER"; then
+  PASS=$((PASS+1))
+else
+  FAIL=$((FAIL+1)); printf 'FAIL shadow delegates all policy resolution\n' >&2
+fi
+
 # The missing profile is compatibility mode, not an inferred profile.
-compatibility="$(run_shadow "$WORK/missing.yaml")"
+compatibility="$(sh "$RESOLVER" "$WORK/missing.yaml" "$MAPPING" \
+  "$WORK/missing-project.yaml")"
 assert_output_contains "compatibility mode" "$compatibility" '^mode=compatibility$'
 assert_output_contains "compatibility has no profile" "$compatibility" '^profile=none$'
 assert_output_contains "compatibility preserves secret scan" "$compatibility" \
   '^control\.secret_scan\.decision=current-baseline$'
 compatibility_controls="$(printf '%s\n' "$compatibility" | grep -Ec '^control\.[^.]+\.decision=current-baseline$')"
 assert_eq "compatibility reports every control" "$compatibility_controls" "11"
+
+# A consumer marker without a profile fails closed through the shadow prefix.
+assert_exit "consumer missing profile fails" 1 run_shadow "$WORK/missing.yaml"
+missing_profile_output="$(run_shadow "$WORK/missing.yaml" 2>&1 || true)"
+assert_output_contains "consumer missing profile error prefix" "$missing_profile_output" \
+  '^profile-shadow:'
 
 # Standard example resolves deterministically.
 standard="$(run_shadow "$ROOT/.template/profile.yaml.example")"
