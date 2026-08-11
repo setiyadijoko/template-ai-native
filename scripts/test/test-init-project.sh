@@ -35,7 +35,7 @@ fi
 if (cd "$WORK" && sh "$ROOT/scripts/init-project.sh" \
   --name "sample-orders" \
   --description "Order processing service" \
-  --stack node --layout single --primary-path src) >/dev/null 2>&1; then
+  --stack node --layout single --primary-path src --profile standard) >/dev/null 2>&1; then
   PASS=$((PASS+1))
 else
   FAIL=$((FAIL+1)); printf 'FAIL initializes a fresh README\n' >&2
@@ -52,8 +52,24 @@ else
   FAIL=$((FAIL+1)); printf 'FAIL writes project identity to README\n' >&2
 fi
 
+if grep -Fq 'profile: standard' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'type: other' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'primary: node' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'enabled: false' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'semantic_review: advisory' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'structural_review: advisory' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'codeql: true' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'coverage: true' "$WORK/.template/profile.yaml" \
+  && sh "$ROOT/scripts/validate-profile-config.sh" \
+    "$WORK/.template/profile.yaml" >/dev/null 2>&1; then
+  PASS=$((PASS+1))
+else
+  FAIL=$((FAIL+1)); printf 'FAIL writes a valid Standard profile\n' >&2
+fi
+
 if (cd "$WORK" && sh "$ROOT/scripts/init-project.sh" \
-  --name "replacement" --description "Must not overwrite") >/dev/null 2>&1; then
+  --name "replacement" --description "Must not overwrite" \
+  --profile standard) >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL refuses implicit reconfiguration\n' >&2
 else
   PASS=$((PASS+1))
@@ -73,7 +89,9 @@ if (cd "$WORK" && sh "$ROOT/scripts/init-project.sh" \
   --description "Replacement service" --stack auto \
   --layout monorepo \
   --component backend=src/backend:go \
-  --component frontend=src/frontend:node) >/dev/null 2>&1 \
+  --component frontend=src/frontend:node \
+  --profile enterprise --project-type api --ai-enabled true \
+  --deployment-target cloud) >/dev/null 2>&1 \
   && grep -Fq '# replacement' "$WORK/README.md" \
   && grep -Fq 'Replacement service' "$WORK/README.md" \
   && grep -Fq "$EXPECTED_AUTO_STACK" "$WORK/README.md" \
@@ -85,6 +103,20 @@ if (cd "$WORK" && sh "$ROOT/scripts/init-project.sh" \
   && grep -Fq 'path: src/frontend' "$WORK/.template/project.yaml" \
   && grep -Fq 'stack: node' "$WORK/.template/project.yaml" \
   && sh "$ROOT/scripts/validate-project-config.sh" "$WORK/.template/project.yaml" >/dev/null 2>&1 \
+  && grep -Fq 'profile: enterprise' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'type: api' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'enabled: true' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'evaluation: true' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'semantic_review: enabled' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'structural_review: enabled' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'target: cloud' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'codeql: true' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'coverage: true' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'sbom: true' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'artifact_attestation: true' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'scorecard: true' "$WORK/.template/profile.yaml" \
+  && grep -Fq 'enabled: true' "$WORK/.template/profile.yaml" \
+  && sh "$ROOT/scripts/validate-profile-config.sh" "$WORK/.template/profile.yaml" >/dev/null 2>&1 \
   && [ "$(sh "$ROOT/scripts/resolve-components.sh" --json "$WORK/.template/project.yaml")" = '[{"id":"backend","path":"src/backend","stack":"go","required":true,"artifact":"backend"},{"id":"frontend","path":"src/frontend","stack":"node","required":true,"artifact":"frontend"}]' ] \
   && grep -Fq 'Consumer documentation outside the identity block.' "$WORK/README.md"; then
   PASS=$((PASS+1))
@@ -92,18 +124,47 @@ else
   FAIL=$((FAIL+1)); printf 'FAIL explicitly reconfigures README\n' >&2
 fi
 
+if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
+  rm -f .template/project.yaml .template/profile.yaml && \
+  sh "$ROOT/scripts/init-project.sh" --name missing-profile \
+    --layout single) >/dev/null 2>&1; then
+  FAIL=$((FAIL+1)); printf 'FAIL accepts non-interactive init without profile\n' >&2
+else
+  PASS=$((PASS+1))
+fi
+
+if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
+  rm -f .template/project.yaml .template/profile.yaml && \
+  sh "$ROOT/scripts/init-project.sh" --name bad-profile \
+    --profile premium --layout single) >/dev/null 2>&1; then
+  FAIL=$((FAIL+1)); printf 'FAIL accepts unsupported profile\n' >&2
+else
+  PASS=$((PASS+1))
+fi
+
+if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
+  rm -f .template/project.yaml .template/profile.yaml && \
+  sh "$ROOT/scripts/init-project.sh" --name enterprise-without-target \
+    --profile enterprise --layout single) >/dev/null 2>&1; then
+  FAIL=$((FAIL+1)); printf 'FAIL accepts Enterprise without deployment target\n' >&2
+else
+  PASS=$((PASS+1))
+fi
+
 cp "$README_FIXTURE" "$WORK/missing-marker.md"
 sed '/template-ai-native:project-identity:start/,/template-ai-native:project-identity:end/d' \
   "$WORK/missing-marker.md" > "$WORK/README-no-marker.md"
 if (cd "$WORK" && cp README-no-marker.md README.md && \
-  sh "$ROOT/scripts/init-project.sh" --name "missing-marker") >/dev/null 2>&1; then
+  sh "$ROOT/scripts/init-project.sh" --name "missing-marker" \
+    --profile standard) >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL rejects README without identity markers\n' >&2
 else
   PASS=$((PASS+1))
 fi
 
 if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
-  sh "$ROOT/scripts/init-project.sh" --name "bad" --stack rust) >/dev/null 2>&1; then
+  sh "$ROOT/scripts/init-project.sh" --name "bad" --stack rust \
+    --profile standard) >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL rejects unsupported stack\n' >&2
 else
   PASS=$((PASS+1))
@@ -111,7 +172,7 @@ fi
 
 if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
   sh "$ROOT/scripts/init-project.sh" --name "missing-components" \
-  --layout monorepo --primary-path src/backend) >/dev/null 2>&1; then
+  --layout monorepo --primary-path src/backend --profile standard) >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL accepts non-interactive monorepo without components\n' >&2
 else
   PASS=$((PASS+1))
@@ -119,7 +180,8 @@ fi
 
 if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
   sh "$ROOT/scripts/init-project.sh" --name "bad-component" \
-  --layout monorepo --component backend=src/backend:rust) >/dev/null 2>&1; then
+  --layout monorepo --component backend=src/backend:rust \
+  --profile standard) >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL accepts unsupported component stack\n' >&2
 else
   PASS=$((PASS+1))
@@ -129,7 +191,7 @@ if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
   sh "$ROOT/scripts/init-project.sh" --name "duplicate-component" \
   --layout monorepo \
   --component backend=src/backend:go \
-  --component backend=src/other:node) >/dev/null 2>&1; then
+  --component backend=src/other:node --profile standard) >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL accepts duplicate component id\n' >&2
 else
   PASS=$((PASS+1))
@@ -138,7 +200,8 @@ fi
 MULTILINE='line one
 line two'
 if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
-  sh "$ROOT/scripts/init-project.sh" --name "bad" --description "$MULTILINE") >/dev/null 2>&1; then
+  sh "$ROOT/scripts/init-project.sh" --name "bad" --description "$MULTILINE" \
+    --profile standard) >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL rejects multiline description\n' >&2
 else
   PASS=$((PASS+1))
@@ -147,7 +210,8 @@ fi
 MULTILINE_NAME='bad
 name'
 if (cd "$WORK" && cp "$README_FIXTURE" README.md && \
-  sh "$ROOT/scripts/init-project.sh" --name "$MULTILINE_NAME") >/dev/null 2>&1; then
+  sh "$ROOT/scripts/init-project.sh" --name "$MULTILINE_NAME" \
+    --profile standard) >/dev/null 2>&1; then
   FAIL=$((FAIL+1)); printf 'FAIL rejects multiline project name\n' >&2
 else
   PASS=$((PASS+1))
