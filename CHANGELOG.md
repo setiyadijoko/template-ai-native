@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Recorded hosted profile-shadow evidence for template compatibility mode, a
+  Standard Python consumer, and an external public fork. The fork check passed
+  with read-only contents permission and no secret source; activation remains
+  deferred pending Starter/Enterprise and broader cost/noise evidence.
 - Added the profile-shadow resolver, advisory workflow, stable
   `Profile shadow / Profile policy observation` context, and focused contracts.
   Existing workflow execution, required checks, branch protection, and

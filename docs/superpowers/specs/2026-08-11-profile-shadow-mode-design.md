@@ -1,6 +1,6 @@
 # Profile-Aware CI Shadow Mode Design
 
-**Status:** Implemented locally; hosted validation pending
+**Status:** Hosted compatibility, Standard, and fork paths verified; activation deferred
 **Date:** 2026-08-11
 **Owner:** Template maintainers
 
@@ -15,6 +15,28 @@ hosted Python coverage pilot proved that a Standard-profile consumer can use the
 current quality, test, coverage, build, security, and post-merge provenance path.
 It did not prove that profile-based workflow conditions are safe. Shadow mode is
 the bounded evidence-gathering step between those states.
+
+## Hosted observation evidence
+
+Hosted runs on 2026-08-11 verified the bounded paths approved by ADR-0009:
+
+- the template reported compatibility mode with all eleven decisions at
+  `current-baseline` on pull-request and push events;
+- the disposable Python consumer reported `profile=standard`, kept CodeQL and
+  coverage at `would-run`, and continued to execute its existing quality,
+  test, coverage, build, and security jobs;
+- an external public fork was held for first-time-contributor approval, then
+  completed the same stable shadow context with `Contents: read`, implicit
+  metadata read, and `Secret source: None`;
+- the Standard consumer correctly warned that semantic and structural review
+  were declared `off` while their Standard defaults are `advisory`; the
+  warnings did not fail or alter any workflow.
+
+These observations validate the compatibility, Standard, and fork-safe shadow
+paths. They do not authorize activation. Starter and Enterprise still lack
+hosted evidence, scheduled and manual classifications have not been correlated
+with real activation behavior, and the pilot sample is too small to establish
+cost or noise bounds.
 
 ## Goals
 
