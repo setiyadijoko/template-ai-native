@@ -7,7 +7,7 @@ usage() {
   cat <<'USAGE'
 Usage: scripts/init-project.sh --name NAME [options]
 
-Updates the project identity block in README.md and writes `.template/project.yaml`.
+Updates the project identity block in README.md and writes `.template/project.yaml` and `.template/profile.yaml`.
 
 Options:
   --name NAME           Project name (required)

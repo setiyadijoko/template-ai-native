@@ -115,7 +115,12 @@ if (cd "$WORK" && sh "$ROOT/scripts/init-project.sh" \
   && grep -Fq 'sbom: true' "$WORK/.template/profile.yaml" \
   && grep -Fq 'artifact_attestation: true' "$WORK/.template/profile.yaml" \
   && grep -Fq 'scorecard: true' "$WORK/.template/profile.yaml" \
-  && grep -Fq 'enabled: true' "$WORK/.template/profile.yaml" \
+  && awk '
+    $0 == "deployment:" { in_deployment=1; next }
+    in_deployment && /^[^ ]/ { exit }
+    in_deployment && $0 == "  enabled: true" { found=1 }
+    END { exit !found }
+  ' "$WORK/.template/profile.yaml" \
   && sh "$ROOT/scripts/validate-profile-config.sh" "$WORK/.template/profile.yaml" >/dev/null 2>&1 \
   && [ "$(sh "$ROOT/scripts/resolve-components.sh" --json "$WORK/.template/project.yaml")" = '[{"id":"backend","path":"src/backend","stack":"go","required":true,"artifact":"backend"},{"id":"frontend","path":"src/frontend","stack":"node","required":true,"artifact":"frontend"}]' ] \
   && grep -Fq 'Consumer documentation outside the identity block.' "$WORK/README.md"; then
