@@ -119,12 +119,22 @@ resolver consistently reported accurate policy mismatches for the consumer's
 disabled semantic and structural review declarations without changing or
 failing baseline workflows.
 
-This evidence satisfies the ADR's compatibility, Standard, and fork-safety
-observation steps. It does not change the activation decision: Starter and
-Enterprise have no hosted evidence, scheduled/manual classifications remain
-unproven as execution policy, and the sample is insufficient for representative
-cost/noise conclusions. Activation therefore remains deferred and requires a
-separate ADR.
+Config-only Starter and Enterprise pull requests then each passed all eleven
+workflows. Starter reported an aligned policy with CodeQL, coverage, and
+artifact attestation stronger than its defaults. Enterprise reported the five
+expected gaps for SBOM, Scorecard, semantic review, structural review, and
+production governance. Both pull requests were closed without merge after
+evidence collection.
+
+The fork evidence pull request was later merged despite its documented
+evidence-only boundary. The merge added one README sentence and changed no
+runtime, workflow, or profile behavior. This process finding reinforces the
+need for explicit pilot lifecycle and rollback rules in any activation design.
+
+This evidence satisfies the ADR's compatibility, all-profile, rerun, and
+fork-safety observation steps. The decision is **GO only for writing a separate
+activation ADR**. Actual workflow conditions, required contexts, initializer
+changes, and consumer migration remain **NO-GO** until that ADR is approved.
 
 ## Migration strategy
 
