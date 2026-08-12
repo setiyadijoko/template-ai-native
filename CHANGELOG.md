@@ -93,6 +93,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Phase-1 CI workflows: `pr-title`, `validate-metadata`, `docs-check`, `action-security` (least-privilege, pinned Actions) + `.markdownlint.jsonc`.
 
 ### Changed
+- Recorded the five deferred Minor follow-ups for the advisory profile
+  required-controls aggregate; current behavior remains safe and advisory, and
+  the follow-ups must be resolved before audit-grade reliance or optional-run
+  activation.
 - Made Python's 80% coverage gate follow consumer-owned pytest discovery so
   correctly classified unit, integration, contract, and end-to-end tests
   contribute to overall coverage; category-specific executions remain visible.
