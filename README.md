@@ -186,14 +186,13 @@ with defaults in `.template/profile-controls.yaml`.
 
 The advisory `Profile policy / Required controls` check now resolves the
 effective execution plan and runs the applicable reusable control boundaries.
-It is a pilot observation for branch-protection purposes: the current
-recommended branch-protection contexts do not include it. During the pilot,
-the direct baseline workflows remain enabled, so duplicate baseline execution
-is intentional and provides equivalence, failure-propagation, and cost
-evidence. Profile enforcement remains **NO-GO** until the hosted pilot and
-branch-protection migration evidence required by
-[`ADR-0010`](docs/adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md)
-is recorded.
+Hosted Starter, Standard, Enterprise, fork, required-failure, and disposable
+branch-protection rollback evidence passed. The current recommended
+branch-protection contexts still do not include the aggregate, and direct
+baseline workflows remain enabled. The evidence gate is therefore a **GO for
+a separate enforcement PR**, not a claim that enforcement or CI-cost reduction
+is already active. See the recorded decision in
+[`ADR-0010`](docs/adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md#activation-evidence-decision--2026-08-13).
 
 Inspect the local policy and the resulting execution plan before relying on a
 hosted run:

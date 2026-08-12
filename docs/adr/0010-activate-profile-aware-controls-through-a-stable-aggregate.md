@@ -1,6 +1,6 @@
 # ADR-0010: Activate profile-aware controls through a stable aggregate
 
-- **Status:** Accepted — advisory aggregate implemented; hosted enforcement evidence pending
+- **Status:** Accepted — activation evidence passed; enforcement change staged separately
 - **Date:** 2026-08-11
 - **Decision owners:** Template maintainers and consumer project owners
 
@@ -195,7 +195,71 @@ Activation evidence is sufficient only when:
 10. branch-protection migration and rollback are exercised on a disposable
     repository before the helper changes become the recommended default.
 
-Until all criteria are recorded, profile-aware enforcement remains **NO-GO**.
+### Activation evidence decision — 2026-08-13
+
+All ten criteria above are now recorded. Three disposable, public, single-stack
+Python consumers used the same deterministic application shape:
+
+- Starter [PR #1](https://github.com/setiyadijoko/template-ai-native-profile-starter-pilot/pull/1)
+  passed [aggregate attempt 2](https://github.com/setiyadijoko/template-ai-native-profile-starter-pilot/actions/runs/31648165251/attempts/2)
+  and [post-merge run](https://github.com/setiyadijoko/template-ai-native-profile-starter-pilot/actions/runs/31648341055).
+  Quality/unit, secret scan, and dependency review ran; coverage, CodeQL, AI
+  evaluation, and monorepo CI intentionally skipped.
+- Standard [PR #1](https://github.com/setiyadijoko/template-ai-native-profile-standard-pilot/pull/1)
+  passed [aggregate attempt 2](https://github.com/setiyadijoko/template-ai-native-profile-standard-pilot/actions/runs/31648883515/attempts/2)
+  and [post-merge run](https://github.com/setiyadijoko/template-ai-native-profile-standard-pilot/actions/runs/31649114277).
+  Coverage and CodeQL ran in addition to the mandatory Starter controls; AI
+  evaluation intentionally skipped because AI was disabled.
+- AI-enabled Enterprise [PR #1](https://github.com/setiyadijoko/template-ai-native-profile-enterprise-pilot/pull/1)
+  passed [aggregate attempt 2](https://github.com/setiyadijoko/template-ai-native-profile-enterprise-pilot/actions/runs/31649524418/attempts/2)
+  and [post-merge aggregate](https://github.com/setiyadijoko/template-ai-native-profile-enterprise-pilot/actions/runs/31649737229).
+  Its deterministic AI evaluation ran without a credential or provider call;
+  [SBOM](https://github.com/setiyadijoko/template-ai-native-profile-enterprise-pilot/actions/runs/31649736983),
+  [Scorecard](https://github.com/setiyadijoko/template-ai-native-profile-enterprise-pilot/actions/runs/31649736978),
+  and [build provenance](https://github.com/setiyadijoko/template-ai-native-profile-enterprise-pilot/actions/runs/31649737322)
+  completed successfully after merge.
+
+The template itself remained green in compatibility mode in
+[post-fix run 31651055079](https://github.com/setiyadijoko/template-ai-native/actions/runs/31651055079).
+Every profile, rerun, push, and approved fork produced the same stable
+`Profile policy / Required controls` context. Aligned profile plans emitted no
+profile-policy warning noise. Enterprise pull-request summaries represented
+SBOM and attestation as post-merge policy, Scorecard as scheduled/push policy,
+and production governance as manual-environment policy; none was reported as a
+completed pull-request control.
+
+Rerun wall time was approximately 33 seconds for Starter and 75 seconds for
+both Standard and Enterprise. Starter avoided the aggregate coverage and
+CodeQL jobs, which consumed 71 job-seconds in the Standard rerun. Enterprise
+added a six-second deterministic AI-evaluation job. The direct baseline still
+ran in parallel during these observations, so repository-wide savings are not
+claimed until the duplicate path is removed in a later change.
+
+Failure and fork behavior were also exercised on the disposable Starter repo:
+
+- Evidence-only [PR #2](https://github.com/setiyadijoko/template-ai-native-profile-starter-pilot/pull/2)
+  intentionally failed unit tests. The
+  [aggregate run](https://github.com/setiyadijoko/template-ai-native-profile-starter-pilot/actions/runs/31651360694)
+  propagated the failure to `Required controls`, and the six-context branch
+  protection configuration reported the PR as blocked. The PR was closed
+  without merge.
+- External-fork [PR #3](https://github.com/setiyadijoko/template-ai-native-profile-starter-pilot/pull/3)
+  required explicit maintainer approval, then passed
+  [aggregate attempt 2](https://github.com/setiyadijoko/template-ai-native-profile-starter-pilot/actions/runs/31651531590/attempts/2).
+  Hosted setup evidence reported `Contents: read`, `Metadata: read`,
+  `Secret source: None`, and checkout credential persistence disabled. The PR
+  was closed without merge.
+- Branch protection was applied with the five invariant contexts plus
+  `Profile policy / Required controls`, verified against the failure PR, then
+  removed. A final protection query returned `Branch not protected`, restoring
+  the disposable repository's original state. No disabled profile job left a
+  pending required context in the completed pilot runs.
+
+The activation evidence gate is therefore **PASS**. This is a **GO for a
+separate enforcement PR**, not a statement that enforcement is already active.
+That PR must update the helper to require only the stable aggregate in addition
+to the five invariant contexts. Removing duplicate direct execution remains a
+subsequent change after protected-consumer validation.
 
 ## Alternatives considered
 
