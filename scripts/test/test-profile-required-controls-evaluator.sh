@@ -57,6 +57,18 @@ write_outcomes() {
   } > "$path"
 }
 
+write_compatibility_plan() {
+  path="$1"
+  {
+    printf 'mode=compatibility\nprofile=none\nlayout=unknown\nstack=unknown\nstatus=delegated\n'
+    for boundary in $BOUNDARIES; do
+      printf 'boundary.%s.decision=delegated-to-current-baseline\n' "$boundary"
+      printf 'boundary.%s.required=false\n' "$boundary"
+      printf 'boundary.%s.reason=current-baseline\n' "$boundary"
+    done
+  } > "$path"
+}
+
 assert_case() {
   case_name="$1"; decision="$2"; required="$3"; conclusion="$4"; expected_exit="$5"; expected_verdict="$6"
   plan="$WORK/$case_name.plan"
@@ -111,6 +123,33 @@ assert_deterministic() {
   fi
 }
 
+assert_success_in_directory() {
+  case_name="$1"; directory="$2"; plan_name="$3"; outcomes_name="$4"
+  set +e
+  output="$(cd "$directory" && sh "$EVALUATOR" "$plan_name" "$outcomes_name" 2>"$WORK/$case_name.stderr")"
+  actual_exit=$?
+  set -e
+  assert_eq "$case_name exit" "$actual_exit" 0
+  assert_eq "$case_name stderr" "$(cat "$WORK/$case_name.stderr")" ''
+  assert_contains "$case_name aggregate" "$output" '^aggregate.status=pass$'
+}
+
+assert_snapshot_read_failure() {
+  case_name="$1"; plan="$2"; outcomes="$3"; bin_dir="$4"
+  set +e
+  PATH="$bin_dir:$PATH" sh "$EVALUATOR" "$plan" "$outcomes" \
+    >"$WORK/$case_name.stdout" 2>"$WORK/$case_name.stderr"
+  actual_exit=$?
+  set -e
+  assert_eq "$case_name exit" "$actual_exit" 1
+  assert_eq "$case_name stdout" "$(cat "$WORK/$case_name.stdout")" ''
+  stderr="$(cat "$WORK/$case_name.stderr")"
+  case "$stderr" in
+    profile-required-controls:*) PASS=$((PASS+1)) ;;
+    *) FAIL=$((FAIL+1)); printf 'FAIL %s stderr prefix\n     actual: %s\n' "$case_name" "$stderr" >&2 ;;
+  esac
+}
+
 # Decision/conclusion matrix. Every fixture contains all 13 boundaries.
 assert_case required_success          run true  success   0 pass
 assert_case required_failure          run true  failure   1 fail
@@ -132,6 +171,64 @@ valid_plan="$WORK/valid.plan"
 valid_outcomes="$WORK/valid.outcomes"
 write_plan "$valid_plan" run true
 write_outcomes "$valid_outcomes" success
+
+# Task 1 emits normalized top-level tuples. Compatibility is one exact tuple
+# and its boundary records are delegation-only; profile mode has ready status,
+# a selected profile, and a layout/stack pairing emitted by the planner.
+compatibility_plan="$WORK/compatibility.plan"
+compatibility_outcomes="$WORK/compatibility.outcomes"
+write_compatibility_plan "$compatibility_plan"
+write_outcomes "$compatibility_outcomes" skipped
+assert_success_in_directory compatibility-shape "$WORK" compatibility.plan compatibility.outcomes
+
+sed 's/^profile=standard$/profile=none/' "$valid_plan" > "$WORK/profile-none.plan"
+assert_failure_prefix profile-none "$WORK/profile-none.plan" "$valid_outcomes"
+sed 's/^status=ready$/status=delegated/' "$valid_plan" > "$WORK/profile-delegated.plan"
+assert_failure_prefix profile-delegated "$WORK/profile-delegated.plan" "$valid_outcomes"
+sed 's/^layout=single$/layout=monorepo/' "$valid_plan" > "$WORK/monorepo-executable-stack.plan"
+assert_failure_prefix monorepo-executable-stack "$WORK/monorepo-executable-stack.plan" "$valid_outcomes"
+sed 's/^layout=single$/layout=unknown/' "$valid_plan" > "$WORK/profile-unknown-layout.plan"
+assert_failure_prefix profile-unknown-layout "$WORK/profile-unknown-layout.plan" "$valid_outcomes"
+sed 's/^profile=none$/profile=standard/' "$compatibility_plan" > "$WORK/compatibility-profile.plan"
+assert_failure_prefix compatibility-profile "$WORK/compatibility-profile.plan" "$compatibility_outcomes"
+sed 's/^boundary\.quality_unit\.decision=delegated-to-current-baseline$/boundary.quality_unit.decision=planned-skip/' \
+  "$compatibility_plan" > "$WORK/compatibility-boundary.plan"
+assert_failure_prefix compatibility-boundary "$WORK/compatibility-boundary.plan" "$compatibility_outcomes"
+
+# Snapshotting prevents post-validation changes from affecting the result. The
+# awk shim changes the source plan immediately after the first planner read.
+snapshot_plan="$WORK/snapshot.plan"
+snapshot_outcomes="$WORK/snapshot.outcomes"
+snapshot_bin="$WORK/snapshot-bin"
+write_plan "$snapshot_plan" run true
+write_outcomes "$snapshot_outcomes" success
+mkdir "$snapshot_bin"
+printf '#!/usr/bin/env sh\n/usr/bin/awk "$@"\nprintf "mode=broken\\n" > "$MUTATE_PLAN"\n' > "$snapshot_bin/awk"
+chmod 700 "$snapshot_bin/awk"
+set +e
+MUTATE_PLAN="$snapshot_plan" PATH="$snapshot_bin:$PATH" sh "$EVALUATOR" "$snapshot_plan" "$snapshot_outcomes" \
+  >"$WORK/snapshot-stability.stdout" 2>"$WORK/snapshot-stability.stderr"
+snapshot_exit=$?
+set -e
+assert_eq 'snapshot stability exit' "$snapshot_exit" 0
+assert_eq 'snapshot stability stderr' "$(cat "$WORK/snapshot-stability.stderr")" ''
+assert_contains 'snapshot stability aggregate' "$(cat "$WORK/snapshot-stability.stdout")" '^aggregate.status=pass$'
+
+# A snapshot read failure must be reported through the evaluator's one stderr
+# prefix rather than leaking a command diagnostic.
+snapshot_failure_bin="$WORK/snapshot-failure-bin"
+mkdir "$snapshot_failure_bin"
+printf '#!/usr/bin/env sh\nexit 1\n' > "$snapshot_failure_bin/cat"
+chmod 700 "$snapshot_failure_bin/cat"
+assert_snapshot_read_failure snapshot-read-failure "$valid_plan" "$valid_outcomes" "$snapshot_failure_bin"
+
+# A filename that awk would otherwise parse as an assignment remains a normal
+# regular input when the evaluator reads only its stable snapshot.
+hostile_plan="$WORK/plan=data"
+hostile_outcomes="$WORK/outcomes=data"
+write_plan "$hostile_plan" run true
+write_outcomes "$hostile_outcomes" success
+assert_success_in_directory hostile-plan-name "$WORK" plan=data outcomes=data
 
 assert_failure_prefix missing-plan "$WORK/missing.plan" "$valid_outcomes"
 assert_failure_prefix missing-outcomes "$valid_plan" "$WORK/missing.outcomes"
