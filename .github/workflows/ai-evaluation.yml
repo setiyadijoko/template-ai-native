@@ -4,6 +4,11 @@ name: ai-evaluation
 # absent — the template makes no real model calls. Consumer adds the secret
 # and an evals/run-evals.sh runner to activate.
 on:
+  workflow_call:
+    inputs:
+      execution_channel:
+        type: string
+        required: true
   pull_request:
     paths:
       - "prompts/**"
@@ -16,12 +21,33 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-ai-evaluation-${{ inputs.execution_channel || 'baseline-direct' }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
+  deterministic-ai-evaluation:
+    name: Deterministic AI evaluation
+    if: ${{ inputs.execution_channel != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Validate execution channel
+        run: |
+          channel="${{ inputs.execution_channel }}"
+          case "$channel" in
+            profile-advisory) ;;
+            *) echo "Unsupported execution channel: $channel" >&2; exit 1 ;;
+          esac
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Run deterministic evaluation contract
+        run: sh evals/run-evals.sh --check
+
   ai-evaluation:
     name: AI evaluation (advisory skeleton)
+    if: ${{ inputs.execution_channel == '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -29,6 +55,14 @@ jobs:
       # allowed in `if:` — only in env/with/run).
       AI_EVAL_API_KEY: ${{ secrets.AI_EVAL_API_KEY }}
     steps:
+      - name: Validate execution channel
+        run: |
+          channel="${{ inputs.execution_channel || 'baseline-direct' }}"
+          case "$channel" in
+            baseline-direct) ;;
+            *) echo "Unsupported execution channel: $channel" >&2; exit 1 ;;
+          esac
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 

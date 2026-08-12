@@ -2,13 +2,17 @@ name: ci-monorepo
 
 on:
   workflow_call:
+    inputs:
+      execution_channel:
+        type: string
+        required: false
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-ci-monorepo-${{ github.ref || github.run_id }}
+  group: ${{ github.workflow }}-ci-monorepo-${{ inputs.execution_channel || 'manual' }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -19,6 +23,14 @@ jobs:
     outputs:
       components: ${{ steps.resolve.outputs.components }}
     steps:
+      - name: Validate execution channel
+        run: |
+          channel="${{ inputs.execution_channel || 'manual' }}"
+          case "$channel" in
+            baseline-ci|profile-advisory|manual) ;;
+            *) echo "Unsupported execution channel: $channel" >&2; exit 1 ;;
+          esac
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: resolve

@@ -52,6 +52,7 @@ jobs:
     uses: ./.github/workflows/ci-quality.yml
     with:
       stack: ${{ needs.detect.outputs.stack }}
+      execution_channel: baseline-ci
 
   test:
     name: Tests + coverage
@@ -60,6 +61,7 @@ jobs:
     uses: ./.github/workflows/ci-test.yml
     with:
       stack: ${{ needs.detect.outputs.stack }}
+      execution_channel: baseline-ci
 
   build:
     name: Build
@@ -74,6 +76,8 @@ jobs:
     needs: detect
     if: needs.detect.outputs.component_ready == 'true'
     uses: ./.github/workflows/ci-monorepo.yml
+    with:
+      execution_channel: baseline-ci
 
   attest:
     name: Attest build provenance
