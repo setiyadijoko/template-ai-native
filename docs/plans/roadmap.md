@@ -19,6 +19,10 @@ could make required GitHub checks pending or silently weaken controls for
 existing consumers. The current baseline and security defaults therefore remain
 unchanged until the compatibility design is approved.
 
+Follow-up — 2026-08-11: ADR-0010 approves the hybrid activation architecture
+for new consumers. The baseline remains unchanged while implementation,
+hosted activation pilots, and enforcement evidence are staged separately.
+
 ## Prioritized work
 
 ### Completed / low-risk alignment
@@ -68,7 +72,7 @@ unchanged until the compatibility design is approved.
 - Strict `gh attestation verify` policy bound the subject to the signer workflow, merge digest, `refs/heads/main`, and a GitHub-hosted runner. GitHub recorded [attestation 39903008](https://github.com/setiyadijoko/template-ai-native-python-coverage-pilot/attestations/39903008).
 - The Standard profile remained declarative and did not change workflow execution.
 
-### P1 — profile foundation (implemented; activation deferred)
+### P1 — profile foundation (implemented; activation contract accepted)
 
 - Define and validate a versioned `.template/profile.yaml` schema; see
   `.template/profile.schema.yaml` and `scripts/validate-profile-config.sh`.
@@ -77,10 +81,10 @@ unchanged until the compatibility design is approved.
   `.template/profile-controls.yaml`.
 - Preserve a compatibility fallback when no profile exists; current behavior
   and security defaults remain unchanged.
-- Record workflow activation, required check contexts, and consumer migration
-  as deferred work requiring a separate ADR and hosted pilot.
+- Govern future workflow activation, required contexts, and new-consumer
+  adoption through ADR-0010 and its hosted activation gate.
 
-### P1 — profile shadow mode (all-profile evidence verified; design gate open)
+### P1 — profile shadow mode (all-profile evidence verified; completed)
 
 - ADR-0009 approves one isolated, advisory observation workflow and a
   deterministic resolver.
@@ -118,11 +122,32 @@ unchanged until the compatibility design is approved.
   boundary. Its diff was limited to one README sentence and changed no runtime,
   workflow, or profile behavior. Subsequent evidence PRs were closed promptly.
 
-Decision: **GO for a separate activation design only; NO-GO for activation**.
-The ADR must define stable required-check contexts, blocking/advisory/
-post-merge/scheduled/manual semantics, compatibility and invalid-profile
-behavior, consumer migration, rollout, rollback, and cost/noise measurement.
-No workflow condition or branch-protection change is authorized by this pilot.
+Decision: the observation gate is complete. ADR-0010 now defines the approved
+activation architecture; no workflow condition or branch-protection change was
+authorized by the shadow pilot itself.
+
+### P1 — profile-aware activation (foundation implemented; orchestration and enforcement pending)
+
+- [ADR-0010](../adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md)
+  selects a hybrid two-layer architecture: five invariant governance contexts
+  plus one stable `Profile policy / Required controls` aggregate.
+- Implemented foundation: new consumers choose Starter, Standard, or Enterprise
+  during initialization; non-interactive use requires `--profile`, while
+  interactive use prompts for it, and selection is never inferred. The template
+  remains profile-free in compatibility mode; the central effective-policy
+  resolver fails closed for an initialized consumer with a missing or invalid
+  profile. The shadow presentation delegates to that resolver.
+- Pending: an advisory profile-policy orchestrator and stable aggregate must be
+  implemented while all baseline workflows continue to run. Disposable
+  historical pilots will not be migrated.
+- Pending: hosted Starter, Standard, and Enterprise activation pilots must
+  prove the advisory aggregate before enforcement.
+- Enforcement remains **NO-GO** until three fresh profile pilots, rerun/push,
+  external-fork, required-failure, no-pending-context, cost/noise, and rollback
+  evidence satisfy ADR-0010.
+- Pending: branch protection must keep its invariant contexts and add only the
+  stable aggregate after the hosted activation gate passes; duplicate
+  profile-dependent workflow execution may be removed only afterward.
 
 ### P0 — component-aware monorepo CI (implemented; hosted pilot passed)
 
@@ -168,28 +193,27 @@ Governance follow-up before making the aggregate check blocking:
 
 The contract is recorded in [ADR-0007](../adr/0007-component-aware-monorepo-ci-contract.md).
 
-### P2 — bootstrap extensions and workflow activation (future)
+### P2 — optional profile UX extensions (future)
 
-- Keep the existing identity update and reconfiguration protection stable;
-  profile-related extensions still require an approved profile contract and
-  migration behavior.
-- Introduce profile-aware workflow activation only after proving that required
-  checks remain stable and disabled controls do not leave pending statuses.
-- Measure CI duration and check noise before and after activation.
+- Keep identity updates and explicit reconfiguration protection stable after
+  the required P1 profile selection is implemented.
+- Consider additional non-interactive UX only after the required
+  non-interactive `--profile` contract is reliable.
+- Do not add profile variants or generated workflow files outside ADR-0010.
 
-## Exit criteria for profile activation
+## Exit criteria for profile-aware enforcement
 
-Observational profile work may proceed under ADR-0009 because it changes no
-existing control execution. Actual profile activation remains blocked until:
+ADR-0009 shadow evidence and ADR-0010 design approval are complete. Enforcement
+remains blocked until:
 
-1. the shadow context is stable across pull-request, push, rerun, and fork
-   events;
-2. compatibility, Starter, Standard, and Enterprise decisions match the
-   approved mapping without suppressing existing workflows;
-3. blocking, advisory, scheduled/post-merge, and manual classifications are
-   validated against hosted evidence;
-4. noise and duration remain proportionate in consumer pilots;
-5. any initializer extension has an idempotent, explicit reconfiguration
-   contract;
-6. a separate ADR defines activation, branch-protection migration, rollback,
-   and consumer compatibility.
+1. the initializer requires a valid explicit profile for new consumers while
+   preserving template compatibility mode;
+2. the advisory aggregate passes on fresh Starter, Standard, and Enterprise
+   consumers across pull-request, rerun, `main` push, and fork paths;
+3. required failures propagate, optional/advisory behavior matches policy, and
+   no disabled control leaves a pending context;
+4. fork permissions, secret isolation, duration, warning noise, and avoided
+   profile-variable jobs are recorded;
+5. branch-protection migration and rollback are exercised on a disposable
+   repository; and
+6. every ADR-0010 acceptance criterion has evidence.

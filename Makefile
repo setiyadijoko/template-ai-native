@@ -5,7 +5,7 @@ STACK := $(shell sh scripts/detect-stack.sh)
         test test-unit test-contract test-integration test-e2e test-coverage \
         eval eval-regression eval-safety \
         security secret-scan dependency-scan container-scan iac-scan \
-        build run smoke-test docs-check readiness-check project-config-check profile-config-check ci test-scripts
+        build run smoke-test docs-check readiness-check project-config-check profile-config-check profile-policy-check ci test-scripts
 
 # When no stack is detected, targets that need a toolchain no-op cleanly.
 ifeq ($(STACK),unknown)
@@ -60,6 +60,7 @@ docs-check:       ; @sh scripts/ci-local.sh
 readiness-check:   ; @sh scripts/validate-production-readiness.sh
 project-config-check: ; @sh scripts/validate-project-config.sh
 profile-config-check:  ; @sh scripts/validate-profile-config.sh
+profile-policy-check:  ; @sh scripts/resolve-profile-policy.sh >/dev/null
 test-scripts:
 	@sh scripts/test/test-stack-detection.sh
 	@sh scripts/test/test-python-project-build.sh
@@ -81,7 +82,8 @@ test-scripts:
 	@sh scripts/test/test-openapi-contract.sh
 	@sh scripts/test/test-monorepo-ci.sh
 	@sh scripts/test/test-profile-config.sh
+	@sh scripts/test/test-profile-policy.sh
 	@sh scripts/test/test-profile-shadow.sh
 	@sh scripts/test/test-profile-shadow-workflow.sh
-ci: format-check lint docs-check readiness-check project-config-check profile-config-check test-scripts
+ci: format-check lint docs-check readiness-check project-config-check profile-config-check profile-policy-check test-scripts
 	@echo "[ci] local gate (best-effort) complete"

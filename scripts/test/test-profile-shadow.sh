@@ -10,6 +10,9 @@ VALIDATOR="$ROOT/scripts/validate-profile-config.sh"
 MAPPING="$ROOT/.template/profile-controls.yaml"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/template-ai-native-profile-shadow.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT HUP INT TERM
+PROJECT="$WORK/project.yaml"
+printf 'version: 1\nlayout: single\nprimary_stack: node\nprimary_path: src\n' \
+  > "$PROJECT"
 
 assert_output_contains() {
   label="$1"; output="$2"; pattern="$3"
@@ -22,17 +25,32 @@ assert_output_contains() {
 }
 
 run_shadow() {
-  sh "$RESOLVER" "$1" "${2:-$MAPPING}"
+  sh "$RESOLVER" "$1" "${2:-$MAPPING}" "$PROJECT"
 }
 
+if grep -Fq 'sh "$HERE/resolve-profile-policy.sh' "$RESOLVER" \
+  && ! grep -Fq 'mapping_value()' "$RESOLVER" \
+  && ! grep -Fq 'review_alignment()' "$RESOLVER"; then
+  PASS=$((PASS+1))
+else
+  FAIL=$((FAIL+1)); printf 'FAIL shadow delegates all policy resolution\n' >&2
+fi
+
 # The missing profile is compatibility mode, not an inferred profile.
-compatibility="$(run_shadow "$WORK/missing.yaml")"
+compatibility="$(sh "$RESOLVER" "$WORK/missing.yaml" "$MAPPING" \
+  "$WORK/missing-project.yaml")"
 assert_output_contains "compatibility mode" "$compatibility" '^mode=compatibility$'
 assert_output_contains "compatibility has no profile" "$compatibility" '^profile=none$'
 assert_output_contains "compatibility preserves secret scan" "$compatibility" \
   '^control\.secret_scan\.decision=current-baseline$'
 compatibility_controls="$(printf '%s\n' "$compatibility" | grep -Ec '^control\.[^.]+\.decision=current-baseline$')"
 assert_eq "compatibility reports every control" "$compatibility_controls" "11"
+
+# A consumer marker without a profile fails closed through the shadow prefix.
+assert_exit "consumer missing profile fails" 1 run_shadow "$WORK/missing.yaml"
+missing_profile_output="$(run_shadow "$WORK/missing.yaml" 2>&1 || true)"
+assert_output_contains "consumer missing profile error prefix" "$missing_profile_output" \
+  '^profile-shadow:'
 
 # Standard example resolves deterministically.
 standard="$(run_shadow "$ROOT/.template/profile.yaml.example")"
@@ -42,6 +60,34 @@ assert_output_contains "standard codeql runs" "$standard" \
   '^control\.codeql\.decision=would-run$'
 assert_output_contains "standard codeql class" "$standard" \
   '^control\.codeql\.class=pull-request-blocking$'
+
+# Absolute configuration paths work when the caller is outside the repository.
+mkdir "$WORK/external-cwd"
+assert_exit "resolver runs outside repository cwd" 0 \
+  sh -c 'cd "$1" && sh "$2" "$3" "$4" "$5"' shadow-test \
+  "$WORK/external-cwd" "$RESOLVER" "$ROOT/.template/profile.yaml.example" \
+  "$MAPPING" "$PROJECT"
+external_standard="$(
+  cd "$WORK/external-cwd"
+  sh "$RESOLVER" "$ROOT/.template/profile.yaml.example" "$MAPPING" "$PROJECT" \
+    2>"$WORK/external.err" || true
+)"
+assert_eq "external cwd preserves shadow output" "$external_standard" "$standard"
+
+# Bare script names resolve through PATH from an external caller directory.
+PATH_WITH_RESOLVER="$ROOT/scripts:$PATH"
+mkdir "$WORK/path-cwd"
+assert_exit "resolver runs through PATH from external cwd" 0 \
+  sh -c 'cd "$1" && PATH="$2" resolve-profile-shadow.sh "$3" "$4" "$5"' shadow-test \
+  "$WORK/path-cwd" "$PATH_WITH_RESOLVER" "$ROOT/.template/profile.yaml.example" \
+  "$MAPPING" "$PROJECT"
+path_standard="$(
+  cd "$WORK/path-cwd"
+  PATH="$PATH_WITH_RESOLVER" resolve-profile-shadow.sh \
+    "$ROOT/.template/profile.yaml.example" "$MAPPING" "$PROJECT" \
+    2>"$WORK/path.err" || true
+)"
+assert_eq "PATH invocation preserves shadow output" "$path_standard" "$standard"
 
 # Profiles accepted by the canonical validator must resolve identically when
 # comments and trailing whitespace are present.
@@ -79,7 +125,8 @@ assert_output_contains "enterprise warning status" "$enterprise" '^status=warnin
 assert_output_contains "enterprise sbom mismatch" "$enterprise" \
   '^control\.sbom\.alignment=policy-mismatch$'
 assert_output_contains "enterprise warning annotation" \
-  "$(cat "$WORK/enterprise.err")" '^::warning.*sbom'
+  "$(cat "$WORK/enterprise.err")" \
+  '^::warning title=Profile shadow policy mismatch::sbom declaration differs from enterprise default$'
 
 # AI-disabled Standard resolves evaluation and reviews to would-skip.
 sed -e 's/^  enabled: true$/  enabled: false/' \

@@ -1,5 +1,6 @@
 # Copy to .template/profile.yaml only after choosing a maturity profile.
-# This file is declarative foundation only; it does not activate workflows.
+# This file remains declarative until ADR-0010 activation is implemented and
+# its hosted enforcement gates pass.
 # Keep credentials and provider endpoints out of profile configuration.
 version: 1
 profile: standard

@@ -68,7 +68,8 @@ Run the initializer from the repository root:
   --name my-app \
   --description "Short description of the application" \
   --stack auto \
-  --layout single
+  --layout single \
+  --profile standard
 ```
 
 Supported stack values are `auto`, `node`, `python`, `go`, `java`, `dotnet`,
@@ -86,6 +87,7 @@ as `ID=PATH:STACK` (repeat `--component` as needed):
   --description "EV charging tracker" \
   --stack auto \
   --layout monorepo \
+  --profile standard \
   --primary-path src/backend \
   --component backend=src/backend:go \
   --component frontend=src/frontend:node
@@ -98,19 +100,35 @@ Single-stack and undecided layouts continue to generate the compatible
 version-1 config.
 
 The initializer changes only the marked project identity block in `README.md`
-and writes the credential-free `.template/project.yaml` layout declaration. For
-monorepos it validates and writes the explicit component list used by
-`ci-monorepo.yml`. It does not create credentials, change workflows, or enable
-profile-aware controls.
+and writes both the credential-free `.template/project.yaml` layout declaration
+and `.template/profile.yaml` maturity profile. Profile selection is mandatory
+and is never inferred: use exactly one of `starter`, `standard`, or
+`enterprise`. `--project-type` defaults to `other`; `--ai-enabled` defaults to
+`false`. Enterprise also requires a non-`none` `--deployment-target`, for
+example `--deployment-target cloud`. For monorepos the initializer validates and
+writes the explicit component list used by `ci-monorepo.yml`. It does not create
+credentials, change workflows, or activate profile-aware controls.
+
+The template itself has no project/profile configuration and remains valid in
+compatibility mode. A consumer with `.template/project.yaml` must also have a
+valid `.template/profile.yaml`: a missing or invalid profile fails `make ci`.
+After initialization, validate the local contract with:
+
+```sh
+make profile-policy-check
+make ci
+```
+
 If you intentionally need to replace a generated identity and config, use
 `--reconfigure`:
 
 ```sh
-./scripts/init-project.sh --reconfigure --name my-app --stack python
+./scripts/init-project.sh --reconfigure --name my-app --stack python --profile standard
 ```
 
 Without `--reconfigure`, a second run stops instead of silently overwriting
-the README identity or project config.
+the README identity, project config, or profile config. Profile-aware workflow
+execution and branch protection remain unchanged by this foundation.
 
 ### 3.3 Activate component-aware monorepo CI
 
@@ -304,12 +322,14 @@ for the required status contexts and manual Environment settings.
 |---|---|---|
 | Code Review Graph | When you want advisory structural/risk review on PRs | It is not a merge authority by default |
 | Alibaba OpenCodeReview | When an approved LLM endpoint may inspect the diff | Requires consumer-managed secrets and data policy |
-| AI evaluations | When the application has prompts or model behavior to evaluate | The template runner validates fixtures; it does not call a provider |
+| AI evaluations | When the application has prompts or model behavior to evaluate; they are required by Standard/Enterprise policy when AI is enabled | The current workflow is an advisory skeleton; the template runner validates fixtures and does not call a provider |
 | Graphify | When local codebase relationship exploration is useful | Keep generated output out of version control and review data egress |
 | PostHog | When product analytics or feature flags are needed | It is optional and must follow data classification/redaction rules |
 
 Do not configure these controls only because they exist. Select them when the
-application risk, data policy, and expected value justify them.
+application risk, data policy, and expected value justify them, while honoring
+the selected profile's declared policy. This foundation does not change workflow
+execution.
 
 ## 9. Deployment is a later step
 

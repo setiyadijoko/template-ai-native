@@ -1,4 +1,5 @@
-# Normative profile defaults; declarative only until workflow activation is approved.
+# Normative profile defaults; declarative until the staged ADR-0010 activation
+# implementation and hosted enforcement gates pass.
 version: 1
 profiles:
   starter:

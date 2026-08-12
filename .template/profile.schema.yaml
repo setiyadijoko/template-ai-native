@@ -1,5 +1,5 @@
-# Declarative maturity-profile schema; workflow activation is intentionally
-# deferred until required-check compatibility is approved.
+# Declarative maturity-profile schema; ADR-0010 activation implementation and
+# required-check enforcement remain staged behind hosted evidence.
 version: 1
 kind: maturity-profile
 profile:
