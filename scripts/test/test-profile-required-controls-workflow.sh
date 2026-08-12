@@ -78,6 +78,11 @@ aggregate="$(job_block "$WORKFLOW" aggregate)"
 
 # Stable context, supported events, and workflow-level safety.
 assert_contains "workflow name is exact" "$WORKFLOW" '^name: Profile policy$'
+event_ids="$(printf '%s\n' "$on_block" | awk '
+  /^  [a-z_]+:$/ { value=$0; sub(/^  /, "", value); sub(/:$/, "", value); print value }
+')"
+assert_eq "event trigger set is exact" "$event_ids" \
+  "$(printf 'pull_request\npush\nworkflow_dispatch')"
 assert_text_contains "pull requests enabled" "$on_block" '^  pull_request:$'
 assert_text_contains "pull requests target main" "$on_block" '^    branches: \[main\]$'
 assert_text_contains "pushes enabled" "$on_block" '^  push:$'
@@ -214,5 +219,90 @@ assert_text_contains "aggregate appends Job Summary" "$aggregate" '>> "[$]GITHUB
 
 assert_contains "Makefile runs workflow contract" "$MAKEFILE" \
   '@sh scripts/test/test-profile-required-controls-workflow[.]sh'
+
+# Execute the embedded plan step against adversarial reports. Each compound
+# candidate is made entirely from adjacent allowed values, so substring
+# matching would accept it even though it is not one exact enum/Boolean.
+PLAN_TEST_TMP="$(mktemp -d "${TMPDIR:-/tmp}/profile-required-controls-workflow.XXXXXX")"
+trap 'rm -rf "$PLAN_TEST_TMP"' EXIT HUP INT TERM
+PLAN_STEP_SCRIPT="$PLAN_TEST_TMP/plan-step.sh"
+printf '%s\n' "$plan" | awk '
+  /^        run: \|$/ { inside=1; next }
+  inside { sub(/^          /, ""); print }
+' > "$PLAN_STEP_SCRIPT"
+
+FIXTURE_ROOT="$PLAN_TEST_TMP/fixture"
+mkdir -p "$FIXTURE_ROOT/scripts"
+printf '%s\n' '#!/usr/bin/env sh' "cat \"\$FAKE_PLAN_REPORT\"" \
+  > "$FIXTURE_ROOT/scripts/resolve-profile-execution-plan.sh"
+chmod +x "$FIXTURE_ROOT/scripts/resolve-profile-execution-plan.sh"
+
+BASE_PLAN="$PLAN_TEST_TMP/base-plan.txt"
+cat > "$BASE_PLAN" <<'EOF'
+mode=compatibility
+profile=none
+layout=unknown
+stack=unknown
+boundary.quality_unit.decision=delegated-to-current-baseline
+boundary.quality_unit.required=false
+boundary.test_coverage.decision=delegated-to-current-baseline
+boundary.test_coverage.required=false
+boundary.monorepo_ci.decision=delegated-to-current-baseline
+boundary.monorepo_ci.required=false
+boundary.secret_scan.decision=delegated-to-current-baseline
+boundary.secret_scan.required=false
+boundary.dependency_review.decision=delegated-to-current-baseline
+boundary.dependency_review.required=false
+boundary.codeql.decision=delegated-to-current-baseline
+boundary.codeql.required=false
+boundary.ai_evaluation.decision=delegated-to-current-baseline
+boundary.ai_evaluation.required=false
+EOF
+
+assert_compound_value_rejected() {
+  label="$1"
+  key="$2"
+  compound="$3"
+  report_file="$PLAN_TEST_TMP/$label-report.txt"
+  output_file="$PLAN_TEST_TMP/$label-output.txt"
+  stdout_file="$PLAN_TEST_TMP/$label-stdout.txt"
+  stderr_file="$PLAN_TEST_TMP/$label-stderr.txt"
+
+  awk -F '=' -v key="$key" -v compound="$compound" '
+    BEGIN { OFS="=" }
+    $1 == key { $2=compound }
+    { print }
+  ' "$BASE_PLAN" > "$report_file"
+  : > "$output_file"
+
+  set +e
+  (
+    cd "$FIXTURE_ROOT"
+    FAKE_PLAN_REPORT="$report_file" \
+      RUNNER_TEMP="$PLAN_TEST_TMP" \
+      GITHUB_OUTPUT="$output_file" \
+      sh "$PLAN_STEP_SCRIPT"
+  ) > "$stdout_file" 2> "$stderr_file"
+  actual_exit=$?
+  set -e
+
+  if [ "$actual_exit" -ne 0 ]; then
+    PASS=$((PASS+1))
+  else
+    FAIL=$((FAIL+1))
+    printf 'FAIL %s compound candidate exits nonzero\n' "$label" >&2
+  fi
+  if grep -Fq -- "=$compound" "$output_file"; then
+    FAIL=$((FAIL+1))
+    printf 'FAIL %s compound candidate is not written to GITHUB_OUTPUT\n' "$label" >&2
+  else
+    PASS=$((PASS+1))
+  fi
+}
+
+assert_compound_value_rejected profile profile 'starter standard'
+assert_compound_value_rejected boolean boundary.quality_unit.required 'true false'
+assert_compound_value_rejected decision boundary.quality_unit.decision 'run planned-skip'
+assert_compound_value_rejected stack stack 'python node'
 
 report
