@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added the advisory `Profile policy / Required controls` aggregate, its
+  execution-plan resolver, required-control evaluator, and bounded reusable
+  workflow boundaries. Existing direct baseline workflow execution and branch
+  protection remain unchanged while hosted activation evidence is collected;
+  enforcement remains NO-GO.
 - Required explicit Starter, Standard, or Enterprise profile selection during
   consumer initialization, with a credential-free project/profile configuration
   pair. Added central effective-policy resolution, local `make

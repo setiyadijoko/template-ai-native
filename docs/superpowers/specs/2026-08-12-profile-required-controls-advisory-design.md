@@ -1,6 +1,6 @@
 # Advisory Profile Required Controls Design
 
-**Status:** Approved — implementation planned; enforcement pending
+**Status:** Implemented locally — hosted enforcement evidence pending
 **Date:** 2026-08-12
 **Owner:** Template maintainers
 **Decision reference:** ADR-0010

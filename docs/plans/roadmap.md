@@ -126,7 +126,7 @@ Decision: the observation gate is complete. ADR-0010 now defines the approved
 activation architecture; no workflow condition or branch-protection change was
 authorized by the shadow pilot itself.
 
-### P1 — profile-aware activation (foundation implemented; orchestration and enforcement pending)
+### P1 — profile-aware activation (local advisory implementation complete; hosted enforcement pending)
 
 - [ADR-0010](../adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md)
   selects a hybrid two-layer architecture: five invariant governance contexts
@@ -137,9 +137,11 @@ authorized by the shadow pilot itself.
   remains profile-free in compatibility mode; the central effective-policy
   resolver fails closed for an initialized consumer with a missing or invalid
   profile. The shadow presentation delegates to that resolver.
-- Pending: an advisory profile-policy orchestrator and stable aggregate must be
-  implemented while all baseline workflows continue to run. Disposable
-  historical pilots will not be migrated.
+- Local advisory implementation is complete: the execution-plan resolver,
+  reusable boundaries, and `Profile policy / Required controls` aggregate run
+  while all direct baseline workflows continue to run. The duplicate baseline
+  path is intentional during the pilot. Disposable historical pilots will not
+  be migrated.
 - Pending: hosted Starter, Standard, and Enterprise activation pilots must
   prove the advisory aggregate before enforcement.
 - Enforcement remains **NO-GO** until three fresh profile pilots, rerun/push,

@@ -127,10 +127,44 @@ If you intentionally need to replace a generated identity and config, use
 ```
 
 Without `--reconfigure`, a second run stops instead of silently overwriting
-the README identity, project config, or profile config. Profile-aware workflow
-execution and branch protection remain unchanged by this foundation.
+the README identity, project config, or profile config.
 
-### 3.3 Activate component-aware monorepo CI
+### 3.3 Understand the advisory profile check
+
+The `Profile policy / Required controls` check runs on pull requests, pushes to
+`main`, and manual diagnostics. It resolves the reviewed profile into an
+execution plan, calls the applicable reusable controls, and summarizes their
+required outcomes. It is **advisory** during the activation pilot and is not a
+recommended branch-protection context yet.
+
+The check has four execution modes:
+
+| Repository state | What the advisory aggregate reports |
+|---|---|
+| Template compatibility | It publishes the stable context and delegates controls to the current baseline; it does not start duplicate work. |
+| Initialized, no stack | It runs stack-neutral secret/dependency controls and identifies stack-dependent controls as not applicable. |
+| Initialized single stack | It runs the profile-selected quality, test/coverage, CodeQL, and deterministic AI boundaries where applicable. |
+| Initialized version-2 monorepo | It runs the existing component-aware CI boundary plus repository-wide controls. |
+
+During this pilot, direct workflows continue to run as before. Seeing a
+matching control twice is intentional duplicate baseline execution, not a
+second application test requirement. The duplicate results let maintainers
+compare behavior, failure propagation, runtime, and noise before changing any
+existing workflow.
+
+Check the plan locally with:
+
+```sh
+make profile-policy-check
+sh scripts/resolve-profile-execution-plan.sh
+```
+
+The enforcement NO-GO remains: do not add `Profile policy / Required controls`
+to branch protection, suppress baseline workflows, or remove the duplicate
+path until hosted Starter, Standard, and Enterprise evidence, including fork
+and rollback evidence, is accepted.
+
+### 3.4 Activate component-aware monorepo CI
 
 For a version-2 monorepo, keep both the caller workflow
 (`.github/workflows/ci.yml`) and the reusable component workflow
@@ -328,8 +362,9 @@ for the required status contexts and manual Environment settings.
 
 Do not configure these controls only because they exist. Select them when the
 application risk, data policy, and expected value justify them, while honoring
-the selected profile's declared policy. This foundation does not change workflow
-execution.
+the selected profile's declared policy. The advisory profile check can execute
+the deterministic evaluation boundary, but provider-backed evaluation remains
+separately controlled by consumer credentials and data policy.
 
 ## 9. Deployment is a later step
 

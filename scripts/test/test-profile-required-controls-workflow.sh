@@ -10,6 +10,14 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 WORKFLOW="$ROOT/.github/workflows/profile-required-controls.yml"
 BRANCH_PROTECTION="$ROOT/scripts/setup-branch-protection.sh"
 MAKEFILE="$ROOT/Makefile"
+README="$ROOT/README.md"
+GETTING_STARTED="$ROOT/docs/getting-started.md"
+SCRIPTS_README="$ROOT/scripts/README.md"
+ADR="$ROOT/docs/adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md"
+ROADMAP="$ROOT/docs/plans/roadmap.md"
+TECHNICAL_DEBT="$ROOT/docs/plans/technical-debt.md"
+CHANGELOG="$ROOT/CHANGELOG.md"
+DESIGN_SPEC="$ROOT/docs/superpowers/specs/2026-08-12-profile-required-controls-advisory-design.md"
 
 assert_contains() {
   label="$1"; file="$2"; pattern="$3"
@@ -219,6 +227,40 @@ assert_text_contains "aggregate appends Job Summary" "$aggregate" '>> "[$]GITHUB
 
 assert_contains "Makefile runs workflow contract" "$MAKEFILE" \
   '@sh scripts/test/test-profile-required-controls-workflow[.]sh'
+
+# Consumer and governance guidance must describe the implemented advisory
+# state, not the future enforcement state. The branch-protection helper is
+# separately asserted above to remain free of the aggregate context.
+for document in "$README" "$GETTING_STARTED" "$ADR" "$ROADMAP" "$TECHNICAL_DEBT" "$CHANGELOG"; do
+  assert_contains "$(basename "$document") names the stable aggregate" "$document" \
+    'Profile policy / Required controls'
+done
+assert_contains "README labels the aggregate advisory" "$README" 'advisory'
+assert_contains "getting started labels the aggregate advisory" "$GETTING_STARTED" 'advisory'
+assert_contains "getting started explains duplicate baseline execution" "$GETTING_STARTED" \
+  'duplicate baseline'
+assert_contains "getting started states enforcement gate" "$GETTING_STARTED" \
+  'enforcement NO-GO'
+assert_contains "README shows local profile policy command" "$README" \
+  'make profile-policy-check'
+assert_contains "README shows execution plan command" "$README" \
+  'sh scripts/resolve-profile-execution-plan[.]sh'
+assert_contains "scripts README documents execution plan resolver" "$SCRIPTS_README" \
+  'resolve-profile-execution-plan[.]sh'
+assert_contains "scripts README documents aggregate evaluator" "$SCRIPTS_README" \
+  'evaluate-profile-required-controls[.]sh'
+assert_contains "ADR status records advisory implementation" "$ADR" \
+  '^\- \*\*Status:\*\* Accepted — advisory aggregate implemented; hosted enforcement evidence pending$'
+assert_contains "roadmap marks local advisory implementation complete" "$ROADMAP" \
+  'Local advisory implementation is complete'
+assert_contains "roadmap keeps hosted pilots pending" "$ROADMAP" \
+  'hosted Starter, Standard, and Enterprise activation pilots'
+assert_contains "technical debt records implemented orchestrator" "$TECHNICAL_DEBT" \
+  'advisory orchestrator/stable aggregate is implemented'
+assert_contains "changelog records advisory aggregate" "$CHANGELOG" \
+  'advisory `Profile policy / Required controls` aggregate'
+assert_contains "design spec records implementation status" "$DESIGN_SPEC" \
+  '^\*\*Status:\*\* Implemented locally — hosted enforcement evidence pending$'
 
 # Execute the embedded plan step against adversarial reports. Each compound
 # candidate is made entirely from adjacent allowed values, so substring
