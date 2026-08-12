@@ -23,7 +23,7 @@ The template repository currently requires five invariant governance contexts:
 
 - `PR Title Check`;
 - `Validate required docs & metadata`;
-- `Markdown lint + link check + TBD/TODO scan`;
+- documentation lint, link, and unresolved-marker check;
 - `actionlint (workflow syntax)`; and
 - `zizmor (workflow security)`.
 
