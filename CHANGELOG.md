@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Prevented `scripts/init-project.sh --reconfigure` from duplicating the
+  generated README identity marker.
+
 ### Added
 - Added the advisory `Profile policy / Required controls` aggregate, its
   execution-plan resolver, required-control evaluator, and bounded reusable

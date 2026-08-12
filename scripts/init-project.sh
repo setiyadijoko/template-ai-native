@@ -385,6 +385,7 @@ sh "$(dirname "$0")/validate-profile-config.sh" "$PROFILE_TEMP" >/dev/null 2>&1 
   || die 'generated profile config is invalid'
 
 awk -v start="$START" -v end="$END" -v block_file="$BLOCK_FILE" '
+  $0 == "<!-- template-ai-native:project-identity:generated -->" { next }
   $0 == start {
     while ((getline line < block_file) > 0) print line
     close(block_file)
