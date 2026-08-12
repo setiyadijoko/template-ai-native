@@ -2,13 +2,17 @@ name: ci-monorepo
 
 on:
   workflow_call:
+    inputs:
+      execution_channel:
+        type: string
+        required: false
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-ci-monorepo-${{ github.ref || github.run_id }}
+  group: ${{ github.workflow }}-ci-monorepo-${{ inputs.execution_channel || 'manual' }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -19,8 +23,19 @@ jobs:
     outputs:
       components: ${{ steps.resolve.outputs.components }}
     steps:
+      - name: Validate execution channel
+        env:
+          EXECUTION_CHANNEL: ${{ inputs.execution_channel || 'manual' }}
+        run: |
+          case "$EXECUTION_CHANNEL" in
+            baseline-ci|profile-advisory|manual) ;;
+            *) printf 'Unsupported execution channel: %s\n' "$EXECUTION_CHANNEL" >&2; exit 1 ;;
+          esac
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - id: resolve
         name: Validate and resolve components
         shell: bash
@@ -49,6 +64,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Python
         if: matrix.component.stack == 'python'
@@ -127,6 +144,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Python
         if: matrix.component.stack == 'python'
@@ -218,6 +237,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Python
         if: matrix.component.stack == 'python'

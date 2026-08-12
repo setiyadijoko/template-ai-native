@@ -6,6 +6,9 @@ on:
       stack:
         type: string
         required: true
+      execution_channel:
+        type: string
+        required: false
   workflow_dispatch:
     inputs:
       stack:
@@ -17,7 +20,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-ci-test-${{ github.ref || github.run_id }}
+  group: ${{ github.workflow }}-ci-test-${{ inputs.execution_channel || 'manual' }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -26,8 +29,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
+      - name: Validate execution channel
+        env:
+          EXECUTION_CHANNEL: ${{ inputs.execution_channel || 'manual' }}
+        run: |
+          case "$EXECUTION_CHANNEL" in
+            baseline-ci|profile-advisory|manual) ;;
+            *) printf 'Unsupported execution channel: %s\n' "$EXECUTION_CHANNEL" >&2; exit 1 ;;
+          esac
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       # --- per-stack toolchain setup ---
       - name: Setup Python

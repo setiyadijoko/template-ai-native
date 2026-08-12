@@ -184,12 +184,28 @@ mapping and future activation gate are recorded in
 [`docs/adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md`](docs/adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md),
 with defaults in `.template/profile-controls.yaml`.
 
-The separate `Profile shadow / Profile policy observation` check reports how a
-valid profile would map controls while every current workflow continues to run.
-The check is advisory and is not part of the recommended branch-protection
-contexts. Missing profiles retain compatibility mode; shadow evidence does not
-authorize profile-aware activation. This foundation does not change workflow
-execution or branch protection.
+The advisory `Profile policy / Required controls` check now resolves the
+effective execution plan and runs the applicable reusable control boundaries.
+It is a pilot observation for branch-protection purposes: the current
+recommended branch-protection contexts do not include it. During the pilot,
+the direct baseline workflows remain enabled, so duplicate baseline execution
+is intentional and provides equivalence, failure-propagation, and cost
+evidence. Profile enforcement remains **NO-GO** until the hosted pilot and
+branch-protection migration evidence required by
+[`ADR-0010`](docs/adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md)
+is recorded.
+
+Inspect the local policy and the resulting execution plan before relying on a
+hosted run:
+
+```sh
+make profile-policy-check
+sh scripts/resolve-profile-execution-plan.sh
+```
+
+The older `Profile shadow / Profile policy observation` check remains an
+advisory policy-only observation. Neither it nor the advisory aggregate changes
+branch protection in this release.
 
 ## Documentation index
 

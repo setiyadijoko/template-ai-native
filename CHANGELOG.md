@@ -8,34 +8,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added the advisory `Profile policy / Required controls` aggregate, its
+  execution-plan resolver, required-control evaluator, and bounded reusable
+  workflow boundaries. Existing direct baseline workflow execution and branch
+  protection remain unchanged while hosted activation evidence is collected;
+  enforcement remains NO-GO.
 - Required explicit Starter, Standard, or Enterprise profile selection during
   consumer initialization, with a credential-free project/profile configuration
   pair. Added central effective-policy resolution, local `make
-  profile-policy-check`, and shadow delegation to that resolver. Existing
-  workflow execution, branch protection, and production behavior remain
-  unchanged.
-- Accepted ADR-0010 for future profile-aware activation through invariant
-  governance checks and one stable required-controls aggregate. New consumers
-  must explicitly select a profile; implementation, hosted activation evidence,
-  and branch-protection enforcement remain staged follow-up work.
+  profile-policy-check`, and shadow delegation to that resolver.
+  Profile values now select reusable jobs in the advisory aggregate; direct
+  baseline execution, branch protection, and production behavior remain unchanged.
+- Accepted ADR-0010 for profile-aware advisory execution through invariant
+  governance checks and one stable required-controls aggregate. The advisory
+  implementation is present; hosted activation evidence, duplicate-path
+  migration, and branch-protection enforcement remain staged follow-up work.
 - Completed hosted shadow observations for Starter and Enterprise profiles;
   both retained all existing workflows, and their aligned/mismatch reports
   matched the normative mapping. This completed the shadow evidence gate
   without changing workflow execution or required checks.
 - Recorded hosted profile-shadow evidence for template compatibility mode, a
   Standard Python consumer, and an external public fork. The fork check passed
-  with read-only contents permission and no secret source; activation remains
-  deferred pending Starter/Enterprise and broader cost/noise evidence.
+  with read-only contents permission and no secret source. At that observation
+  point, activation was deferred pending Starter/Enterprise and broader
+  cost/noise evidence.
 - Added the profile-shadow resolver, advisory workflow, stable
   `Profile shadow / Profile policy observation` context, and focused contracts.
-  Existing workflow execution, required checks, branch protection, and
-  initializer behavior remain unchanged.
+  That observational slice did not change baseline workflow execution, required
+  checks, branch protection, or initializer behavior.
 - Recorded the hosted Standard-profile Python coverage pilot, including
   duplicate-basename-safe 100% coverage, build artifacts, blocking security,
   and strictly verified post-merge provenance.
 - Added a declarative maturity-profile foundation: versioned schema, safe
   example, Starter/Standard/Enterprise control mapping, compatibility-mode
-  validator, and ADR-0008. Profile files do not activate workflows yet.
+  validator, and ADR-0008. Profile files now drive advisory aggregate job
+  selection but do not change direct baseline checks or branch protection.
 - Verified the hosted single-stack Java 21/Maven consumer path through quality,
   tests, build artifact creation, and signed provenance attestation.
 - Added a checked-in Python consumer fixture plus a shared, tested dependency
@@ -61,9 +68,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a beginner-friendly getting-started guide with quick-start steps,
   required/optional control mapping, terminology, expected results, and
   troubleshooting; linked it from the root README and documentation index.
-- Added the README-only `scripts/init-project.sh` initializer with explicit
-  reconfiguration protection and contract tests; it updates only the marked
-  consumer identity block and does not activate profile-aware controls.
+- Added `scripts/init-project.sh` with explicit reconfiguration protection and
+  contract tests; it updates the marked consumer identity block and writes the
+  profile/project config consumed by the advisory aggregate, without editing
+  workflow files or branch protection.
 - Added coherent example task/system prompts, referenced JSON schemas, golden fixtures, provider-neutral evaluation config and runner contract, version-pinning and branch-protection guidance, optional PostHog observability guidance, and stack-specific cache guidance.
 - Documented optional Graphify codebase knowledge integration without changing
   the existing Code Review Graph or Alibaba review workflows.
@@ -71,7 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added advisory local-first `code-review-graph` PR review with fork-safe report validation and sticky comment publication.
 - Added the Phase 6 vendor-neutral production-readiness contract, read-only readiness workflow, fail-closed manual rollback skeleton, executable validation tests, and operational observability/recovery baseline. Validation is approval-neutral and always reports `production_ready=false`; platform activation remains tracked by TD-0011.
 - Phase 5 delivery pipeline: `sbom.yml` (SPDX), `artifact-attestation.yml` (same-run build provenance), `release.yml` (on `v*` tags with artifact + SBOM + digests), and `deploy-development/staging/production.yml` + `smoke-test.yml` skeletons (workflow_dispatch, OIDC-documented, production human-gated via GitHub Environment).
-- Phase 4 AI-native capability: `ai-evaluation.yml` (skeleton, advisory, secret-gated) and `open-code-review.yml` (Alibaba OCR, advisory, secret-gated) — both use `pull_request` (not `pull_request_target`) and skip cleanly without secrets. Plus `example-structured-extractor` prompt with JSON-schema output validation, `evals/README.md` threshold table, and cross-cutting docs.
+- Phase 4 AI-native capability: `ai-evaluation.yml` provides a credential-free reusable deterministic `--check` path plus a separately secret-gated direct path; `open-code-review.yml` (Alibaba OCR) remains advisory and secret-gated. Both use `pull_request` (not `pull_request_target`). Plus `example-structured-extractor` prompt with JSON-schema output validation, `evals/README.md` threshold table, and cross-cutting docs.
 - Phase 3 security baseline: `secret-scan.yml` (blocking), `dependency-review.yml` (critical/high blocking), `dependency-audit.yml` (advisory, weekly), `license-check.yml` (advisory), `codeql.yml` (graceful-degrade without GHAS), `scorecard.yml` (advisory). Plus `scripts/license-check.sh` (allowlist/denylist, advisory).
 - Phase 2 code-quality baseline: `ci.yml` dispatcher + `ci-quality` / `ci-test` / `build` reusable workflows that auto-detect the consumer's stack (python/node/go/java/dotnet) and run format-check, lint, typecheck, unit/integration/e2e tests, an 80% coverage gate, and build. All jobs skip cleanly on the empty template (stack unknown).
 - `scripts/stack-tools.sh` — single-source-of-truth per-stack tool mapper.
@@ -85,6 +93,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Phase-1 CI workflows: `pr-title`, `validate-metadata`, `docs-check`, `action-security` (least-privilege, pinned Actions) + `.markdownlint.jsonc`.
 
 ### Changed
+- Recorded the five deferred Minor follow-ups for the advisory profile
+  required-controls aggregate; current behavior remains safe and advisory, and
+  the follow-ups must be resolved before audit-grade reliance or optional-run
+  activation.
 - Made Python's 80% coverage gate follow consumer-owned pytest discovery so
   correctly classified unit, integration, contract, and end-to-end tests
   contribute to overall coverage; category-specific executions remain visible.
@@ -99,13 +111,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   closed when a detected Go component has no measurable profile, and documented
   first-PR remediation without adding a bootstrap bypass or meaningless tests.
 - Synchronized README maturity and deployment status with the shipped Phase 1–6
-  baseline; documented profile-driven adoption as deferred roadmap work pending
-  a compatible CI check-context design.
+  baseline. Profile-selected advisory execution now uses a stable aggregate;
+  required-check migration and enforcement remain deferred pending hosted evidence.
 - Archived the shipped Phase 6 design and implementation plan under `docs/plans/completed/` and synchronized the roadmap status through Phase 6.
 - Documentation tree: `docs/` (product, architecture, ADRs, API, security, AI, development, operations, templates, plans) + ADR-0001.
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Fixed
+- Made profile execution-plan allowlist validation portable to Ubuntu AWK by
+  using exact POSIX shell token matching while retaining compound-value rejection.
+- Disabled persisted Git credentials on every checkout shared by the advisory
+  quality, test, monorepo, secret, dependency, and deterministic AI boundaries;
+  direct invocations of the same job bodies keep the same hardened behavior.
 - Prevented aggregate Python coverage from collecting template-owned regression
   fixtures or colliding on same-named test modules across test categories.
 - Enforced the documented 80% .NET line-coverage baseline through a shared,

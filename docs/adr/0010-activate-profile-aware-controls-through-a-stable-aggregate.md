@@ -1,6 +1,6 @@
 # ADR-0010: Activate profile-aware controls through a stable aggregate
 
-- **Status:** Accepted — design approved; implementation and enforcement staged
+- **Status:** Accepted — advisory aggregate implemented; hosted enforcement evidence pending
 - **Date:** 2026-08-11
 - **Decision owners:** Template maintainers and consumer project owners
 
@@ -44,9 +44,10 @@ Adopt a hybrid two-layer activation architecture for new consumers:
 5. Keep advisory, post-merge, scheduled/push, and manual/environment controls
    outside the pull-request aggregate.
 
-This ADR approves the target architecture and staged implementation. It does
-not activate workflow conditions, change branch protection, or modify the
-initializer by itself.
+The advisory implementation now provides the resolver, reusable control
+boundaries, and stable aggregate while preserving all direct baseline triggers.
+It does not change branch protection or authorize enforcement; hosted evidence
+remains the gate for those later decisions.
 
 ## Profile selection and compatibility
 
@@ -156,9 +157,9 @@ even though their execution plans differ.
 
 ## Rollout plan
 
-1. Implement the central resolver contract, orchestrator, reusable control
-   boundaries, aggregate, initializer selection, and focused tests while the
-   aggregate remains advisory.
+1. Completed locally: implement the central resolver contract, orchestrator,
+   reusable control boundaries, aggregate, initializer selection, and focused
+   tests while the aggregate remains advisory.
 2. Preserve current baseline workflows until equivalence is demonstrated; do
    not suppress expensive jobs merely because the new plan exists.
 3. Create one fresh disposable consumer for each profile using the same small

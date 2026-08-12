@@ -3,6 +3,11 @@ name: codeql
 # CodeQL SAST for the public template repository. Scanner execution and result
 # storage fail closed; findings are surfaced through GitHub Code Scanning.
 on:
+  workflow_call:
+    inputs:
+      execution_channel:
+        type: string
+        required: true
   pull_request:
     branches: [main]
   push:
@@ -15,7 +20,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-codeql-${{ inputs.execution_channel || 'baseline-direct' }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -27,6 +32,15 @@ jobs:
       contents: read          # checkout repository source and workflows
       security-events: write  # upload CodeQL analysis to Code Scanning
     steps:
+      - name: Validate execution channel
+        env:
+          EXECUTION_CHANNEL: ${{ inputs.execution_channel || 'baseline-direct' }}
+        run: |
+          case "$EXECUTION_CHANNEL" in
+            baseline-direct|profile-advisory) ;;
+            *) printf 'Unsupported execution channel: %s\n' "$EXECUTION_CHANNEL" >&2; exit 1 ;;
+          esac
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

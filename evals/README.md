@@ -1,6 +1,6 @@
 # Evaluations
 
-**Status:** Skeleton — wire to your model endpoint via secrets.
+**Status:** Deterministic contract active; provider-backed evaluation is consumer-owned.
 
 The evaluation framework (see [../docs/ai/evaluation-strategy.md](../docs/ai/evaluation-strategy.md)) covers: deterministic assertions, JSON-schema validation, golden-dataset comparison, semantic quality, hallucination, retrieval relevance, groundedness, citation correctness, prompt injection, sensitive-data leakage, unsafe tool use, harmful output, refusal, latency, token usage, cost, fallback behavior, regression.
 
@@ -35,7 +35,8 @@ The evaluation framework (see [../docs/ai/evaluation-strategy.md](../docs/ai/eva
 
 The template includes [`run-evals.sh`](run-evals.sh) as a provider-neutral contract
 stub. `--check` validates the local fixture contract and never calls a model
-provider. A consumer replaces or extends it with an adapter-backed runner that
-reads `AI_EVAL_API_KEY` only in a controlled workflow. Until then, the
-`ai-evaluation.yml` workflow skips cleanly with a clear message. Promote
-thresholds to blocking in a later phase (TD-0007).
+provider. The advisory aggregate runs this deterministic path without credentials
+when the selected profile requires AI evaluation. The direct event path remains
+secret-gated and skips without `AI_EVAL_API_KEY`; a consumer replaces or extends
+the stub with an adapter-backed runner only under an approved data policy.
+Promote thresholds to blocking in a later phase (TD-0007).
