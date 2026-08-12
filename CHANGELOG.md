@@ -118,6 +118,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI-native scaffolding: `prompts/registry.yaml` (2 examples), `prompts/schemas/`, `evals/` framework README + subdirs, `tests/`, and consumer-owned `src/`, `infrastructure/`, `deployment/`, `observability/` with READMEs.
 
 ### Fixed
+- Made profile execution-plan allowlist validation portable to Ubuntu AWK by
+  using exact POSIX shell token matching while retaining compound-value rejection.
 - Disabled persisted Git credentials on every checkout shared by the advisory
   quality, test, monorepo, secret, dependency, and deterministic AI boundaries;
   direct invocations of the same job bodies keep the same hardened behavior.

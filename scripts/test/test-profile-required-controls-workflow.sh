@@ -140,6 +140,12 @@ assert_text_contains "plan report stays in runner temp" "$plan" \
 assert_text_contains "plan prints normalized report" "$plan" 'cat "[$]report"'
 assert_text_contains "plan exact-key helper rejects duplicates" "$plan" 'count != 1'
 assert_text_contains "plan validates output values against allowlist" "$plan" 'allowed'
+assert_text_not_contains "plan avoids AWK allowlist membership" "$plan" \
+  '\| awk -v candidate='
+assert_text_contains "plan compares each allowed shell token exactly" "$plan" \
+  'for allowed_value in [$]allowed; do'
+assert_text_contains "plan uses a quoted exact shell comparison" "$plan" \
+  'if \[ "[$]value" = "[$]allowed_value" \]; then'
 assert_text_contains "plan writes only via GITHUB_OUTPUT" "$plan" \
   '>> "[$]GITHUB_OUTPUT"'
 

@@ -64,10 +64,14 @@ jobs:
               printf 'Missing or duplicate execution-plan key: %s\n' "$key" >&2
               exit 1
             }
-            if ! printf '%s\n' "$allowed" | awk -v candidate="$value" '
-              { for (index = 1; index <= NF; index++) if ($index == candidate) found=1 }
-              END { exit(found ? 0 : 1) }
-            '; then
+            allowed_match=false
+            for allowed_value in $allowed; do
+              if [ "$value" = "$allowed_value" ]; then
+                allowed_match=true
+                break
+              fi
+            done
+            if [ "$allowed_match" != true ]; then
               printf 'Invalid execution-plan value for %s\n' "$key" >&2
               exit 1
             fi
