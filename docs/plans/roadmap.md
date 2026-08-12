@@ -126,7 +126,7 @@ Decision: the observation gate is complete. ADR-0010 now defines the approved
 activation architecture; no workflow condition or branch-protection change was
 authorized by the shadow pilot itself.
 
-### P1 — profile-aware activation (local advisory implementation complete; hosted enforcement pending)
+### P1 — profile-aware activation (hosted evidence passed; enforcement PR next)
 
 - [ADR-0010](../adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md)
   selects a hybrid two-layer architecture: five invariant governance contexts
@@ -142,14 +142,23 @@ authorized by the shadow pilot itself.
   while all direct baseline workflows continue to run. The duplicate baseline
   path is intentional during the pilot. Disposable historical pilots will not
   be migrated.
-- Pending: hosted Starter, Standard, and Enterprise activation pilots must
-  prove the advisory aggregate before enforcement.
-- Enforcement remains **NO-GO** until three fresh profile pilots, rerun/push,
-  external-fork, required-failure, no-pending-context, cost/noise, and rollback
-  evidence satisfy ADR-0010.
-- Pending: branch protection must keep its invariant contexts and add only the
-  stable aggregate after the hosted activation gate passes; duplicate
-  profile-dependent workflow execution may be removed only afterward.
+- Hosted evidence is complete. Fresh Starter, Standard, and AI-enabled
+  Enterprise consumers passed pull-request reruns and `main` pushes with the
+  same stable aggregate context. Enterprise also passed its post-merge SBOM,
+  Scorecard, provenance, and credential-free deterministic AI-evaluation
+  boundaries. Exact repositories, runs, durations, and outcomes are recorded
+  in [ADR-0010](../adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md#activation-evidence-decision--2026-08-13).
+- A disposable Starter failure PR proved required-failure propagation and a
+  blocked protected merge. An external fork proved read-only permissions,
+  `Secret source: None`, and an aggregate with no unresolved required context.
+  Branch protection was applied with the five invariant contexts plus the
+  stable aggregate, then rolled back to its original unprotected state.
+- Decision: the activation evidence gate is **PASS**. A separate enforcement
+  PR is authorized to update the branch-protection helper for new consumers.
+  Enforcement is not active in the current baseline.
+- After a protected disposable consumer validates that helper, a later PR may
+  remove duplicate direct profile-dependent execution. The five invariant
+  governance workflows remain independent and unchanged.
 
 ### P0 — component-aware monorepo CI (implemented; hosted pilot passed)
 
@@ -205,8 +214,8 @@ The contract is recorded in [ADR-0007](../adr/0007-component-aware-monorepo-ci-c
 
 ## Exit criteria for profile-aware enforcement
 
-ADR-0009 shadow evidence and ADR-0010 design approval are complete. Enforcement
-remains blocked until:
+ADR-0009 shadow evidence, ADR-0010 design approval, and all hosted activation
+evidence are complete:
 
 1. the initializer requires a valid explicit profile for new consumers while
    preserving template compatibility mode;
@@ -219,3 +228,8 @@ remains blocked until:
 5. branch-protection migration and rollback are exercised on a disposable
    repository; and
 6. every ADR-0010 acceptance criterion has evidence.
+
+All six exit criteria passed on 2026-08-13. The next bounded change is the
+branch-protection helper enforcement PR. Actual enforcement remains inactive
+until that change is reviewed and merged; duplicate baseline removal remains a
+later, independently reversible change.
