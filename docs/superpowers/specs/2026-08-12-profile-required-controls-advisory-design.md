@@ -1,6 +1,6 @@
 # Advisory Profile Required Controls Design
 
-**Status:** Proposed — design sections approved; written-spec review pending
+**Status:** Approved — implementation planned; enforcement pending
 **Date:** 2026-08-12
 **Owner:** Template maintainers
 **Decision reference:** ADR-0010
@@ -73,6 +73,12 @@ attribute and test.
 Temporary duplicate execution is intentional. It provides equivalence and
 failure-propagation evidence before the existing baseline is changed. Duplicate
 cost is measured during the pilot and removed only in a later reviewed change.
+Every reusable boundary accepts an explicit non-secret `execution_channel`
+input. Existing callers pass `baseline-ci`, while the advisory orchestrator
+passes `profile-advisory`. Reusable-workflow concurrency keys include that
+bounded channel so duplicate pilot runs cannot cancel one another through an
+ambiguous inherited GitHub event context. The called job validates the channel
+against its documented literals before executing the control.
 
 ## Architecture
 
@@ -97,7 +103,8 @@ classification live in POSIX scripts with local contract tests.
 
 - Workflow file: `.github/workflows/profile-required-controls.yml`.
 - Workflow name: `Profile policy`.
-- Aggregate job/check name: `Profile policy / Required controls`.
+- Aggregate job name: `Required controls`.
+- Resulting check context: `Profile policy / Required controls`.
 - Events: pull requests targeting `main`, pushes to `main`, and
   `workflow_dispatch`.
 - No path filters.
@@ -198,8 +205,10 @@ separate design after aggregate stability is proven.
 | Deterministic AI evaluation | `ai-evaluation.yml` reusable mode | AI-active profiles whose effective policy requires evaluation | Required when planned |
 
 `ci-quality.yml`, `ci-test.yml`, and `ci-monorepo.yml` already expose
-`workflow_call`. The security and AI workflows add `workflow_call` while
-retaining their direct events and existing baseline behavior.
+`workflow_call`; their callers and concurrency groups add the explicit
+`execution_channel`. The security and AI workflows add `workflow_call` plus the
+same caller distinction while retaining their direct events and existing
+baseline behavior.
 
 The quality/unit boundary intentionally remains combined. Splitting unit tests
 would duplicate five language setup paths and create a second toolchain
@@ -227,6 +236,7 @@ mode=profile
 profile=standard
 layout=single
 stack=python
+status=ready
 boundary.quality_unit.decision=run
 boundary.quality_unit.required=true
 boundary.test_coverage.decision=run
@@ -237,6 +247,12 @@ boundary.sbom.decision=policy-only
 boundary.sbom.required=false
 ```
 
+Top-level normalized status is `ready` for an initialized valid execution plan
+and `delegated` for template compatibility. Compatibility also emits
+`profile=none`, `layout=unknown`, and `stack=unknown`. Reason fields use only
+bounded implementation-owned lowercase tokens; consumer-controlled text is
+never copied into workflow outputs.
+
 Allowed decisions are:
 
 - `run` — invoke the reusable workflow in this event;
@@ -245,14 +261,27 @@ Allowed decisions are:
   state, with a machine-readable reason;
 - `delegated-to-current-baseline` — template compatibility relies on unchanged
   direct workflows; and
-- `policy-only` — the control belongs to a post-merge, scheduled, or manual
-  channel and is not claimed as executed on the pull request.
+- `policy-only` — the control belongs to a post-merge, scheduled, manual, or
+  currently non-executed advisory channel and is not claimed as executed on
+  this workflow event.
 
 The plan resolver does not duplicate the Starter/Standard/Enterprise mapping.
 It reads effective `enabled`, `class`, `policy_required`, `pr_required`, and
 `alignment` fields from the central resolver. A policy mismatch makes plan
 generation fail. Stronger-than-default declarations are valid and produce
 execution when applicable.
+
+Boundary derivation is deterministic:
+
+- initialized single-stack consumers run `quality_unit`; monorepo consumers run
+  `monorepo_ci` and mark the two single-stack boundaries as covered;
+- coverage, CodeQL, and deterministic AI run only when their effective central
+  fields enable and require them for the pull-request class;
+- secret and dependency boundaries run for every valid initialized consumer;
+- a disabled central control is `planned-skip`;
+- an enabled post-merge, scheduled, manual, semantic, or structural control is
+  `policy-only`; and
+- a boundary incompatible with repository shape is `not-applicable`.
 
 Boundary names and execution-channel mappings are orchestration wiring, not a
 second normative policy table. Unknown control names, missing fields, duplicate
@@ -324,8 +353,9 @@ needed for the first implementation.
 ## Security and fork behavior
 
 - The orchestrator uses `pull_request`, never `pull_request_target`.
-- Default permissions remain `contents: read`; only the called CodeQL boundary
-  receives the existing minimum `security-events: write` requirement.
+- Default permissions remain `contents: read`; only the CodeQL caller job and
+  called CodeQL job receive the existing minimum `security-events: write`
+  requirement needed by reusable-workflow permission inheritance.
 - Checkout uses immutable SHA pins and disables persisted credentials wherever
   no subsequent authenticated Git operation is required.
 - Mandatory fork paths use no repository secret.
