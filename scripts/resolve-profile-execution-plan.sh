@@ -39,6 +39,7 @@ validate_report() {
     {
       if (NF != 2 || $1 == "" || $2 == "") fail()
       if (++seen[$1] != 1) fail()
+      values[$1] = $2
       if ($1 == "mode") { if ($2 != "compatibility" && $2 != "profile") fail(); mode = $2; next }
       if ($1 == "profile") { if ($2 != "none" && $2 != "starter" && $2 != "standard" && $2 != "enterprise") fail(); profile = $2; next }
       if ($1 == "status") { if ($2 != "current-baseline" && $2 != "aligned" && $2 != "warning") fail(); status = $2; next }
@@ -73,7 +74,10 @@ validate_report() {
         field_count = split(fields, field_names, " ")
         for (control_index = 1; control_index <= control_count; control_index++) {
           for (field_index = 1; field_index <= field_count; field_index++) {
-            if (seen["control." control_names[control_index] "." field_names[field_index]] != 1) exit 2
+            key = "control." control_names[control_index] "." field_names[field_index]
+            if (seen[key] != 1) exit 2
+            if ((field_names[field_index] == "enabled" || field_names[field_index] == "policy_required" || field_names[field_index] == "pr_required") && values[key] != "true" && values[key] != "false") exit 2
+            if (field_names[field_index] == "alignment" && values[key] == "policy-mismatch") exit 2
           }
         }
       } else exit 2

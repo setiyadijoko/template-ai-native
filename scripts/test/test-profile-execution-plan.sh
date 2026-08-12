@@ -245,6 +245,16 @@ cp "$valid_report" "$WORK/malformed-policy-report"
 printf 'malformed record\n' >> "$WORK/malformed-policy-report"
 assert_report_failure "malformed central record fails" "$parser_fixture" "$WORK/malformed-policy-report"
 
+sed 's/^control\.codeql\.alignment=aligned$/control.codeql.alignment=policy-mismatch/' \
+  "$valid_report" > "$WORK/mismatched-aligned-policy-report"
+assert_report_failure "aligned status with policy mismatch fails" "$parser_fixture" \
+  "$WORK/mismatched-aligned-policy-report"
+
+sed 's/^control\.codeql\.enabled=true$/control.codeql.enabled=current-baseline/' \
+  "$valid_report" > "$WORK/profile-current-baseline-boolean-report"
+assert_report_failure "profile Boolean cannot use current baseline" "$parser_fixture" \
+  "$WORK/profile-current-baseline-boolean-report"
+
 mkdir "$WORK/policy-report-directory"
 assert_report_failure "directory policy report fails" "$parser_fixture" "$WORK/policy-report-directory"
 ln -s "$valid_report" "$WORK/policy-report-link"
