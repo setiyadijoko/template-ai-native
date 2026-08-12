@@ -241,6 +241,7 @@ if (cd "$WORK" && sh "$ROOT/scripts/init-project.sh" \
   && [ "$(profile_value "$WORK/.template/profile.yaml" deployment enabled)" = true ] \
   && sh "$ROOT/scripts/validate-profile-config.sh" "$WORK/.template/profile.yaml" >/dev/null 2>&1 \
   && [ "$(sh "$ROOT/scripts/resolve-components.sh" --json "$WORK/.template/project.yaml")" = '[{"id":"backend","path":"src/backend","stack":"go","required":true,"artifact":"backend"},{"id":"frontend","path":"src/frontend","stack":"node","required":true,"artifact":"frontend"}]' ] \
+  && [ "$(grep -F -c '<!-- template-ai-native:project-identity:generated -->' "$WORK/README.md")" -eq 1 ] \
   && grep -Fq 'Consumer documentation outside the identity block.' "$WORK/README.md"; then
   PASS=$((PASS+1))
 else
