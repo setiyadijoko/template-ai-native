@@ -1,5 +1,5 @@
-# Declarative maturity-profile schema; ADR-0010 activation implementation and
-# required-check enforcement remain staged behind hosted evidence.
+# Declarative maturity-profile schema. Values select advisory aggregate jobs;
+# required-check enforcement remains staged behind hosted evidence.
 version: 1
 kind: maturity-profile
 profile:

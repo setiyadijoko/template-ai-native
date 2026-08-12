@@ -1,8 +1,8 @@
 name: ai-evaluation
 
-# AI evaluation skeleton (advisory). Skips cleanly when AI_EVAL_API_KEY is
-# absent — the template makes no real model calls. Consumer adds the secret
-# and an evals/run-evals.sh runner to activate.
+# Reusable advisory mode always runs the deterministic `--check` contract
+# without a credential or provider call. Direct event mode remains secret-gated;
+# the template makes no real model calls until a consumer extends the runner.
 on:
   workflow_call:
     inputs:
@@ -42,6 +42,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Run deterministic evaluation contract
         run: sh evals/run-evals.sh --check
@@ -67,12 +69,14 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Skip (no AI_EVAL_API_KEY)
+      - name: Skip direct evaluation (no AI_EVAL_API_KEY)
         if: ${{ env.AI_EVAL_API_KEY == '' }}
-        run: echo "AI-eval skipped — set the AI_EVAL_API_KEY secret and add evals/run-evals.sh to activate."
+        run: echo "Direct AI evaluation skipped — set AI_EVAL_API_KEY only after approving the consumer adapter and data policy."
 
-      - name: Run evaluation contract (provider-neutral stub)
+      - name: Run direct evaluation contract (secret-gated)
         if: ${{ env.AI_EVAL_API_KEY != '' }}
         run: |
           sh evals/run-evals.sh --check

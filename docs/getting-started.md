@@ -107,7 +107,9 @@ and is never inferred: use exactly one of `starter`, `standard`, or
 `false`. Enterprise also requires a non-`none` `--deployment-target`, for
 example `--deployment-target cloud`. For monorepos the initializer validates and
 writes the explicit component list used by `ci-monorepo.yml`. It does not create
-credentials, change workflows, or activate profile-aware controls.
+credentials, edit workflow files, or change branch protection.
+Generated profile values select reusable jobs in the advisory aggregate, while
+direct baseline execution remains unchanged during the pilot.
 
 The template itself has no project/profile configuration and remains valid in
 compatibility mode. A consumer with `.template/project.yaml` must also have a
@@ -356,7 +358,7 @@ for the required status contexts and manual Environment settings.
 |---|---|---|
 | Code Review Graph | When you want advisory structural/risk review on PRs | It is not a merge authority by default |
 | Alibaba OpenCodeReview | When an approved LLM endpoint may inspect the diff | Requires consumer-managed secrets and data policy |
-| AI evaluations | When the application has prompts or model behavior to evaluate; they are required by Standard/Enterprise policy when AI is enabled | The current workflow is an advisory skeleton; the template runner validates fixtures and does not call a provider |
+| AI evaluations | When the application has prompts or model behavior to evaluate; they are required by Standard/Enterprise policy when AI is enabled | Reusable deterministic checks run without credentials; direct provider-backed evaluation remains secret-gated and consumer-owned |
 | Graphify | When local codebase relationship exploration is useful | Keep generated output out of version control and review data egress |
 | PostHog | When product analytics or feature flags are needed | It is optional and must follow data classification/redaction rules |
 

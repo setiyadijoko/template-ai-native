@@ -115,6 +115,14 @@ assert_action_pin() {
     "uses: ${action}@${sha}[[:space:]]+# ${version}"
 }
 
+assert_checkouts_disable_credentials() {
+  label="$1"; file="$2"; expected="$3"
+  checkout_count="$(grep -Ec 'uses: actions/checkout@' "$file" || true)"
+  disabled_count="$(grep -Ec '^[[:space:]]+persist-credentials: false$' "$file" || true)"
+  assert_eq "$label has the expected checkout count" "$checkout_count" "$expected"
+  assert_eq "$label disables credentials for every checkout" "$disabled_count" "$checkout_count"
+}
+
 assert_reusable_input() {
   label="$1"; file="$2"; requirement="$3"
   call="$(workflow_call_block "$file")"
@@ -228,6 +236,16 @@ for action in init autobuild analyze; do
   assert_action_pin "CodeQL $action pin is stable" "$CODEQL" "github/codeql-action/$action" 5595ccaf912efad79be6eef63a5619ff05969be3 v4.37.6
 done
 assert_action_pin "AI evaluation checkout pin is stable" "$AI_EVALUATION" actions/checkout 3d3c42e5aac5ba805825da76410c181273ba90b1 v7.0.1
+
+# Reusable advisory jobs never perform authenticated Git operations. Direct
+# invocations share these same job bodies, so the safest stable contract is to
+# disable persisted credentials uniformly on every checkout in each boundary.
+assert_checkouts_disable_credentials "quality boundary" "$CI_QUALITY" 1
+assert_checkouts_disable_credentials "test boundary" "$CI_TEST" 1
+assert_checkouts_disable_credentials "monorepo boundary" "$MONOREPO" 4
+assert_checkouts_disable_credentials "secret scan boundary" "$SECRET_SCAN" 1
+assert_checkouts_disable_credentials "dependency review boundary" "$DEPENDENCY_REVIEW" 1
+assert_checkouts_disable_credentials "AI evaluation boundary" "$AI_EVALUATION" 2
 
 # Every called boundary exposes and validates the explicit channel contract.
 assert_reusable_input "quality boundary" "$CI_QUALITY" optional

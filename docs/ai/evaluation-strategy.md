@@ -6,4 +6,4 @@ Evaluation taxonomy (see spec §7.4): deterministic assertions, JSON-schema vali
 
 ## Phase 4 phasing
 
-Phase 4 ships the `ai-evaluation.yml` workflow as an advisory skeleton (secret-gated, no real model calls in the template). The consumer wires `evals/run-evals.sh` + the `AI_EVAL_API_KEY` secret to activate. Thresholds (safety, leakage, regression, latency, cost) are advisory in Phase 4; promote to blocking after measuring precision and false-positive rate (TD-0007).
+Phase 4 ships two advisory modes in `ai-evaluation.yml`. The reusable deterministic path runs `--check` without credentials or a provider call and can be selected by the profile aggregate. The direct event path remains gated by `AI_EVAL_API_KEY`; the template still makes no real model call until a consumer extends the runner through an approved adapter and data policy. Thresholds (safety, leakage, regression, latency, cost) are advisory in Phase 4; promote them to blocking only after measuring precision and false-positive rate (TD-0007).

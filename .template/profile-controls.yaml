@@ -1,5 +1,5 @@
-# Normative profile defaults; declarative until the staged ADR-0010 activation
-# implementation and hosted enforcement gates pass.
+# Normative profile defaults that select advisory aggregate jobs. Direct
+# baseline execution and required-check enforcement remain unchanged.
 version: 1
 profiles:
   starter:

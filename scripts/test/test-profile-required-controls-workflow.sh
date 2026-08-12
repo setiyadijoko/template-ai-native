@@ -18,6 +18,13 @@ ROADMAP="$ROOT/docs/plans/roadmap.md"
 TECHNICAL_DEBT="$ROOT/docs/plans/technical-debt.md"
 CHANGELOG="$ROOT/CHANGELOG.md"
 DESIGN_SPEC="$ROOT/docs/superpowers/specs/2026-08-12-profile-required-controls-advisory-design.md"
+PROFILE_SCHEMA="$ROOT/.template/profile.schema.yaml"
+PROFILE_CONTROLS="$ROOT/.template/profile-controls.yaml"
+ADR_INDEX="$ROOT/docs/adr/README.md"
+AGENT_GUIDANCE="$ROOT/AGENTS.md"
+EVALUATION_STRATEGY="$ROOT/docs/ai/evaluation-strategy.md"
+EVALS_README="$ROOT/evals/README.md"
+AI_WORKFLOW="$ROOT/.github/workflows/ai-evaluation.yml"
 
 assert_contains() {
   label="$1"; file="$2"; pattern="$3"
@@ -261,6 +268,40 @@ assert_contains "changelog records advisory aggregate" "$CHANGELOG" \
   'advisory `Profile policy / Required controls` aggregate'
 assert_contains "design spec records implementation status" "$DESIGN_SPEC" \
   '^\*\*Status:\*\* Implemented locally — hosted enforcement evidence pending$'
+
+# Current-state guidance must distinguish advisory execution from later
+# enforcement and must distinguish reusable deterministic AI evaluation from
+# the direct secret-gated provider path.
+assert_contains "scripts README says generated profiles select advisory jobs" "$SCRIPTS_README" \
+  'Profile values select reusable jobs in the advisory aggregate'
+assert_not_contains "scripts README does not claim profiles activate nothing" "$SCRIPTS_README" \
+  'Profile values do not activate workflows'
+assert_contains "getting started says initializer output selects advisory jobs" "$GETTING_STARTED" \
+  'Generated profile values select reusable jobs in the advisory aggregate'
+assert_not_contains "getting started does not claim controls stay inactive" "$GETTING_STARTED" \
+  'does not create credentials, change workflows, or activate profile-aware controls'
+assert_contains "getting started distinguishes deterministic and provider AI paths" "$GETTING_STARTED" \
+  'Reusable deterministic checks run without credentials; direct provider-backed evaluation remains secret-gated'
+assert_contains "profile schema comment records advisory selection" "$PROFILE_SCHEMA" \
+  'select advisory aggregate jobs'
+assert_contains "profile controls comment records advisory selection" "$PROFILE_CONTROLS" \
+  'select advisory aggregate jobs'
+assert_contains "ADR index records advisory implementation" "$ADR_INDEX" \
+  'Accepted — advisory aggregate implemented; hosted enforcement evidence pending'
+assert_contains "changelog records profile-selected advisory execution" "$CHANGELOG" \
+  'Profile values now select reusable jobs in the advisory aggregate'
+assert_not_contains "changelog no longer claims profile workflows are entirely inactive" "$CHANGELOG" \
+  'Profile files do not activate workflows yet'
+assert_contains "canonical guidance distinguishes AI execution modes" "$AGENT_GUIDANCE" \
+  'reusable deterministic mode runs `--check` without a credential or provider call'
+assert_contains "evaluation strategy distinguishes AI execution modes" "$EVALUATION_STRATEGY" \
+  'reusable deterministic path runs `--check` without credentials or a provider call'
+assert_contains "evals README says deterministic advisory path is active" "$EVALS_README" \
+  'advisory aggregate runs this deterministic path without credentials'
+assert_contains "AI workflow header documents reusable deterministic mode" "$AI_WORKFLOW" \
+  'Reusable advisory mode always runs the deterministic `--check` contract'
+assert_contains "AI workflow header documents direct secret gate" "$AI_WORKFLOW" \
+  'Direct event mode remains secret-gated'
 
 # Execute the embedded plan step against adversarial reports. Each compound
 # candidate is made entirely from adjacent allowed values, so substring
