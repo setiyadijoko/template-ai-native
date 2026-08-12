@@ -1,0 +1,277 @@
+name: Profile policy
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: profile-policy-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    name: Resolve required controls
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      mode: ${{ steps.resolve.outputs.mode }}
+      profile: ${{ steps.resolve.outputs.profile }}
+      layout: ${{ steps.resolve.outputs.layout }}
+      stack: ${{ steps.resolve.outputs.stack }}
+      quality_unit_decision: ${{ steps.resolve.outputs.quality_unit_decision }}
+      quality_unit_required: ${{ steps.resolve.outputs.quality_unit_required }}
+      test_coverage_decision: ${{ steps.resolve.outputs.test_coverage_decision }}
+      test_coverage_required: ${{ steps.resolve.outputs.test_coverage_required }}
+      monorepo_ci_decision: ${{ steps.resolve.outputs.monorepo_ci_decision }}
+      monorepo_ci_required: ${{ steps.resolve.outputs.monorepo_ci_required }}
+      secret_scan_decision: ${{ steps.resolve.outputs.secret_scan_decision }}
+      secret_scan_required: ${{ steps.resolve.outputs.secret_scan_required }}
+      dependency_review_decision: ${{ steps.resolve.outputs.dependency_review_decision }}
+      dependency_review_required: ${{ steps.resolve.outputs.dependency_review_required }}
+      codeql_decision: ${{ steps.resolve.outputs.codeql_decision }}
+      codeql_required: ${{ steps.resolve.outputs.codeql_required }}
+      ai_evaluation_decision: ${{ steps.resolve.outputs.ai_evaluation_decision }}
+      ai_evaluation_required: ${{ steps.resolve.outputs.ai_evaluation_required }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: resolve
+        name: Resolve profile execution plan
+        shell: sh
+        run: |
+          set -eu
+          report="${RUNNER_TEMP}/profile-execution-plan.txt"
+          sh scripts/resolve-profile-execution-plan.sh > "$report"
+          cat "$report"
+
+          emit_output() {
+            output_name="$1"
+            key="$2"
+            allowed="$3"
+            value="$(awk -F '=' -v key="$key" '
+              $1 == key { count++; value=$2 }
+              END { if (count != 1) exit 2; print value }
+            ' "$report")" || {
+              printf 'Missing or duplicate execution-plan key: %s\n' "$key" >&2
+              exit 1
+            }
+            case " $allowed " in
+              *" $value "*) ;;
+              *) printf 'Invalid execution-plan value for %s\n' "$key" >&2; exit 1 ;;
+            esac
+            printf '%s=%s\n' "$output_name" "$value" >> "$GITHUB_OUTPUT"
+          }
+
+          decisions='run planned-skip not-applicable delegated-to-current-baseline policy-only'
+          emit_output mode mode 'compatibility profile'
+          emit_output profile profile 'none starter standard enterprise'
+          emit_output layout layout 'unknown single undecided monorepo'
+          emit_output stack stack 'unknown python node go java dotnet'
+          emit_output quality_unit_decision boundary.quality_unit.decision "$decisions"
+          emit_output quality_unit_required boundary.quality_unit.required 'true false'
+          emit_output test_coverage_decision boundary.test_coverage.decision "$decisions"
+          emit_output test_coverage_required boundary.test_coverage.required 'true false'
+          emit_output monorepo_ci_decision boundary.monorepo_ci.decision "$decisions"
+          emit_output monorepo_ci_required boundary.monorepo_ci.required 'true false'
+          emit_output secret_scan_decision boundary.secret_scan.decision "$decisions"
+          emit_output secret_scan_required boundary.secret_scan.required 'true false'
+          emit_output dependency_review_decision boundary.dependency_review.decision "$decisions"
+          emit_output dependency_review_required boundary.dependency_review.required 'true false'
+          emit_output codeql_decision boundary.codeql.decision "$decisions"
+          emit_output codeql_required boundary.codeql.required 'true false'
+          emit_output ai_evaluation_decision boundary.ai_evaluation.decision "$decisions"
+          emit_output ai_evaluation_required boundary.ai_evaluation.required 'true false'
+
+  quality_unit:
+    needs: plan
+    if: needs.plan.outputs.quality_unit_decision == 'run'
+    uses: ./.github/workflows/ci-quality.yml
+    with:
+      stack: ${{ needs.plan.outputs.stack }}
+      execution_channel: profile-advisory
+
+  test_coverage:
+    needs: plan
+    if: needs.plan.outputs.test_coverage_decision == 'run'
+    uses: ./.github/workflows/ci-test.yml
+    with:
+      stack: ${{ needs.plan.outputs.stack }}
+      execution_channel: profile-advisory
+
+  monorepo_ci:
+    needs: plan
+    if: needs.plan.outputs.monorepo_ci_decision == 'run'
+    uses: ./.github/workflows/ci-monorepo.yml
+    with:
+      execution_channel: profile-advisory
+
+  secret_scan:
+    needs: plan
+    if: needs.plan.outputs.secret_scan_decision == 'run'
+    uses: ./.github/workflows/secret-scan.yml
+    with:
+      execution_channel: profile-advisory
+
+  dependency_review:
+    needs: plan
+    if: needs.plan.outputs.dependency_review_decision == 'run'
+    uses: ./.github/workflows/dependency-review.yml
+    with:
+      execution_channel: profile-advisory
+
+  codeql:
+    needs: plan
+    if: needs.plan.outputs.codeql_decision == 'run'
+    permissions:
+      contents: read
+      security-events: write
+    uses: ./.github/workflows/codeql.yml
+    with:
+      execution_channel: profile-advisory
+
+  ai_evaluation:
+    needs: plan
+    if: needs.plan.outputs.ai_evaluation_decision == 'run'
+    uses: ./.github/workflows/ai-evaluation.yml
+    with:
+      execution_channel: profile-advisory
+
+  aggregate:
+    name: Required controls
+    if: always()
+    needs: [plan, quality_unit, test_coverage, monorepo_ci, secret_scan, dependency_review, codeql, ai_evaluation]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Evaluate required controls
+        env:
+          PLAN_RESULT: ${{ needs.plan.result }}
+          PLAN_MODE: ${{ needs.plan.outputs.mode }}
+          PLAN_PROFILE: ${{ needs.plan.outputs.profile }}
+          PLAN_LAYOUT: ${{ needs.plan.outputs.layout }}
+          PLAN_STACK: ${{ needs.plan.outputs.stack }}
+          QUALITY_UNIT_RESULT: ${{ needs.quality_unit.result }}
+          TEST_COVERAGE_RESULT: ${{ needs.test_coverage.result }}
+          MONOREPO_CI_RESULT: ${{ needs.monorepo_ci.result }}
+          SECRET_SCAN_RESULT: ${{ needs.secret_scan.result }}
+          DEPENDENCY_REVIEW_RESULT: ${{ needs.dependency_review.result }}
+          CODEQL_RESULT: ${{ needs.codeql.result }}
+          AI_EVALUATION_RESULT: ${{ needs.ai_evaluation.result }}
+        shell: sh
+        run: |
+          set -eu
+          report="${RUNNER_TEMP}/profile-execution-plan.txt"
+          outcomes="${RUNNER_TEMP}/profile-required-controls-outcomes.txt"
+          evaluation="${RUNNER_TEMP}/profile-required-controls-evaluation.txt"
+          diagnostic="${RUNNER_TEMP}/profile-execution-plan-diagnostic.txt"
+
+          if [ "$PLAN_RESULT" != success ]; then
+            if sh scripts/resolve-profile-execution-plan.sh > "$diagnostic" 2>&1; then
+              printf '%s\n' 'profile plan failed although diagnostic rerun succeeded' >> "$diagnostic"
+            fi
+            {
+              printf '%s\n\n' '## Profile planning failure'
+              printf 'plan.conclusion=%s\n\n' "$PLAN_RESULT"
+              printf '%s\n' '```text'
+              cat "$diagnostic"
+              printf '%s\n' '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            cat "$diagnostic"
+            exit 1
+          fi
+
+          if ! sh scripts/resolve-profile-execution-plan.sh > "$report" 2> "$diagnostic"; then
+            {
+              printf '%s\n\n' '## Profile plan rerun failure'
+              printf '%s\n' '```text'
+              cat "$diagnostic"
+              printf '%s\n' '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            cat "$diagnostic"
+            exit 1
+          fi
+
+          plan_value() {
+            key="$1"
+            awk -F '=' -v key="$key" '
+              $1 == key { count++; value=$2 }
+              END { if (count != 1) exit 2; print value }
+            ' "$report"
+          }
+
+          assert_identity() {
+            key="$1"
+            expected="$2"
+            actual="$(plan_value "$key")" || {
+              printf 'Invalid rerun identity field: %s\n' "$key" >&2
+              exit 1
+            }
+            if [ "$actual" != "$expected" ]; then
+              {
+                printf '%s\n\n' '## Profile plan identity drift'
+                printf '%s.expected=%s\n%s.actual=%s\n' \
+                  "$key" "$expected" "$key" "$actual"
+              } >> "$GITHUB_STEP_SUMMARY"
+              printf 'Profile plan identity changed for %s\n' "$key" >&2
+              exit 1
+            fi
+          }
+
+          assert_identity mode "$PLAN_MODE"
+          assert_identity profile "$PLAN_PROFILE"
+          assert_identity layout "$PLAN_LAYOUT"
+          assert_identity stack "$PLAN_STACK"
+
+          {
+            printf 'boundary.quality_unit.conclusion=%s\n' "$QUALITY_UNIT_RESULT"
+            printf 'boundary.test_coverage.conclusion=%s\n' "$TEST_COVERAGE_RESULT"
+            printf 'boundary.monorepo_ci.conclusion=%s\n' "$MONOREPO_CI_RESULT"
+            printf 'boundary.secret_scan.conclusion=%s\n' "$SECRET_SCAN_RESULT"
+            printf 'boundary.dependency_review.conclusion=%s\n' "$DEPENDENCY_REVIEW_RESULT"
+            printf 'boundary.codeql.conclusion=%s\n' "$CODEQL_RESULT"
+            printf 'boundary.ai_evaluation.conclusion=%s\n' "$AI_EVALUATION_RESULT"
+            printf '%s\n' 'boundary.sbom.conclusion=skipped'
+            printf '%s\n' 'boundary.artifact_attestation.conclusion=skipped'
+            printf '%s\n' 'boundary.scorecard.conclusion=skipped'
+            printf '%s\n' 'boundary.semantic_review.conclusion=skipped'
+            printf '%s\n' 'boundary.structural_review.conclusion=skipped'
+            printf '%s\n' 'boundary.production_governance.conclusion=skipped'
+          } > "$outcomes"
+
+          evaluator_status=0
+          sh scripts/evaluate-profile-required-controls.sh "$report" "$outcomes" \
+            > "$evaluation" || evaluator_status=$?
+
+          {
+            printf '%s\n\n' '## Normalized execution plan'
+            printf '%s\n' '```text'
+            cat "$report"
+            printf '%s\n\n' '```'
+            printf '%s\n\n' '## Boundary conclusions'
+            printf '%s\n' '```text'
+            cat "$outcomes"
+            printf '%s\n\n' '```'
+            printf '%s\n\n' '## Advisory aggregate verdict'
+            printf '%s\n' '```text'
+            cat "$evaluation"
+            printf '%s\n' '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          cat "$evaluation"
+          if [ "$evaluator_status" -ne 0 ]; then
+            exit "$evaluator_status"
+          fi
