@@ -30,11 +30,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Validate execution channel
+        env:
+          EXECUTION_CHANNEL: ${{ inputs.execution_channel || 'manual' }}
         run: |
-          channel="${{ inputs.execution_channel || 'manual' }}"
-          case "$channel" in
+          case "$EXECUTION_CHANNEL" in
             baseline-ci|profile-advisory|manual) ;;
-            *) echo "Unsupported execution channel: $channel" >&2; exit 1 ;;
+            *) printf 'Unsupported execution channel: %s\n' "$EXECUTION_CHANNEL" >&2; exit 1 ;;
           esac
 
       - name: Checkout

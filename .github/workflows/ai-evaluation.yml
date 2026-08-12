@@ -32,11 +32,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Validate execution channel
+        env:
+          EXECUTION_CHANNEL: ${{ inputs.execution_channel }}
         run: |
-          channel="${{ inputs.execution_channel }}"
-          case "$channel" in
+          case "$EXECUTION_CHANNEL" in
             profile-advisory) ;;
-            *) echo "Unsupported execution channel: $channel" >&2; exit 1 ;;
+            *) printf 'Unsupported execution channel: %s\n' "$EXECUTION_CHANNEL" >&2; exit 1 ;;
           esac
 
       - name: Checkout
@@ -56,11 +57,12 @@ jobs:
       AI_EVAL_API_KEY: ${{ secrets.AI_EVAL_API_KEY }}
     steps:
       - name: Validate execution channel
+        env:
+          EXECUTION_CHANNEL: ${{ inputs.execution_channel || 'baseline-direct' }}
         run: |
-          channel="${{ inputs.execution_channel || 'baseline-direct' }}"
-          case "$channel" in
+          case "$EXECUTION_CHANNEL" in
             baseline-direct) ;;
-            *) echo "Unsupported execution channel: $channel" >&2; exit 1 ;;
+            *) printf 'Unsupported execution channel: %s\n' "$EXECUTION_CHANNEL" >&2; exit 1 ;;
           esac
 
       - name: Checkout

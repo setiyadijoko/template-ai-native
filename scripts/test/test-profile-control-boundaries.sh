@@ -44,6 +44,13 @@ assert_text_not_contains() {
   else PASS=$((PASS+1)); fi
 }
 
+assert_text_contains_literal() {
+  label="$1"; value="$2"; literal="$3"
+  if printf '%s\n' "$value" | grep -Fq -- "$literal"; then PASS=$((PASS+1)); else
+    FAIL=$((FAIL+1)); printf 'FAIL %s\n     missing literal: %s\n' "$label" "$literal" >&2
+  fi
+}
+
 assert_count() {
   label="$1"; file="$2"; pattern="$3"; expected="$4"
   actual="$(grep -Ec -- "$pattern" "$file" || true)"
@@ -78,6 +85,21 @@ job_block() {
     inside && /^  [a-zA-Z0-9_-]+:/ && $0 != header { exit }
     inside { print }
   ' "$file"
+}
+
+validator_step() {
+  printf '%s\n' "$1" | awk '
+    /^[[:space:]]+- name: Validate execution channel$/ { inside=1 }
+    inside && /^[[:space:]]+- name:/ && $0 !~ /Validate execution channel$/ { exit }
+    inside { print }
+  '
+}
+
+validator_run() {
+  validator_step "$1" | awk '
+    /^[[:space:]]+run:[[:space:]]*\|[[:space:]]*$/ { inside=1 }
+    inside { print }
+  '
 }
 
 assert_read_only() {
@@ -134,6 +156,21 @@ assert_validation_before_checkout() {
   fi
   assert_text_contains "$label validates documented channels" "$block" "$allowed"
   assert_text_contains "$label rejects unknown channels" "$block" 'exit 1'
+}
+
+assert_safe_validator_binding() {
+  label="$1"; block="$2"; expression="$3"
+  step="$(validator_step "$block")"
+  run_body="$(validator_run "$block")"
+  assert_text_contains "$label binds channel through step env" "$step" '^        env:$'
+  assert_text_contains_literal "$label binds the intended expression" "$step" \
+    "EXECUTION_CHANNEL: $expression"
+  assert_text_not_contains "$label does not interpolate inputs in shell source" "$run_body" \
+    '[$][{][{][[:space:]]*inputs\.execution_channel'
+  assert_text_contains_literal "$label validates the quoted environment value" "$run_body" \
+    'case "$EXECUTION_CHANNEL" in'
+  unquoted="$(printf '%s\n' "$run_body" | sed 's/"[$]EXECUTION_CHANNEL"//g' | grep -F '$EXECUTION_CHANNEL' || true)"
+  assert_eq "$label uses only quoted EXECUTION_CHANNEL references" "$unquoted" ""
 }
 
 # Direct trigger, permission, check-name, and action-pin compatibility.
@@ -218,6 +255,18 @@ assert_validation_before_checkout "monorepo boundary" "$(job_block "$MONOREPO" r
 assert_validation_before_checkout "secret scan boundary" "$(job_block "$SECRET_SCAN" secret-scan)" 'baseline-direct\|profile-advisory'
 assert_validation_before_checkout "dependency review boundary" "$(job_block "$DEPENDENCY_REVIEW" osv-scan)" 'baseline-direct\|profile-advisory'
 assert_validation_before_checkout "CodeQL boundary" "$(job_block "$CODEQL" codeql)" 'baseline-direct\|profile-advisory'
+assert_safe_validator_binding "quality boundary" "$(job_block "$CI_QUALITY" quality)" \
+  "\${{ inputs.execution_channel || 'manual' }}"
+assert_safe_validator_binding "test boundary" "$(job_block "$CI_TEST" test)" \
+  "\${{ inputs.execution_channel || 'manual' }}"
+assert_safe_validator_binding "monorepo boundary" "$(job_block "$MONOREPO" resolve)" \
+  "\${{ inputs.execution_channel || 'manual' }}"
+assert_safe_validator_binding "secret scan boundary" "$(job_block "$SECRET_SCAN" secret-scan)" \
+  "\${{ inputs.execution_channel || 'baseline-direct' }}"
+assert_safe_validator_binding "dependency review boundary" "$(job_block "$DEPENDENCY_REVIEW" osv-scan)" \
+  "\${{ inputs.execution_channel || 'baseline-direct' }}"
+assert_safe_validator_binding "CodeQL boundary" "$(job_block "$CODEQL" codeql)" \
+  "\${{ inputs.execution_channel || 'baseline-direct' }}"
 
 # The reusable AI path is deterministic and isolated from the direct secret-aware path.
 reusable_ai="$(job_block "$AI_EVALUATION" deterministic-ai-evaluation)"
@@ -225,6 +274,8 @@ direct_ai="$(job_block "$AI_EVALUATION" ai-evaluation)"
 assert_text_contains "reusable AI job selects non-empty input" "$reusable_ai" \
   "if:.*inputs\.execution_channel != ''"
 assert_validation_before_checkout "reusable AI boundary" "$reusable_ai" 'profile-advisory'
+assert_safe_validator_binding "reusable AI boundary" "$reusable_ai" \
+  "\${{ inputs.execution_channel }}"
 assert_text_contains "reusable AI runs deterministic contract" "$reusable_ai" 'sh evals/run-evals\.sh --check'
 assert_text_not_contains "reusable AI has no secrets context" "$reusable_ai" 'secrets\.'
 assert_text_not_contains "reusable AI has no API credential" "$reusable_ai" 'AI_EVAL_API_KEY'
@@ -232,6 +283,8 @@ assert_text_not_contains "reusable AI has no provider command" "$reusable_ai" 'p
 assert_text_contains "direct AI job selects empty input" "$direct_ai" \
   "if:.*inputs\.execution_channel == ''"
 assert_validation_before_checkout "direct AI boundary" "$direct_ai" 'baseline-direct'
+assert_safe_validator_binding "direct AI boundary" "$direct_ai" \
+  "\${{ inputs.execution_channel || 'baseline-direct' }}"
 assert_text_contains "direct AI retains credential-aware behavior" "$direct_ai" \
   'AI_EVAL_API_KEY:.*secrets\.AI_EVAL_API_KEY'
 assert_text_contains "direct AI retains missing-credential skip" "$direct_ai" \
