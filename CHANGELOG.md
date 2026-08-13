@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Hosted duplicate-suppression revalidation passed on evidence-only PR #63.
+  Starter quality/unit, gitleaks, and OSV ran once through the aggregate;
+  direct duplicates skipped; build and provider-evaluation boundaries remained
+  independent; all checks completed; and template compatibility remained
+  intact on the merge push. The evidence PR was closed without merge, its
+  branch was deleted, and TD-0015 is closed.
 - Suppressed duplicated direct profile-dependent PR/push jobs for initialized
   consumers through one fail-closed repository-mode contract. The aggregate
   now owns quality, test, monorepo, secret, dependency, and CodeQL outcomes;

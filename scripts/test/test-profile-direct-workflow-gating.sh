@@ -139,13 +139,19 @@ assert_contains "README explains initialized-consumer delegation" "$README" \
   'Initialized profile consumers delegate duplicated direct'
 assert_contains "getting started explains bounded PR and push suppression" "$GETTING_STARTED" \
   'direct profile-dependent PR/push jobs$'
-assert_contains "ADR records local duplicate suppression" "$ADR" \
-  'duplicate suppression implemented locally; hosted consumer revalidation pending'
-assert_contains "roadmap identifies hosted revalidation as next gate" "$ROADMAP" \
-  'duplicate suppression implemented locally; hosted revalidation next'
-assert_contains "technical debt remains open for hosted proof" "$TECHNICAL_DEBT" \
-  'Duplicate suppression is implemented locally; hosted consumer revalidation remains pending'
+assert_contains "ADR records hosted duplicate suppression pass" "$ADR" \
+  'hosted duplicate-suppression revalidation passed'
+assert_contains "ADR records evidence PR" "$ADR" \
+  'template-ai-native/pull/63'
+assert_contains "ADR records aggregate evidence run" "$ADR" \
+  'actions/runs/31679490701'
+assert_contains "roadmap marks profile-aware activation complete" "$ROADMAP" \
+  'hosted duplicate-suppression evidence passed; completed'
+assert_contains "technical debt closes hosted proof" "$TECHNICAL_DEBT" \
+  'TD-0015.*Closed 2026-08-13'
 assert_contains "changelog records bounded duplicate suppression" "$CHANGELOG" \
   'Suppressed duplicated direct profile-dependent PR/push jobs'
+assert_contains "changelog records hosted duplicate suppression pass" "$CHANGELOG" \
+  'Hosted duplicate-suppression revalidation passed'
 
 report

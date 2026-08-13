@@ -201,8 +201,10 @@ direct baseline through compatibility mode. Aggregate enforcement evidence is
 **PASS**: a protected
 disposable consumer resolved exactly six required checks successfully,
 including `Required controls`, before rollback to its original unprotected
-state. The new duplicate-suppression path has local contract evidence; hosted
-consumer revalidation remains the next gate. See the recorded decision in
+state. Hosted duplicate-suppression revalidation also passed on an initialized
+Starter/Python evidence consumer: aggregate controls ran once, direct duplicates
+skipped, build remained independent, and no required context stayed pending.
+See the recorded decision and run evidence in
 [`ADR-0010`](docs/adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md#activation-evidence-decision--2026-08-13).
 
 Inspect the local policy and the resulting execution plan before relying on a

@@ -243,8 +243,8 @@ assert_text_contains "aggregate appends Job Summary" "$aggregate" '>> "[$]GITHUB
 assert_contains "Makefile runs workflow contract" "$MAKEFILE" \
   '@sh scripts/test/test-profile-required-controls-workflow[.]sh'
 
-# Consumer and governance guidance must distinguish local duplicate suppression
-# from its remaining hosted revalidation gate.
+# Consumer and governance guidance must record the completed hosted
+# duplicate-suppression gate without weakening owner-controlled enforcement.
 for document in "$README" "$GETTING_STARTED" "$ADR" "$ROADMAP" "$TECHNICAL_DEBT" "$CHANGELOG"; do
   assert_contains "$(basename "$document") names the stable aggregate" "$document" \
     'Profile policy / Required controls'
@@ -263,10 +263,10 @@ assert_contains "scripts README documents execution plan resolver" "$SCRIPTS_REA
   'resolve-profile-execution-plan[.]sh'
 assert_contains "scripts README documents aggregate evaluator" "$SCRIPTS_README" \
   'evaluate-profile-required-controls[.]sh'
-assert_contains "ADR status records hosted revalidation gate" "$ADR" \
-  '^\- \*\*Status:\*\* Accepted — duplicate suppression implemented locally; hosted consumer revalidation pending$'
-assert_contains "roadmap records local duplicate suppression" "$ROADMAP" \
-  'duplicate suppression implemented locally; hosted revalidation next'
+assert_contains "ADR status records hosted revalidation pass" "$ADR" \
+  '^\- \*\*Status:\*\* Accepted — hosted duplicate-suppression revalidation passed$'
+assert_contains "roadmap records completed profile activation" "$ROADMAP" \
+  'hosted duplicate-suppression evidence passed; completed'
 assert_contains "roadmap records exact aggregate check-run name" "$ROADMAP" \
   'stable `Required controls` context'
 assert_contains "technical debt records exact aggregate check-run name" "$TECHNICAL_DEBT" \
@@ -277,8 +277,8 @@ assert_contains "ADR records exact required count" "$ADR" \
   'returned exactly six'
 assert_contains "roadmap records aggregate enforcement PASS" "$ROADMAP" \
   'branch-protection enforcement gate is \*\*PASS\*\*'
-assert_contains "technical debt stages hosted revalidation" "$TECHNICAL_DEBT" \
-  'Duplicate suppression locally implemented 2026-08-13; hosted revalidation pending'
+assert_contains "technical debt closes hosted revalidation" "$TECHNICAL_DEBT" \
+  'TD-0015.*Closed 2026-08-13'
 assert_contains "README records aggregate enforcement PASS" "$README" \
   'Aggregate enforcement evidence is$'
 assert_contains "getting started records aggregate enforcement PASS" "$GETTING_STARTED" \
@@ -307,8 +307,8 @@ assert_contains "profile schema comment records aggregate selection" "$PROFILE_S
   'select aggregate jobs'
 assert_contains "profile controls comment records aggregate selection" "$PROFILE_CONTROLS" \
   'select aggregate jobs'
-assert_contains "ADR index records hosted revalidation gate" "$ADR_INDEX" \
-  'Accepted — duplicate suppression implemented locally; hosted revalidation pending'
+assert_contains "ADR index records hosted revalidation pass" "$ADR_INDEX" \
+  'Accepted — hosted duplicate-suppression revalidation passed'
 assert_contains "changelog records profile-selected advisory execution" "$CHANGELOG" \
   'Profile values now select reusable jobs in the advisory aggregate'
 assert_not_contains "changelog no longer claims profile workflows are entirely inactive" "$CHANGELOG" \

@@ -1,6 +1,6 @@
 # ADR-0010: Activate profile-aware controls through a stable aggregate
 
-- **Status:** Accepted — duplicate suppression implemented locally; hosted consumer revalidation pending
+- **Status:** Accepted — hosted duplicate-suppression revalidation passed
 - **Date:** 2026-08-11
 - **Decision owners:** Template maintainers and consumer project owners
 
@@ -48,7 +48,8 @@ The implementation provides the resolver, reusable control boundaries, and
 stable aggregate. Initialized profile consumers now delegate duplicated direct
 PR/push controls to that aggregate, while template compatibility and independent
 delivery/control channels remain. Branch-protection changes remain an explicit
-owner action, and hosted duplicate-suppression revalidation is still pending.
+owner action. Hosted duplicate-suppression revalidation passed on the bounded
+evidence described below.
 
 ## Profile selection and compatibility
 
@@ -291,10 +292,35 @@ disposable repository's original state.
 
 The branch-protection enforcement gate is therefore **PASS**. Applying the
 helper remains an explicit repository-owner action; no repository setting
-changes automatically. Removing duplicate direct profile-dependent execution
-is authorized only as a later, independently reversible PR that retains the
-five invariant governance workflows and the stable `Required controls`
-context.
+changes automatically.
+
+Duplicate suppression was subsequently merged through
+[PR #62](https://github.com/setiyadijoko/template-ai-native/pull/62) and
+revalidated on evidence-only
+[PR #63](https://github.com/setiyadijoko/template-ai-native/pull/63), which was
+closed without merge and whose branch was deleted. On the initialized
+Starter/Python evidence consumer:
+
+- [Profile policy run 31679490701](https://github.com/setiyadijoko/template-ai-native/actions/runs/31679490701)
+  executed quality/unit, gitleaks, and OSV once through the aggregate, then
+  published a successful exact `Required controls` check;
+- [direct CI run 31679490564](https://github.com/setiyadijoko/template-ai-native/actions/runs/31679490564)
+  skipped direct quality, coverage, and monorepo jobs while preserving a
+  successful Python build artifact;
+- direct [gitleaks run 31679490561](https://github.com/setiyadijoko/template-ai-native/actions/runs/31679490561),
+  [OSV run 31679490555](https://github.com/setiyadijoko/template-ai-native/actions/runs/31679490555),
+  and [CodeQL run 31679490560](https://github.com/setiyadijoko/template-ai-native/actions/runs/31679490560)
+  resolved consumer mode and skipped their duplicate scanner jobs; and
+- provider-backed AI evaluation remained independent and performed its
+  credential-aware graceful skip because no provider secret was present.
+
+Every check run completed; the five invariant contexts and exact
+`Required controls` succeeded without a pending context. Template compatibility
+also remained intact on merge commit
+[`e14ce453`](https://github.com/setiyadijoko/template-ai-native/commit/e14ce4532996a28b4079a03340e225d4ea4633af):
+direct gitleaks and CodeQL executed successfully, the compatibility aggregate
+succeeded, and all nine observed push workflows completed successfully. Hosted
+duplicate-suppression revalidation therefore **PASS** and TD-0015 is closed.
 
 ## Alternatives considered
 
