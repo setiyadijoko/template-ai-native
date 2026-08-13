@@ -221,7 +221,7 @@ else
   printf 'mode=profile\nprofile=%s\nlayout=single\nstack=%s\nstatus=ready\n' "$PROFILE" "$STACK"
   emit_boundary quality_unit run true required-by-profile
   emit_pr_control test_coverage coverage
-  emit_boundary monorepo_ci not-applicable false no-executable-stack
+  emit_boundary monorepo_ci not-applicable false single-stack-layout
   emit_boundary secret_scan run true required-by-profile
   emit_boundary dependency_review run true required-by-profile
   emit_pr_control codeql codeql

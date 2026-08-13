@@ -26,6 +26,18 @@ assert_count() {
   assert_eq "$label" "$actual" "$expected"
 }
 
+assert_output_order() {
+  label="$1"; output="$2"
+  actual="$(printf '%s\n' "$output" | sed 's/=.*//')"
+  expected="$(
+    printf '%s\n' aggregate.status
+    for boundary in $BOUNDARIES; do
+      printf 'boundary.%s.verdict\nboundary.%s.detail\n' "$boundary" "$boundary"
+    done
+  )"
+  assert_eq "$label output order" "$actual" "$expected"
+}
+
 write_plan() {
   path="$1"; decision="$2"; required="$3"; reason="${4:-required-by-profile}"
   {
@@ -86,6 +98,7 @@ assert_case() {
   assert_contains "$case_name detail" "$output" '^boundary\.quality_unit\.detail=required-by-profile$'
   assert_count "$case_name verdict records" "$output" '^boundary\.[a-z_]+\.verdict=' 13
   assert_count "$case_name detail records" "$output" '^boundary\.[a-z_]+\.detail=[a-z0-9][a-z0-9-]{0,63}$' 13
+  assert_output_order "$case_name" "$output"
   assert_eq "$case_name stderr" "$(cat "$WORK/$case_name.stderr")" ''
 }
 
@@ -155,12 +168,26 @@ assert_case required_success          run true  success   0 pass
 assert_case required_failure          run true  failure   1 fail
 assert_case required_cancelled        run true  cancelled 1 fail
 assert_case required_skip             run true  skipped   1 fail
+assert_case advisory_success          run false success   0 pass
 assert_case advisory_failure          run false failure   0 warning
+assert_case advisory_cancelled        run false cancelled 0 warning
+assert_case advisory_skip             run false skipped   0 warning
 assert_case planned_skip              planned-skip false skipped 0 planned
 assert_case not_applicable            not-applicable false skipped 0 planned
 assert_case compatibility_delegation  delegated-to-current-baseline false skipped 0 planned
 assert_case policy_only               policy-only false skipped 0 planned
 assert_case unexpected_execution      planned-skip false success 1 fail
+assert_case planned_skip_failure      planned-skip false failure 1 fail
+assert_case planned_skip_cancelled    planned-skip false cancelled 1 fail
+assert_case not_applicable_success    not-applicable false success 1 fail
+assert_case not_applicable_failure    not-applicable false failure 1 fail
+assert_case not_applicable_cancelled  not-applicable false cancelled 1 fail
+assert_case delegation_success        delegated-to-current-baseline false success 1 fail
+assert_case delegation_failure        delegated-to-current-baseline false failure 1 fail
+assert_case delegation_cancelled      delegated-to-current-baseline false cancelled 1 fail
+assert_case policy_only_success       policy-only false success 1 fail
+assert_case policy_only_failure       policy-only false failure 1 fail
+assert_case policy_only_cancelled     policy-only false cancelled 1 fail
 
 # Both a passing and a failing result must be deterministic, including stdout,
 # stderr, and exit status.
