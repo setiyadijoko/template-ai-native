@@ -409,4 +409,90 @@ assert_compound_value_rejected boolean boundary.quality_unit.required 'true fals
 assert_compound_value_rejected decision boundary.quality_unit.decision 'run planned-skip'
 assert_compound_value_rejected stack stack 'python node'
 
+# Run the real aggregate shell step with a valid optional boundary failure.
+# The aggregate must preserve its passing status while emitting a visible
+# GitHub annotation for the evaluator's warning verdict.
+AGGREGATE_STEP_SCRIPT="$PLAN_TEST_TMP/aggregate-step.sh"
+printf '%s\n' "$aggregate" | awk '
+  /^        run: \|$/ { inside=1; next }
+  inside { sub(/^          /, ""); print }
+' > "$AGGREGATE_STEP_SCRIPT"
+
+AGGREGATE_FIXTURE="$PLAN_TEST_TMP/aggregate-fixture"
+mkdir -p "$AGGREGATE_FIXTURE/scripts" "$PLAN_TEST_TMP/aggregate-runner"
+cp "$ROOT/scripts/evaluate-profile-required-controls.sh" \
+  "$AGGREGATE_FIXTURE/scripts/evaluate-profile-required-controls.sh"
+cat > "$AGGREGATE_FIXTURE/scripts/resolve-profile-execution-plan.sh" <<'EOF'
+#!/usr/bin/env sh
+cat <<'PLAN'
+mode=profile
+profile=standard
+layout=single
+stack=python
+status=ready
+boundary.quality_unit.decision=run
+boundary.quality_unit.required=false
+boundary.quality_unit.reason=optional-by-profile
+boundary.test_coverage.decision=planned-skip
+boundary.test_coverage.required=false
+boundary.test_coverage.reason=disabled-by-profile
+boundary.monorepo_ci.decision=not-applicable
+boundary.monorepo_ci.required=false
+boundary.monorepo_ci.reason=single-stack-layout
+boundary.secret_scan.decision=planned-skip
+boundary.secret_scan.required=false
+boundary.secret_scan.reason=disabled-by-profile
+boundary.dependency_review.decision=planned-skip
+boundary.dependency_review.required=false
+boundary.dependency_review.reason=disabled-by-profile
+boundary.codeql.decision=planned-skip
+boundary.codeql.required=false
+boundary.codeql.reason=disabled-by-profile
+boundary.ai_evaluation.decision=planned-skip
+boundary.ai_evaluation.required=false
+boundary.ai_evaluation.reason=disabled-by-profile
+boundary.sbom.decision=planned-skip
+boundary.sbom.required=false
+boundary.sbom.reason=disabled-by-profile
+boundary.artifact_attestation.decision=planned-skip
+boundary.artifact_attestation.required=false
+boundary.artifact_attestation.reason=disabled-by-profile
+boundary.scorecard.decision=planned-skip
+boundary.scorecard.required=false
+boundary.scorecard.reason=disabled-by-profile
+boundary.semantic_review.decision=planned-skip
+boundary.semantic_review.required=false
+boundary.semantic_review.reason=disabled-by-profile
+boundary.structural_review.decision=planned-skip
+boundary.structural_review.required=false
+boundary.structural_review.reason=disabled-by-profile
+boundary.production_governance.decision=planned-skip
+boundary.production_governance.required=false
+boundary.production_governance.reason=disabled-by-profile
+PLAN
+EOF
+chmod 700 "$AGGREGATE_FIXTURE/scripts/resolve-profile-execution-plan.sh" \
+  "$AGGREGATE_FIXTURE/scripts/evaluate-profile-required-controls.sh"
+
+set +e
+(
+  cd "$AGGREGATE_FIXTURE"
+  PLAN_RESULT=success PLAN_MODE=profile PLAN_PROFILE=standard \
+    PLAN_LAYOUT=single PLAN_STACK=python QUALITY_UNIT_RESULT=failure \
+    TEST_COVERAGE_RESULT=skipped MONOREPO_CI_RESULT=skipped \
+    SECRET_SCAN_RESULT=skipped DEPENDENCY_REVIEW_RESULT=skipped \
+    CODEQL_RESULT=skipped AI_EVALUATION_RESULT=skipped \
+    RUNNER_TEMP="$PLAN_TEST_TMP/aggregate-runner" \
+    GITHUB_STEP_SUMMARY="$PLAN_TEST_TMP/aggregate-summary.md" \
+    sh "$AGGREGATE_STEP_SCRIPT"
+) > "$PLAN_TEST_TMP/aggregate-stdout.txt" 2> "$PLAN_TEST_TMP/aggregate-stderr.txt"
+aggregate_exit=$?
+set -e
+assert_eq "optional warning aggregate remains passing" "$aggregate_exit" 0
+assert_contains "optional warning emits GitHub annotation" \
+  "$PLAN_TEST_TMP/aggregate-stdout.txt" \
+  '^::warning title=Profile policy advisory boundary::quality_unit: optional-by-profile$'
+assert_eq "optional warning aggregate stderr" \
+  "$(cat "$PLAN_TEST_TMP/aggregate-stderr.txt")" ''
+
 report

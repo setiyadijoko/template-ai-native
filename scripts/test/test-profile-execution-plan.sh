@@ -89,6 +89,19 @@ assert_boundary_matrix() {
   done
 }
 
+assert_output_order() {
+  label="$1"; output="$2"
+  actual="$(printf '%s\n' "$output" | sed 's/=.*//')"
+  expected="$(
+    printf '%s\n' mode profile layout stack status
+    for boundary in $BOUNDARIES; do
+      printf 'boundary.%s.decision\nboundary.%s.required\nboundary.%s.reason\n' \
+        "$boundary" "$boundary" "$boundary"
+    done
+  )"
+  assert_eq "$label output order" "$actual" "$expected"
+}
+
 # Empty template compatibility delegates all advisory controls to the existing
 # baseline and emits every fixed-order boundary field.
 mkdir -p "$WORK/template"
@@ -101,6 +114,7 @@ assert_contains "compatibility secret delegation" "$compatibility" \
   '^boundary\.secret_scan\.decision=delegated-to-current-baseline$'
 assert_count "all boundaries have three fields" "$compatibility" \
   '^boundary\.[^.]+\.(decision|required|reason)=' 39
+assert_output_order "compatibility plan" "$compatibility"
 
 # Valid initialized consumers without a detected stack run stack-neutral
 # controls while reporting application controls as inapplicable.
@@ -147,6 +161,8 @@ for profile in starter standard enterprise; do
       assert_boundary "$profile CodeQL" "$plan" codeql run true required-by-profile
       ;;
   esac
+  assert_boundary "$profile monorepo boundary" "$plan" monorepo_ci \
+    not-applicable false single-stack-layout
 done
 
 strengthened="$WORK/single-starter-strengthened"
@@ -274,6 +290,7 @@ normal_once="$(cd "$parser_fixture" && sh "$PLAN" .template/profile.yaml "$MAPPI
 normal_twice="$(cd "$parser_fixture" && sh "$PLAN" .template/profile.yaml "$MAPPING" .template/project.yaml)"
 assert_eq "valid plan is byte-identical" "$normal_twice" "$normal_once"
 assert_boundary_matrix "normal plan" "$normal_once"
+assert_output_order "profile plan" "$normal_once"
 
 weakened="$WORK/weakened-enterprise"
 make_fixture "$weakened" enterprise false

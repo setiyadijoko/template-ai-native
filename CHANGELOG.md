@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Hardened the profile required-controls contract with deterministic resolver
+  and evaluator output-order checks, a complete optional/non-run conclusion
+  matrix, a truthful single-stack monorepo reason, and visible GitHub warning
+  annotations for advisory boundary failures. This closes TD-0020 without
+  activating optional controls or removing duplicate baseline execution.
 - Corrected the branch-protection helper to require the aggregate's emitted
   check-run name, `Required controls`. A protected disposable pilot proved that
   the UI-style `Profile policy / Required controls` label was stored as an

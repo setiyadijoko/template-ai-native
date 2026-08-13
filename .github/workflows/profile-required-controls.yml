@@ -263,6 +263,27 @@ jobs:
           sh scripts/evaluate-profile-required-controls.sh "$report" "$outcomes" \
             > "$evaluation" || evaluator_status=$?
 
+          for boundary in quality_unit test_coverage monorepo_ci secret_scan \
+            dependency_review codeql ai_evaluation sbom artifact_attestation \
+            scorecard semantic_review structural_review production_governance; do
+            verdict="$(awk -F '=' -v key="boundary.$boundary.verdict" \
+              '$1 == key { count++; value=$2 } END { if (count != 1) exit 2; print value }' \
+              "$evaluation")" || {
+                printf 'Invalid evaluator verdict for boundary: %s\n' "$boundary" >&2
+                exit 1
+              }
+            if [ "$verdict" = warning ]; then
+              detail="$(awk -F '=' -v key="boundary.$boundary.detail" \
+                '$1 == key { count++; value=$2 } END { if (count != 1) exit 2; print value }' \
+                "$evaluation")" || {
+                  printf 'Invalid evaluator detail for boundary: %s\n' "$boundary" >&2
+                  exit 1
+                }
+              printf '::warning title=Profile policy advisory boundary::%s: %s\n' \
+                "$boundary" "$detail"
+            fi
+          done
+
           {
             printf '%s\n\n' '## Normalized execution plan'
             printf '%s\n' '```text'
