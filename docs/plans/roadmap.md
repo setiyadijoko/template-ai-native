@@ -155,16 +155,16 @@ authorized by the shadow pilot itself.
   `Secret source: None`, and an aggregate with no unresolved required context.
   Branch protection was applied with the five invariant contexts plus the
   stable aggregate, then rolled back to its original unprotected state.
-- Decision: the workflow/failure/fork evidence remains valid, but aggregate
-  branch-protection enforcement is **NO-GO** pending revalidation. The first
-  end-to-end helper pilot found that GitHub branch protection requires the
-  aggregate's exact check-run name, `Required controls`, rather than the
-  UI-style combined label. The pilot was closed without merge and rolled back
-  safely; the helper now uses the exact check-run name.
-- After a protected disposable consumer revalidates the corrected helper
-  end-to-end, a later PR may
-  remove duplicate direct profile-dependent execution. The five invariant
-  governance workflows remain independent and unchanged.
+- The corrected helper was revalidated on
+  [disposable PR #5](https://github.com/setiyadijoko/template-ai-native-profile-starter-pilot/pull/5).
+  Exactly six required GitHub Actions checks resolved successfully, including
+  `Required controls`; no required context remained pending. The PR was closed
+  without merge, its branch was deleted, and branch protection was removed to
+  restore the repository's original unprotected state.
+- Decision: the branch-protection enforcement gate is **PASS**. A later,
+  independently reversible PR may remove duplicate direct profile-dependent
+  execution. The five invariant governance workflows remain independent and
+  unchanged, and the stable `Required controls` context remains required.
 
 ### P0 — component-aware monorepo CI (implemented; hosted pilot passed)
 
@@ -235,9 +235,7 @@ evidence are complete:
    repository; and
 6. every ADR-0010 acceptance criterion has evidence.
 
-The workflow, failure, fork, and rollback evidence was collected on
-2026-08-13. The first end-to-end helper pilot then exposed and safely rolled
-back an exact check-name binding defect, so enforcement remains **NO-GO**. The
-next bounded change is revalidation of the corrected
-`Required controls` context on the protected disposable consumer; duplicate
-baseline removal remains a later, independently reversible change.
+The workflow, failure, fork, rollback, and corrected-helper enforcement
+evidence passed on 2026-08-13. The next bounded change is a separate PR to
+remove duplicate direct profile-dependent execution while retaining the five
+invariant governance workflows and stable `Required controls` context.

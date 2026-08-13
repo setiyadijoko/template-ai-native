@@ -11,12 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Corrected the branch-protection helper to require the aggregate's emitted
   check-run name, `Required controls`. A protected disposable pilot proved that
   the UI-style `Profile policy / Required controls` label was stored as an
-  unmatched legacy context and did not enforce the GitHub Actions job;
-  enforcement remains gated pending corrected-helper revalidation.
+  unmatched legacy context and did not enforce the GitHub Actions job. The
+  corrected helper subsequently passed protected-consumer revalidation.
 - Prevented `scripts/init-project.sh --reconfigure` from duplicating the
   generated README identity marker.
 
 ### Added
+- Recorded corrected helper revalidation on a protected disposable Starter
+  consumer: exactly six required GitHub Actions checks succeeded, including
+  `Required controls`; the evidence PR was closed without merge and branch
+  protection was rolled back. This passes the enforcement gate while keeping
+  duplicate direct execution for a separate change.
 - Added `Profile policy / Required controls` to the branch-protection helper's
   recommended contexts after the hosted activation gate passed. Applying the
   recommendation remains owner-controlled, and duplicate direct execution is
@@ -31,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   execution-plan resolver, required-control evaluator, and bounded reusable
   workflow boundaries. Existing direct baseline workflow execution and branch
   protection remain unchanged while hosted activation evidence is collected;
-  enforcement remains NO-GO.
+  enforcement was initially deferred until the evidence gate passed.
 - Required explicit Starter, Standard, or Enterprise profile selection during
   consumer initialization, with a credential-free project/profile configuration
   pair. Added central effective-policy resolution, local `make
