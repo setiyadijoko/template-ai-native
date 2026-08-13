@@ -1,12 +1,14 @@
+<!-- template-ai-native:project-identity:generated -->
 <!-- template-ai-native:project-identity:start -->
-# template-ai-native
+# td0015-hosted-consumer
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
-![Status: Template](https://img.shields.io/badge/Status-Template-2ea44f)
 
-**Status:** Template baseline — adapt to your project.
+**Status:** Consumer project bootstrapped from `template-ai-native`.
 
-A reusable, production-grade, **stack-agnostic** GitHub template for building AI-native applications to a consistent, governed standard — from discovery through production operation and continuous improvement. It carries engineering standards, AI-agent operating rules, architectural governance, documentation standards, quality gates, automated testing, security controls, supply-chain controls, AI evaluation, CI/CD workflows, deployment governance, production observability, operational readiness, and rollback/disaster-recovery procedures — **without** committing to a specific language, framework, or deployment target.
+Disposable hosted profile duplicate-suppression evidence
+
+**Stack:** `python`
 <!-- template-ai-native:project-identity:end -->
 
 ## Project overview
