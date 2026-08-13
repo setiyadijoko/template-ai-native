@@ -184,14 +184,14 @@ mapping and future activation gate are recorded in
 [`docs/adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md`](docs/adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md),
 with defaults in `.template/profile-controls.yaml`.
 
-The advisory `Profile policy / Required controls` check now resolves the
+The `Profile policy / Required controls` check now resolves the
 effective execution plan and runs the applicable reusable control boundaries.
 Hosted Starter, Standard, Enterprise, fork, required-failure, and disposable
-branch-protection rollback evidence passed. The current recommended
-branch-protection contexts still do not include the aggregate, and direct
-baseline workflows remain enabled. The evidence gate is therefore a **GO for
-a separate enforcement PR**, not a claim that enforcement or CI-cost reduction
-is already active. See the recorded decision in
+branch-protection rollback evidence passed. The branch-protection helper now
+recommends the aggregate alongside the five invariant governance contexts.
+It changes a consumer repository only when an authorized owner runs it with
+`--apply`; direct baseline workflows remain enabled, so CI-cost reduction is
+not active yet. See the recorded decision in
 [`ADR-0010`](docs/adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md#activation-evidence-decision--2026-08-13).
 
 Inspect the local policy and the resulting execution plan before relying on a
@@ -203,8 +203,8 @@ sh scripts/resolve-profile-execution-plan.sh
 ```
 
 The older `Profile shadow / Profile policy observation` check remains an
-advisory policy-only observation. Neither it nor the advisory aggregate changes
-branch protection in this release.
+advisory policy-only observation. Workflows do not change branch protection
+automatically; repository owners retain control through the setup helper.
 
 ## Documentation index
 

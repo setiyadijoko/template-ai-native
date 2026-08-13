@@ -12,12 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   generated README identity marker.
 
 ### Added
+- Added `Profile policy / Required controls` to the branch-protection helper's
+  recommended contexts after the hosted activation gate passed. Applying the
+  recommendation remains owner-controlled, and duplicate direct execution is
+  retained pending protected-consumer validation.
 - Recorded successful Starter, Standard, and AI-enabled Enterprise profile
   activation pilots, including reruns and `main` pushes; required-failure
   propagation; external-fork read-only/no-secret behavior; duration and avoided
   job evidence; and disposable branch-protection migration/rollback. The gate
-  now permits a separate enforcement PR, while enforcement and duplicate-path
-  removal remain inactive.
+  permits the owner-controlled helper recommendation, while duplicate-path
+  removal remains inactive.
 - Added the advisory `Profile policy / Required controls` aggregate, its
   execution-plan resolver, required-control evaluator, and bounded reusable
   workflow boundaries. Existing direct baseline workflow execution and branch

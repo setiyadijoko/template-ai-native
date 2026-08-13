@@ -34,6 +34,11 @@ assert_contains "metadata context matches emitted check" "-f 'required_status_ch
 assert_contains "docs context matches emitted check" "-f 'required_status_checks\[contexts\]\[\]=Markdown lint \+ link check \+ TBD/TODO scan'"
 assert_contains "actionlint context matches emitted check" "-f 'required_status_checks\[contexts\]\[\]=actionlint \(workflow syntax\)'"
 assert_contains "zizmor context matches emitted check" "-f 'required_status_checks\[contexts\]\[\]=zizmor \(workflow security\)'"
+assert_contains "profile aggregate context matches emitted check" "-f 'required_status_checks\[contexts\]\[\]=Profile policy / Required controls'"
+assert_eq "helper recommends exactly six required contexts" \
+  "$(grep -Ec "required_status_checks\[contexts\]\[\]=" "$SCRIPT")" "6"
+assert_not_contains "helper excludes profile-dependent job contexts" \
+  "required_status_checks\[contexts\]\[\]=.*(quality_unit|test_coverage|monorepo_ci|secret_scan|dependency_review|codeql|ai_evaluation)"
 assert_not_contains "strict is not sent as raw string" "-f required_status_checks\[strict\]=true"
 assert_not_contains "approval count is not sent as raw string" "-f required_pull_request_reviews\[required_approving_review_count\]=1"
 assert_not_contains "docs check is not path-filtered" "paths:"

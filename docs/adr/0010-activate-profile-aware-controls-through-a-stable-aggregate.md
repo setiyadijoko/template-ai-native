@@ -1,6 +1,6 @@
 # ADR-0010: Activate profile-aware controls through a stable aggregate
 
-- **Status:** Accepted — activation evidence passed; enforcement change staged separately
+- **Status:** Accepted — helper recommendation implemented; repository application owner-controlled
 - **Date:** 2026-08-11
 - **Decision owners:** Template maintainers and consumer project owners
 
@@ -169,9 +169,10 @@ even though their execution plans differ.
    permissions, absence of secrets, and absence of pending contexts.
 6. Record duration, warning noise, and the profile-variable jobs avoided by
    Starter compared with Standard and Enterprise.
-7. After hosted evidence passes, update the branch-protection helper to require
-   the aggregate for newly initialized consumers.
-8. Only then remove duplicate always-run profile-dependent execution.
+7. Completed: after hosted evidence passed, update the branch-protection helper
+   to recommend the aggregate for newly initialized consumers.
+8. Validate the helper end-to-end on a protected disposable consumer.
+9. Only then remove duplicate always-run profile-dependent execution.
 
 Implementation and enforcement must be separate PR-sized changes. A green
 advisory aggregate is not authority to change branch protection in the same PR.
@@ -255,11 +256,12 @@ Failure and fork behavior were also exercised on the disposable Starter repo:
   the disposable repository's original state. No disabled profile job left a
   pending required context in the completed pilot runs.
 
-The activation evidence gate is therefore **PASS**. This is a **GO for a
-separate enforcement PR**, not a statement that enforcement is already active.
-That PR must update the helper to require only the stable aggregate in addition
-to the five invariant contexts. Removing duplicate direct execution remains a
-subsequent change after protected-consumer validation.
+The activation evidence gate is therefore **PASS**. The setup helper now
+recommends only the stable aggregate in addition to the five invariant
+contexts. No repository setting changes automatically: an authorized owner
+must explicitly run the helper with `--apply`. Removing duplicate direct
+execution remains a subsequent change after protected-consumer validation of
+the helper.
 
 ## Alternatives considered
 
