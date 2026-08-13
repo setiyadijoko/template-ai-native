@@ -1,6 +1,6 @@
 # ADR-0010: Activate profile-aware controls through a stable aggregate
 
-- **Status:** Accepted — protected-consumer enforcement evidence passed; duplicate removal staged separately
+- **Status:** Accepted — duplicate suppression implemented locally; hosted consumer revalidation pending
 - **Date:** 2026-08-11
 - **Decision owners:** Template maintainers and consumer project owners
 
@@ -44,10 +44,11 @@ Adopt a hybrid two-layer activation architecture for new consumers:
 5. Keep advisory, post-merge, scheduled/push, and manual/environment controls
    outside the pull-request aggregate.
 
-The advisory implementation now provides the resolver, reusable control
-boundaries, and stable aggregate while preserving all direct baseline triggers.
-It does not change branch protection or authorize enforcement; hosted evidence
-remains the gate for those later decisions.
+The implementation provides the resolver, reusable control boundaries, and
+stable aggregate. Initialized profile consumers now delegate duplicated direct
+PR/push controls to that aggregate, while template compatibility and independent
+delivery/control channels remain. Branch-protection changes remain an explicit
+owner action, and hosted duplicate-suppression revalidation is still pending.
 
 ## Profile selection and compatibility
 
@@ -175,6 +176,14 @@ even though their execution plans differ.
    to recommend the aggregate for newly initialized consumers.
 8. Validate the helper end-to-end on a protected disposable consumer.
 9. Only then remove duplicate always-run profile-dependent execution.
+
+Steps 1–8 passed their recorded hosted gates. Step 9 is now implemented as a
+separate, reversible change: one fail-closed repository-mode contract delegates
+duplicated PR/push quality, test, monorepo, secret, dependency, and CodeQL jobs
+for initialized profile consumers. It preserves template compatibility,
+build/provenance, scheduled/manual controls, direct provider-backed AI
+evaluation, and invariant governance. Hosted consumer revalidation is still
+required before this migration is declared complete.
 
 Implementation and enforcement must be separate PR-sized changes. A green
 advisory aggregate is not authority to change branch protection in the same PR.

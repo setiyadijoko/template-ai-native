@@ -192,11 +192,17 @@ recommends its exact check-run name, `Required controls`, alongside the five
 invariant governance contexts. GitHub's PR UI displays the same job as
 `Profile policy / Required controls`.
 It changes a consumer repository only when an authorized owner runs it with
-`--apply`; direct baseline workflows remain enabled, so CI-cost reduction is
-not active yet. Aggregate enforcement evidence is **PASS**: a protected
+`--apply`. Initialized profile consumers delegate duplicated direct
+profile-dependent quality, test, monorepo, secret, dependency, and CodeQL
+PR/push work to this aggregate. The direct build/provenance path, scheduled and
+manual security runs, provider-backed AI evaluation, and the five invariant
+governance workflows remain independent. The uninitialized template keeps its
+direct baseline through compatibility mode. Aggregate enforcement evidence is
+**PASS**: a protected
 disposable consumer resolved exactly six required checks successfully,
 including `Required controls`, before rollback to its original unprotected
-state. See the recorded decision in
+state. The new duplicate-suppression path has local contract evidence; hosted
+consumer revalidation remains the next gate. See the recorded decision in
 [`ADR-0010`](docs/adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md#activation-evidence-decision--2026-08-13).
 
 Inspect the local policy and the resulting execution plan before relying on a

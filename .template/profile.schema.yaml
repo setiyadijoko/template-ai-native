@@ -1,5 +1,5 @@
-# Declarative maturity-profile schema. Values select advisory aggregate jobs;
-# required-check enforcement remains staged behind hosted evidence.
+# Declarative maturity-profile schema. Values select aggregate jobs; repository
+# owners explicitly apply the stable required-check recommendation.
 version: 1
 kind: maturity-profile
 profile:

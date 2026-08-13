@@ -243,16 +243,16 @@ assert_text_contains "aggregate appends Job Summary" "$aggregate" '>> "[$]GITHUB
 assert_contains "Makefile runs workflow contract" "$MAKEFILE" \
   '@sh scripts/test/test-profile-required-controls-workflow[.]sh'
 
-# Consumer and governance guidance must distinguish the helper recommendation
-# from repository-level enforcement and later duplicate-path removal.
+# Consumer and governance guidance must distinguish local duplicate suppression
+# from its remaining hosted revalidation gate.
 for document in "$README" "$GETTING_STARTED" "$ADR" "$ROADMAP" "$TECHNICAL_DEBT" "$CHANGELOG"; do
   assert_contains "$(basename "$document") names the stable aggregate" "$document" \
     'Profile policy / Required controls'
 done
 assert_contains "README labels the aggregate advisory" "$README" 'advisory'
 assert_contains "getting started labels the aggregate advisory" "$GETTING_STARTED" 'advisory'
-assert_contains "getting started explains duplicate baseline execution" "$GETTING_STARTED" \
-  'duplicate baseline'
+assert_contains "getting started explains direct duplicate suppression" "$GETTING_STARTED" \
+  'direct profile-dependent PR/push jobs'
 assert_contains "getting started states protected-consumer gate" "$GETTING_STARTED" \
   'protected disposable consumer'
 assert_contains "README shows local profile policy command" "$README" \
@@ -263,12 +263,12 @@ assert_contains "scripts README documents execution plan resolver" "$SCRIPTS_REA
   'resolve-profile-execution-plan[.]sh'
 assert_contains "scripts README documents aggregate evaluator" "$SCRIPTS_README" \
   'evaluate-profile-required-controls[.]sh'
-assert_contains "ADR status records enforcement evidence pass" "$ADR" \
-  '^\- \*\*Status:\*\* Accepted — protected-consumer enforcement evidence passed; duplicate removal staged separately$'
-assert_contains "roadmap marks local advisory implementation complete" "$ROADMAP" \
-  'Local advisory implementation is complete'
+assert_contains "ADR status records hosted revalidation gate" "$ADR" \
+  '^\- \*\*Status:\*\* Accepted — duplicate suppression implemented locally; hosted consumer revalidation pending$'
+assert_contains "roadmap records local duplicate suppression" "$ROADMAP" \
+  'duplicate suppression implemented locally; hosted revalidation next'
 assert_contains "roadmap records exact aggregate check-run name" "$ROADMAP" \
-  'stable `Required controls` context remains required'
+  'stable `Required controls` context'
 assert_contains "technical debt records exact aggregate check-run name" "$TECHNICAL_DEBT" \
   'exact `Required controls` check-run name'
 assert_contains "ADR records corrected helper revalidation PR" "$ADR" \
@@ -277,38 +277,38 @@ assert_contains "ADR records exact required count" "$ADR" \
   'returned exactly six'
 assert_contains "roadmap records aggregate enforcement PASS" "$ROADMAP" \
   'branch-protection enforcement gate is \*\*PASS\*\*'
-assert_contains "technical debt stages duplicate removal" "$TECHNICAL_DEBT" \
-  'Protected-consumer enforcement evidence passed 2026-08-13'
+assert_contains "technical debt stages hosted revalidation" "$TECHNICAL_DEBT" \
+  'Duplicate suppression locally implemented 2026-08-13; hosted revalidation pending'
 assert_contains "README records aggregate enforcement PASS" "$README" \
-  'Aggregate enforcement evidence is \*\*PASS\*\*'
+  'Aggregate enforcement evidence is$'
 assert_contains "getting started records aggregate enforcement PASS" "$GETTING_STARTED" \
   'evidence is \*\*PASS\*\*'
 assert_contains "changelog records corrected helper revalidation" "$CHANGELOG" \
   'corrected helper revalidation'
 assert_contains "changelog records advisory aggregate" "$CHANGELOG" \
   'advisory `Profile policy / Required controls` aggregate'
-assert_contains "design spec records implementation status" "$DESIGN_SPEC" \
-  '^\*\*Status:\*\* Implemented locally — hosted enforcement evidence pending$'
+assert_contains "design spec records historical advisory scope" "$DESIGN_SPEC" \
+  '^# Advisory Profile Required Controls Design$'
 
 # Current-state guidance must distinguish advisory execution from later
 # enforcement and must distinguish reusable deterministic AI evaluation from
 # the direct secret-gated provider path.
-assert_contains "scripts README says generated profiles select advisory jobs" "$SCRIPTS_README" \
-  'Profile values select reusable jobs in the advisory aggregate'
+assert_contains "scripts README says generated profiles delegate direct jobs" "$SCRIPTS_README" \
+  'Profile values select aggregate jobs and suppress duplicated direct PR/push controls'
 assert_not_contains "scripts README does not claim profiles activate nothing" "$SCRIPTS_README" \
   'Profile values do not activate workflows'
-assert_contains "getting started says initializer output selects advisory jobs" "$GETTING_STARTED" \
-  'Generated profile values select reusable jobs in the advisory aggregate'
+assert_contains "getting started says initializer output selects aggregate jobs" "$GETTING_STARTED" \
+  'Generated profile values select reusable jobs in the aggregate'
 assert_not_contains "getting started does not claim controls stay inactive" "$GETTING_STARTED" \
   'does not create credentials, change workflows, or activate profile-aware controls'
 assert_contains "getting started distinguishes deterministic and provider AI paths" "$GETTING_STARTED" \
   'Reusable deterministic checks run without credentials; direct provider-backed evaluation remains secret-gated'
-assert_contains "profile schema comment records advisory selection" "$PROFILE_SCHEMA" \
-  'select advisory aggregate jobs'
-assert_contains "profile controls comment records advisory selection" "$PROFILE_CONTROLS" \
-  'select advisory aggregate jobs'
-assert_contains "ADR index records enforcement evidence pass" "$ADR_INDEX" \
-  'Accepted — protected-consumer enforcement evidence passed; duplicate removal staged separately'
+assert_contains "profile schema comment records aggregate selection" "$PROFILE_SCHEMA" \
+  'select aggregate jobs'
+assert_contains "profile controls comment records aggregate selection" "$PROFILE_CONTROLS" \
+  'select aggregate jobs'
+assert_contains "ADR index records hosted revalidation gate" "$ADR_INDEX" \
+  'Accepted — duplicate suppression implemented locally; hosted revalidation pending'
 assert_contains "changelog records profile-selected advisory execution" "$CHANGELOG" \
   'Profile values now select reusable jobs in the advisory aggregate'
 assert_not_contains "changelog no longer claims profile workflows are entirely inactive" "$CHANGELOG" \

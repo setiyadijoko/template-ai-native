@@ -1,5 +1,5 @@
-# Normative profile defaults that select advisory aggregate jobs. Direct
-# baseline execution and required-check enforcement remain unchanged.
+# Normative profile defaults that select aggregate jobs. Initialized consumers
+# delegate duplicated direct PR/push controls; template compatibility remains.
 version: 1
 profiles:
   starter:

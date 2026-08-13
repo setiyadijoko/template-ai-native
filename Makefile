@@ -87,6 +87,8 @@ test-scripts:
 	@sh scripts/test/test-profile-required-controls-evaluator.sh
 	@sh scripts/test/test-profile-control-boundaries.sh
 	@sh scripts/test/test-profile-required-controls-workflow.sh
+	@sh scripts/test/test-profile-direct-execution-mode.sh
+	@sh scripts/test/test-profile-direct-workflow-gating.sh
 	@sh scripts/test/test-profile-shadow.sh
 	@sh scripts/test/test-profile-shadow-workflow.sh
 ci: format-check lint docs-check readiness-check project-config-check profile-config-check profile-policy-check test-scripts
