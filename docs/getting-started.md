@@ -173,8 +173,10 @@ required checks on a protected disposable consumer, including the aggregate's
 exact check-run name, `Required controls`. GitHub's PR UI displays it as
 `Profile policy / Required controls`. Applying the helper remains an explicit
 owner action. Duplicate suppression is now implemented as a separate reviewed
-change; hosted consumer revalidation remains required before the migration is
-considered complete.
+change. Hosted Starter/Python revalidation passed with aggregate controls
+executing once, direct duplicates skipped, independent build preserved, and no
+pending required context. Historical disposable consumers still require no
+migration.
 
 ### 3.4 Activate component-aware monorepo CI
 

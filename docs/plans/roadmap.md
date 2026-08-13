@@ -126,7 +126,7 @@ Decision: the observation gate is complete. ADR-0010 now defines the approved
 activation architecture; no workflow condition or branch-protection change was
 authorized by the shadow pilot itself.
 
-### P1 — profile-aware activation (duplicate suppression implemented locally; hosted revalidation next)
+### P1 — profile-aware activation (hosted duplicate-suppression evidence passed; completed)
 
 - [ADR-0010](../adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md)
   selects a hybrid two-layer architecture: five invariant governance contexts
@@ -141,7 +141,7 @@ authorized by the shadow pilot itself.
   `Profile policy / Required controls` aggregate are implemented. Initialized
   consumers now suppress duplicated direct PR/push controls through one
   fail-closed repository-mode gate. Disposable historical pilots will not be
-  migrated; hosted revalidation uses a fresh consumer.
+  migrated.
 - Hosted evidence is complete. Fresh Starter, Standard, and AI-enabled
   Enterprise consumers passed pull-request reruns and `main` pushes with the
   same stable aggregate context. Enterprise also passed its post-merge SBOM,
@@ -166,8 +166,16 @@ authorized by the shadow pilot itself.
   PR/push execution for initialized consumers while retaining the five
   invariant governance workflows and stable `Required controls` context.
   Build/provenance, schedule/manual controls, provider-backed AI evaluation,
-  and template compatibility stay independent. Hosted consumer revalidation is
-  the remaining gate.
+  and template compatibility stay independent.
+- Hosted duplicate-suppression evidence passed on evidence-only
+  [PR #63](https://github.com/setiyadijoko/template-ai-native/pull/63), closed
+  without merge with its branch deleted. Aggregate
+  [run 31679490701](https://github.com/setiyadijoko/template-ai-native/actions/runs/31679490701)
+  executed Starter quality/unit, gitleaks, and OSV once; direct duplicate jobs
+  skipped; direct build succeeded; all check runs completed; and the five
+  invariant contexts plus exact `Required controls` succeeded without pending
+  state. Merge commit `e14ce453` also retained direct template-compatibility
+  gitleaks and CodeQL execution. TD-0015 is closed.
 
 ### P0 — component-aware monorepo CI (implemented; hosted pilot passed)
 
@@ -238,9 +246,9 @@ evidence are complete:
    repository; and
 6. every ADR-0010 acceptance criterion has evidence.
 
-The workflow, failure, fork, rollback, and corrected-helper enforcement
-evidence passed on 2026-08-13. Duplicate suppression is implemented locally;
-hosted revalidation next must prove that a fresh initialized consumer has no
-duplicate or pending profile-dependent checks while template compatibility,
-build/provenance, scheduled/manual controls, provider-backed AI evaluation,
-and the six required contexts remain intact.
+The workflow, failure, fork, rollback, corrected-helper enforcement, and hosted
+duplicate-suppression evidence passed on 2026-08-13. An initialized
+Starter/Python consumer had no duplicate or pending profile-dependent checks;
+template compatibility, build boundaries, provider-backed AI evaluation, and
+the six required contexts remained intact. Profile-aware activation is complete
+at the approved ADR-0010 scope.
