@@ -108,8 +108,12 @@ and is never inferred: use exactly one of `starter`, `standard`, or
 example `--deployment-target cloud`. For monorepos the initializer validates and
 writes the explicit component list used by `ci-monorepo.yml`. It does not create
 credentials, edit workflow files, or change branch protection.
-Generated profile values select reusable jobs in the advisory aggregate, while
-direct baseline execution remains unchanged during the pilot.
+Generated profile values select reusable jobs in the aggregate. For an
+initialized profile consumer, duplicated direct profile-dependent PR/push jobs
+are suppressed; the aggregate owns those outcomes. Build/provenance,
+scheduled/manual security runs, provider-backed AI evaluation, and invariant
+governance remain independent. The empty template retains direct compatibility
+execution.
 
 The template itself has no project/profile configuration and remains valid in
 compatibility mode. A consumer with `.template/project.yaml` must also have a
@@ -148,11 +152,13 @@ The check has four execution modes:
 | Initialized single stack | It runs the profile-selected quality, test/coverage, CodeQL, and deterministic AI boundaries where applicable. |
 | Initialized version-2 monorepo | It runs the existing component-aware CI boundary plus repository-wide controls. |
 
-During this staged migration, direct workflows continue to run as before. Seeing a
-matching control twice is intentional duplicate baseline execution, not a
-second application test requirement. The duplicate results let maintainers
-compare behavior, failure propagation, runtime, and noise before changing any
-existing workflow.
+For initialized profile consumers, direct profile-dependent PR/push jobs are
+suppressed after repository mode resolves successfully. This prevents the same
+quality, test, monorepo, secret, dependency, or CodeQL outcome from running in
+both the aggregate and the direct path. Schedule/manual scans, build and
+provenance, and credential-gated provider evaluation do not use that
+suppression. A partial initialization fails closed instead of falling back to
+the template baseline.
 
 Check the plan locally with:
 
@@ -166,7 +172,9 @@ evidence is **PASS**. The corrected helper produced exactly six successful
 required checks on a protected disposable consumer, including the aggregate's
 exact check-run name, `Required controls`. GitHub's PR UI displays it as
 `Profile policy / Required controls`. Applying the helper remains an explicit
-owner action. Duplicate baseline removal remains a separate reviewed change.
+owner action. Duplicate suppression is now implemented as a separate reviewed
+change; hosted consumer revalidation remains required before the migration is
+considered complete.
 
 ### 3.4 Activate component-aware monorepo CI
 

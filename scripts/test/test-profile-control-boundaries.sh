@@ -215,11 +215,17 @@ for file in "$SECRET_SCAN" "$DEPENDENCY_REVIEW" "$CODEQL" "$AI_EVALUATION"; do
   assert_not_contains "$(basename "$file") defines no reusable secret input" "$file" '^    secrets:'
 done
 
-for file in "$CI_QUALITY" "$CI_TEST" "$MONOREPO" "$SECRET_SCAN" \
-  "$DEPENDENCY_REVIEW" "$CODEQL" "$AI_EVALUATION"; do
+for file in "$CI_QUALITY" "$CI_TEST" "$MONOREPO" "$AI_EVALUATION"; do
   assert_not_contains "$(basename "$file") does not use inherited event-name discrimination" \
     "$file" 'github\.event_name'
 done
+
+assert_text_not_contains "secret scanner does not use inherited event-name discrimination" \
+  "$(job_block "$SECRET_SCAN" secret-scan)" 'github\.event_name'
+assert_text_not_contains "dependency scanner does not use inherited event-name discrimination" \
+  "$(job_block "$DEPENDENCY_REVIEW" osv-scan)" 'github\.event_name'
+assert_text_not_contains "CodeQL scanner does not use inherited event-name discrimination" \
+  "$(job_block "$CODEQL" codeql)" 'github\.event_name'
 
 assert_read_only "secret scan" "$SECRET_SCAN"
 assert_read_only "dependency review" "$DEPENDENCY_REVIEW"

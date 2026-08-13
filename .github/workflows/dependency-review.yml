@@ -22,8 +22,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  direct_mode:
+    name: Resolve direct execution mode
+    if: ${{ inputs.execution_channel == '' }}
+    uses: ./.github/workflows/direct-execution-mode.yml
+    with:
+      source_event: ${{ github.event_name }}
+
   osv-scan:
     name: osv-scanner (block on vulnerable dependency)
+    needs: direct_mode
+    if: >-
+      always() &&
+      (inputs.execution_channel != '' ||
+      (needs.direct_mode.result == 'success' &&
+      needs.direct_mode.outputs.direct_profile_controls == 'true'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

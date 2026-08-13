@@ -15,6 +15,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  direct_mode:
+    name: Resolve direct execution mode
+    uses: ./.github/workflows/direct-execution-mode.yml
+    with:
+      source_event: ${{ github.event_name }}
+
   detect:
     name: Detect stack
     runs-on: ubuntu-latest
@@ -47,8 +53,10 @@ jobs:
 
   quality:
     name: Quality (format/lint/typecheck/unit)
-    needs: detect
-    if: needs.detect.outputs.stack != 'unknown'
+    needs: [detect, direct_mode]
+    if: >-
+      needs.detect.outputs.stack != 'unknown' &&
+      needs.direct_mode.outputs.direct_profile_controls == 'true'
     uses: ./.github/workflows/ci-quality.yml
     with:
       stack: ${{ needs.detect.outputs.stack }}
@@ -56,8 +64,10 @@ jobs:
 
   test:
     name: Tests + coverage
-    needs: detect
-    if: needs.detect.outputs.stack != 'unknown'
+    needs: [detect, direct_mode]
+    if: >-
+      needs.detect.outputs.stack != 'unknown' &&
+      needs.direct_mode.outputs.direct_profile_controls == 'true'
     uses: ./.github/workflows/ci-test.yml
     with:
       stack: ${{ needs.detect.outputs.stack }}
@@ -73,8 +83,10 @@ jobs:
 
   monorepo:
     name: Component-aware monorepo CI
-    needs: detect
-    if: needs.detect.outputs.component_ready == 'true'
+    needs: [detect, direct_mode]
+    if: >-
+      needs.detect.outputs.component_ready == 'true' &&
+      needs.direct_mode.outputs.direct_profile_controls == 'true'
     uses: ./.github/workflows/ci-monorepo.yml
     with:
       execution_channel: baseline-ci
@@ -87,6 +99,7 @@ jobs:
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
       needs.detect.result == 'success' &&
+      needs.detect.outputs.layout != 'monorepo' &&
       needs.monorepo.result == 'skipped' &&
       (needs.build.result == 'success' ||
       (needs.build.result == 'skipped' &&

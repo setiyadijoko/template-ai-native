@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Suppressed duplicated direct profile-dependent PR/push jobs for initialized
+  consumers through one fail-closed repository-mode contract. The aggregate
+  now owns quality, test, monorepo, secret, dependency, and CodeQL outcomes;
+  template compatibility, build/provenance, scheduled/manual controls,
+  provider-backed AI evaluation, and invariant governance remain independent.
+  Hosted consumer revalidation remains tracked by TD-0015.
 - Hardened the profile required-controls contract with deterministic resolver
   and evaluator output-order checks, a complete optional/non-run conclusion
   matrix, a truthful single-stack monorepo reason, and visible GitHub warning

@@ -126,7 +126,7 @@ Decision: the observation gate is complete. ADR-0010 now defines the approved
 activation architecture; no workflow condition or branch-protection change was
 authorized by the shadow pilot itself.
 
-### P1 — profile-aware activation (hosted evidence passed; enforcement PR next)
+### P1 — profile-aware activation (duplicate suppression implemented locally; hosted revalidation next)
 
 - [ADR-0010](../adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md)
   selects a hybrid two-layer architecture: five invariant governance contexts
@@ -137,11 +137,11 @@ authorized by the shadow pilot itself.
   remains profile-free in compatibility mode; the central effective-policy
   resolver fails closed for an initialized consumer with a missing or invalid
   profile. The shadow presentation delegates to that resolver.
-- Local advisory implementation is complete: the execution-plan resolver,
-  reusable boundaries, and `Profile policy / Required controls` aggregate run
-  while all direct baseline workflows continue to run. The duplicate baseline
-  path is intentional during the pilot. Disposable historical pilots will not
-  be migrated.
+- The execution-plan resolver, reusable boundaries, and
+  `Profile policy / Required controls` aggregate are implemented. Initialized
+  consumers now suppress duplicated direct PR/push controls through one
+  fail-closed repository-mode gate. Disposable historical pilots will not be
+  migrated; hosted revalidation uses a fresh consumer.
 - Hosted evidence is complete. Fresh Starter, Standard, and AI-enabled
   Enterprise consumers passed pull-request reruns and `main` pushes with the
   same stable aggregate context. Enterprise also passed its post-merge SBOM,
@@ -161,10 +161,13 @@ authorized by the shadow pilot itself.
   `Required controls`; no required context remained pending. The PR was closed
   without merge, its branch was deleted, and branch protection was removed to
   restore the repository's original unprotected state.
-- Decision: the branch-protection enforcement gate is **PASS**. A later,
-  independently reversible PR may remove duplicate direct profile-dependent
-  execution. The five invariant governance workflows remain independent and
-  unchanged, and the stable `Required controls` context remains required.
+- Decision: the branch-protection enforcement gate is **PASS**. The independent
+  reversible duplicate-removal change now delegates direct profile-dependent
+  PR/push execution for initialized consumers while retaining the five
+  invariant governance workflows and stable `Required controls` context.
+  Build/provenance, schedule/manual controls, provider-backed AI evaluation,
+  and template compatibility stay independent. Hosted consumer revalidation is
+  the remaining gate.
 
 ### P0 — component-aware monorepo CI (implemented; hosted pilot passed)
 
@@ -236,6 +239,8 @@ evidence are complete:
 6. every ADR-0010 acceptance criterion has evidence.
 
 The workflow, failure, fork, rollback, and corrected-helper enforcement
-evidence passed on 2026-08-13. The next bounded change is a separate PR to
-remove duplicate direct profile-dependent execution while retaining the five
-invariant governance workflows and stable `Required controls` context.
+evidence passed on 2026-08-13. Duplicate suppression is implemented locally;
+hosted revalidation next must prove that a fresh initialized consumer has no
+duplicate or pending profile-dependent checks while template compatibility,
+build/provenance, scheduled/manual controls, provider-backed AI evaluation,
+and the six required contexts remain intact.
