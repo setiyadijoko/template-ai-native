@@ -153,10 +153,10 @@ authorized by the shadow pilot itself.
   `Secret source: None`, and an aggregate with no unresolved required context.
   Branch protection was applied with the five invariant contexts plus the
   stable aggregate, then rolled back to its original unprotected state.
-- Decision: the activation evidence gate is **PASS**. A separate enforcement
-  PR is authorized to update the branch-protection helper for new consumers.
-  Enforcement is not active in the current baseline.
-- After a protected disposable consumer validates that helper, a later PR may
+- Decision: the activation evidence gate is **PASS**. The branch-protection
+  helper now recommends the stable aggregate for new consumers; applying it
+  remains an explicit repository-owner action.
+- After a protected disposable consumer validates the helper end-to-end, a later PR may
   remove duplicate direct profile-dependent execution. The five invariant
   governance workflows remain independent and unchanged.
 
@@ -229,7 +229,8 @@ evidence are complete:
    repository; and
 6. every ADR-0010 acceptance criterion has evidence.
 
-All six exit criteria passed on 2026-08-13. The next bounded change is the
-branch-protection helper enforcement PR. Actual enforcement remains inactive
-until that change is reviewed and merged; duplicate baseline removal remains a
-later, independently reversible change.
+All six exit criteria passed on 2026-08-13. The helper now recommends the
+stable aggregate, but applying it remains an explicit repository-owner action.
+The next bounded change is end-to-end helper validation on a protected
+disposable consumer; duplicate baseline removal remains a later, independently
+reversible change.

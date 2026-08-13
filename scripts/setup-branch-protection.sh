@@ -18,6 +18,7 @@ require_approvals="gh api -X PUT repos/${REPO}/branches/${BRANCH}/protection \
   -f 'required_status_checks[contexts][]=Markdown lint + link check + TBD/TODO scan' \
   -f 'required_status_checks[contexts][]=actionlint (workflow syntax)' \
   -f 'required_status_checks[contexts][]=zizmor (workflow security)' \
+  -f 'required_status_checks[contexts][]=Profile policy / Required controls' \
   -F 'enforce_admins=true' \
   -F 'required_pull_request_reviews[required_approving_review_count]=1' \
   -F 'required_pull_request_reviews[dismiss_stale_reviews]=true' \

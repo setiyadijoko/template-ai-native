@@ -125,7 +125,7 @@ assert_eq "job IDs are exact and stable" "$job_ids" \
 assert_contains "aggregate context pair is unique" /dev/stdin '^2$' <<EOF
 $(awk '/^(name: Profile policy|    name: Required controls)$/ { count++ } END { print count + 0 }' "$ROOT"/.github/workflows/*.yml)
 EOF
-assert_not_contains "branch protection remains advisory" "$BRANCH_PROTECTION" \
+assert_contains "branch protection recommends stable aggregate" "$BRANCH_PROTECTION" \
   'Profile policy / Required controls'
 
 # Plan job: deterministic resolver, credential-free checkout, and bounded outputs.
@@ -241,9 +241,8 @@ assert_text_contains "aggregate appends Job Summary" "$aggregate" '>> "[$]GITHUB
 assert_contains "Makefile runs workflow contract" "$MAKEFILE" \
   '@sh scripts/test/test-profile-required-controls-workflow[.]sh'
 
-# Consumer and governance guidance must describe the implemented advisory
-# state, not the future enforcement state. The branch-protection helper is
-# separately asserted above to remain free of the aggregate context.
+# Consumer and governance guidance must distinguish the helper recommendation
+# from repository-level enforcement and later duplicate-path removal.
 for document in "$README" "$GETTING_STARTED" "$ADR" "$ROADMAP" "$TECHNICAL_DEBT" "$CHANGELOG"; do
   assert_contains "$(basename "$document") names the stable aggregate" "$document" \
     'Profile policy / Required controls'
@@ -252,8 +251,8 @@ assert_contains "README labels the aggregate advisory" "$README" 'advisory'
 assert_contains "getting started labels the aggregate advisory" "$GETTING_STARTED" 'advisory'
 assert_contains "getting started explains duplicate baseline execution" "$GETTING_STARTED" \
   'duplicate baseline'
-assert_contains "getting started states enforcement gate" "$GETTING_STARTED" \
-  'enforcement NO-GO'
+assert_contains "getting started states protected-consumer gate" "$GETTING_STARTED" \
+  'protected disposable consumer'
 assert_contains "README shows local profile policy command" "$README" \
   'make profile-policy-check'
 assert_contains "README shows execution plan command" "$README" \
@@ -262,14 +261,14 @@ assert_contains "scripts README documents execution plan resolver" "$SCRIPTS_REA
   'resolve-profile-execution-plan[.]sh'
 assert_contains "scripts README documents aggregate evaluator" "$SCRIPTS_README" \
   'evaluate-profile-required-controls[.]sh'
-assert_contains "ADR status records advisory implementation" "$ADR" \
-  '^\- \*\*Status:\*\* Accepted — advisory aggregate implemented; hosted enforcement evidence pending$'
+assert_contains "ADR status records helper recommendation" "$ADR" \
+  '^\- \*\*Status:\*\* Accepted — helper recommendation implemented; repository application owner-controlled$'
 assert_contains "roadmap marks local advisory implementation complete" "$ROADMAP" \
   'Local advisory implementation is complete'
-assert_contains "roadmap keeps hosted pilots pending" "$ROADMAP" \
-  'hosted Starter, Standard, and Enterprise activation pilots'
-assert_contains "technical debt records implemented orchestrator" "$TECHNICAL_DEBT" \
-  'advisory orchestrator/stable aggregate is implemented'
+assert_contains "roadmap records helper recommendation" "$ROADMAP" \
+  'helper now recommends the stable aggregate'
+assert_contains "technical debt records helper recommendation" "$TECHNICAL_DEBT" \
+  'helper now recommends the aggregate'
 assert_contains "changelog records advisory aggregate" "$CHANGELOG" \
   'advisory `Profile policy / Required controls` aggregate'
 assert_contains "design spec records implementation status" "$DESIGN_SPEC" \
@@ -292,8 +291,8 @@ assert_contains "profile schema comment records advisory selection" "$PROFILE_SC
   'select advisory aggregate jobs'
 assert_contains "profile controls comment records advisory selection" "$PROFILE_CONTROLS" \
   'select advisory aggregate jobs'
-assert_contains "ADR index records advisory implementation" "$ADR_INDEX" \
-  'Accepted — advisory aggregate implemented; hosted enforcement evidence pending'
+assert_contains "ADR index records helper recommendation" "$ADR_INDEX" \
+  'Accepted — helper recommendation implemented; repository application owner-controlled'
 assert_contains "changelog records profile-selected advisory execution" "$CHANGELOG" \
   'Profile values now select reusable jobs in the advisory aggregate'
 assert_not_contains "changelog no longer claims profile workflows are entirely inactive" "$CHANGELOG" \

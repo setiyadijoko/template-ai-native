@@ -18,6 +18,21 @@ or branch deletion. Required check contexts must match the emitted GitHub
 check-run names exactly; the current script uses job names rather than
 workflow/job display labels.
 
+The recommended required contexts are the five invariant governance checks
+plus the stable profile aggregate:
+
+- `PR Title Check`;
+- `Validate required docs & metadata`;
+- the documentation lint, link, and unresolved-marker check;
+- `actionlint (workflow syntax)`;
+- `zizmor (workflow security)`; and
+- `Profile policy / Required controls`.
+
+The helper does not include profile-dependent component job names. Direct
+baseline workflows remain enabled during the migration, and the aggregate
+must be validated on a protected disposable consumer before those duplicate
+paths are removed in a separate change.
+
 For a fine-grained personal access token, grant the minimum repository
 administration permission required to update branch protection. Prefer `gh`
 device or browser authentication and short-lived credentials where available;

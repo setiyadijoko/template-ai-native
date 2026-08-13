@@ -136,8 +136,8 @@ the README identity, project config, or profile config.
 The `Profile policy / Required controls` check runs on pull requests, pushes to
 `main`, and manual diagnostics. It resolves the reviewed profile into an
 execution plan, calls the applicable reusable controls, and summarizes their
-required outcomes. It is **advisory** during the activation pilot and is not a
-recommended branch-protection context yet.
+required outcomes. It remains advisory until a repository owner applies the
+recommended branch-protection settings.
 
 The check has four execution modes:
 
@@ -148,7 +148,7 @@ The check has four execution modes:
 | Initialized single stack | It runs the profile-selected quality, test/coverage, CodeQL, and deterministic AI boundaries where applicable. |
 | Initialized version-2 monorepo | It runs the existing component-aware CI boundary plus repository-wide controls. |
 
-During this pilot, direct workflows continue to run as before. Seeing a
+During this staged migration, direct workflows continue to run as before. Seeing a
 matching control twice is intentional duplicate baseline execution, not a
 second application test requirement. The duplicate results let maintainers
 compare behavior, failure propagation, runtime, and noise before changing any
@@ -161,10 +161,11 @@ make profile-policy-check
 sh scripts/resolve-profile-execution-plan.sh
 ```
 
-The enforcement NO-GO remains: do not add `Profile policy / Required controls`
-to branch protection, suppress baseline workflows, or remove the duplicate
-path until hosted Starter, Standard, and Enterprise evidence, including fork
-and rollback evidence, is accepted.
+The hosted evidence gate has passed, so the setup helper recommends
+`Profile policy / Required controls` alongside the five invariant governance
+contexts. Applying that helper remains an explicit owner action. Do not remove
+the duplicate baseline path until the helper has been validated end-to-end on
+a protected disposable consumer.
 
 ### 3.4 Activate component-aware monorepo CI
 
