@@ -92,7 +92,8 @@ It may also support manual dispatch for diagnostics. It must:
 3. produce a deterministic execution plan;
 4. invoke applicable reusable control workflows;
 5. collect required job conclusions with an always-running aggregate job; and
-6. publish `Profile policy / Required controls` on every supported event.
+6. publish the `Required controls` check run on every supported event, shown in
+   the PR UI as `Profile policy / Required controls`.
 
 The policy resolver is the single source of profile decisions. Individual
 workflows must not independently parse the profile or duplicate the mapping.
@@ -148,8 +149,9 @@ has succeeded.
 ## Branch-protection policy
 
 Branch protection must not vary by profile. The five invariant governance
-contexts remain required. `Profile policy / Required controls` may be added as
-one additional required context only after the activation pilot passes.
+contexts remain required. The exact check-run name `Required controls` may be
+added as one additional required context only after the activation pilot
+passes; GitHub's PR UI shows it as `Profile policy / Required controls`.
 
 The setup helper must not add individual profile-dependent job contexts. This
 keeps Starter, Standard, and Enterprise on one stable administrative contract
@@ -241,25 +243,38 @@ Failure and fork behavior were also exercised on the disposable Starter repo:
 - Evidence-only [PR #2](https://github.com/setiyadijoko/template-ai-native-profile-starter-pilot/pull/2)
   intentionally failed unit tests. The
   [aggregate run](https://github.com/setiyadijoko/template-ai-native-profile-starter-pilot/actions/runs/31651360694)
-  propagated the failure to `Required controls`, and the six-context branch
-  protection configuration reported the PR as blocked. The PR was closed
-  without merge.
+  propagated the failure to `Required controls`. The protected PR was blocked,
+  but that state also included its required review; the later helper pilot
+  proved the UI-style aggregate label was not bound as a required check. The
+  PR was closed without merge.
 - External-fork [PR #3](https://github.com/setiyadijoko/template-ai-native-profile-starter-pilot/pull/3)
   required explicit maintainer approval, then passed
   [aggregate attempt 2](https://github.com/setiyadijoko/template-ai-native-profile-starter-pilot/actions/runs/31651531590/attempts/2).
   Hosted setup evidence reported `Contents: read`, `Metadata: read`,
   `Secret source: None`, and checkout credential persistence disabled. The PR
   was closed without merge.
-- Branch protection was applied with the five invariant contexts plus
-  `Profile policy / Required controls`, verified against the failure PR, then
+- Branch protection was applied with the five invariant contexts plus the
+  UI-style label `Profile policy / Required controls`, verified against the
+  failure PR, then
   removed. A final protection query returned `Branch not protected`, restoring
   the disposable repository's original state. No disabled profile job left a
   pending required context in the completed pilot runs.
 
-The activation evidence gate is therefore **PASS**. The setup helper now
-recommends only the stable aggregate in addition to the five invariant
-contexts. No repository setting changes automatically: an authorized owner
-must explicitly run the helper with `--apply`. Removing duplicate direct
+The later end-to-end helper pilot [PR #4](https://github.com/setiyadijoko/template-ai-native-profile-starter-pilot/pull/4)
+found that GitHub emitted the check run as `Required controls`, while the
+UI-style combined label was stored with no matching GitHub Actions app. The PR
+therefore recognized only the five invariant required checks. The pilot was
+closed without merge and the repository was restored to its original
+unprotected state. Helper validation remains incomplete until the exact
+check-run name passes a new protected disposable pilot.
+
+The workflow, failure, fork, and rollback evidence remains valid, but the
+branch-protection enforcement gate returns to **NO-GO** until the corrected
+helper is revalidated. The first helper validation found and corrected an
+exact-name binding defect. The setup helper now
+recommends the aggregate check-run name `Required controls` in addition to the
+five invariant contexts. No repository setting changes automatically: an
+authorized owner must explicitly run the helper with `--apply`. Removing duplicate direct
 execution remains a subsequent change after protected-consumer validation of
 the helper.
 
@@ -341,7 +356,7 @@ reconfiguration PR and branch-protection change after the hosted gate passes.
 
 Rollback order is mandatory:
 
-1. remove `Profile policy / Required controls` from required branch protection;
+1. remove `Required controls` from required branch protection;
 2. restore all baseline workflows to unconditional execution;
 3. disable or revert the profile-aware orchestrator; and
 4. retain the profile as inert metadata or remove it through a separate

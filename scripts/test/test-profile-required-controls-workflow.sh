@@ -126,7 +126,9 @@ assert_contains "aggregate context pair is unique" /dev/stdin '^2$' <<EOF
 $(awk '/^(name: Profile policy|    name: Required controls)$/ { count++ } END { print count + 0 }' "$ROOT"/.github/workflows/*.yml)
 EOF
 assert_contains "branch protection recommends stable aggregate" "$BRANCH_PROTECTION" \
-  'Profile policy / Required controls'
+  "required_status_checks\[contexts\]\[\]=Required controls"
+assert_not_contains "branch protection excludes UI-style aggregate label" \
+  "$BRANCH_PROTECTION" 'required_status_checks\[contexts\]\[\]=Profile policy / Required controls'
 
 # Plan job: deterministic resolver, credential-free checkout, and bounded outputs.
 assert_text_contains "plan has short timeout" "$plan" 'timeout-minutes: 5'
@@ -265,10 +267,10 @@ assert_contains "ADR status records helper recommendation" "$ADR" \
   '^\- \*\*Status:\*\* Accepted — helper recommendation implemented; repository application owner-controlled$'
 assert_contains "roadmap marks local advisory implementation complete" "$ROADMAP" \
   'Local advisory implementation is complete'
-assert_contains "roadmap records helper recommendation" "$ROADMAP" \
-  'helper now recommends the stable aggregate'
-assert_contains "technical debt records helper recommendation" "$TECHNICAL_DEBT" \
-  'helper now recommends the aggregate'
+assert_contains "roadmap records exact aggregate check-run name" "$ROADMAP" \
+  'exact check-run name, `Required controls`'
+assert_contains "technical debt records exact aggregate check-run name" "$TECHNICAL_DEBT" \
+  'exact `Required controls` check-run name'
 assert_contains "changelog records advisory aggregate" "$CHANGELOG" \
   'advisory `Profile policy / Required controls` aggregate'
 assert_contains "design spec records implementation status" "$DESIGN_SPEC" \

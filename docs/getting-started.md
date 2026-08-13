@@ -161,9 +161,12 @@ make profile-policy-check
 sh scripts/resolve-profile-execution-plan.sh
 ```
 
-The hosted evidence gate has passed, so the setup helper recommends
-`Profile policy / Required controls` alongside the five invariant governance
-contexts. Applying that helper remains an explicit owner action. Do not remove
+Hosted workflow, failure, fork, and rollback evidence has passed, but aggregate
+branch-protection enforcement remains **NO-GO** pending corrected-helper
+revalidation. The setup helper recommends the aggregate's exact check-run name,
+`Required controls`, alongside the five invariant governance contexts. GitHub's
+PR UI displays it as `Profile policy / Required controls`. Applying that helper
+remains an explicit owner action. Do not remove
 the duplicate baseline path until the helper has been validated end-to-end on
 a protected disposable consumer.
 
