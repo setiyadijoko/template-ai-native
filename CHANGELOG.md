@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Corrected the branch-protection helper to require the aggregate's emitted
+  check-run name, `Required controls`. A protected disposable pilot proved that
+  the UI-style `Profile policy / Required controls` label was stored as an
+  unmatched legacy context and did not enforce the GitHub Actions job;
+  enforcement remains gated pending corrected-helper revalidation.
 - Prevented `scripts/init-project.sh --reconfigure` from duplicating the
   generated README identity marker.
 

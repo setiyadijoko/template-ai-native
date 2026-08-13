@@ -26,7 +26,13 @@ plus the stable profile aggregate:
 - the documentation lint, link, and unresolved-marker check;
 - `actionlint (workflow syntax)`;
 - `zizmor (workflow security)`; and
-- `Profile policy / Required controls`.
+- `Required controls`.
+
+GitHub's PR UI displays the aggregate as
+`Profile policy / Required controls`, but the branch-protection API binds to
+the emitted check-run name, `Required controls`. Using the UI-style combined
+label creates an unresolved legacy status context and does not enforce the
+aggregate job.
 
 The helper does not include profile-dependent component job names. Direct
 baseline workflows remain enabled during the migration, and the aggregate

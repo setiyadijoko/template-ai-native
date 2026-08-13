@@ -34,7 +34,9 @@ assert_contains "metadata context matches emitted check" "-f 'required_status_ch
 assert_contains "docs context matches emitted check" "-f 'required_status_checks\[contexts\]\[\]=Markdown lint \+ link check \+ TBD/TODO scan'"
 assert_contains "actionlint context matches emitted check" "-f 'required_status_checks\[contexts\]\[\]=actionlint \(workflow syntax\)'"
 assert_contains "zizmor context matches emitted check" "-f 'required_status_checks\[contexts\]\[\]=zizmor \(workflow security\)'"
-assert_contains "profile aggregate context matches emitted check" "-f 'required_status_checks\[contexts\]\[\]=Profile policy / Required controls'"
+assert_contains "profile aggregate context matches emitted check run" "-f 'required_status_checks\[contexts\]\[\]=Required controls'"
+assert_not_contains "helper excludes workflow-prefixed aggregate label" \
+  "required_status_checks\[contexts\]\[\]=Profile policy / Required controls"
 assert_eq "helper recommends exactly six required contexts" \
   "$(grep -Ec "required_status_checks\[contexts\]\[\]=" "$SCRIPT")" "6"
 assert_not_contains "helper excludes profile-dependent job contexts" \

@@ -149,14 +149,20 @@ authorized by the shadow pilot itself.
   boundaries. Exact repositories, runs, durations, and outcomes are recorded
   in [ADR-0010](../adr/0010-activate-profile-aware-controls-through-a-stable-aggregate.md#activation-evidence-decision--2026-08-13).
 - A disposable Starter failure PR proved required-failure propagation and a
-  blocked protected merge. An external fork proved read-only permissions,
+  non-successful aggregate. Its blocked merge also required a review, so it did
+  not independently prove aggregate enforcement. An external fork proved
+  read-only permissions,
   `Secret source: None`, and an aggregate with no unresolved required context.
   Branch protection was applied with the five invariant contexts plus the
   stable aggregate, then rolled back to its original unprotected state.
-- Decision: the activation evidence gate is **PASS**. The branch-protection
-  helper now recommends the stable aggregate for new consumers; applying it
-  remains an explicit repository-owner action.
-- After a protected disposable consumer validates the helper end-to-end, a later PR may
+- Decision: the workflow/failure/fork evidence remains valid, but aggregate
+  branch-protection enforcement is **NO-GO** pending revalidation. The first
+  end-to-end helper pilot found that GitHub branch protection requires the
+  aggregate's exact check-run name, `Required controls`, rather than the
+  UI-style combined label. The pilot was closed without merge and rolled back
+  safely; the helper now uses the exact check-run name.
+- After a protected disposable consumer revalidates the corrected helper
+  end-to-end, a later PR may
   remove duplicate direct profile-dependent execution. The five invariant
   governance workflows remain independent and unchanged.
 
@@ -229,8 +235,9 @@ evidence are complete:
    repository; and
 6. every ADR-0010 acceptance criterion has evidence.
 
-All six exit criteria passed on 2026-08-13. The helper now recommends the
-stable aggregate, but applying it remains an explicit repository-owner action.
-The next bounded change is end-to-end helper validation on a protected
-disposable consumer; duplicate baseline removal remains a later, independently
-reversible change.
+The workflow, failure, fork, and rollback evidence was collected on
+2026-08-13. The first end-to-end helper pilot then exposed and safely rolled
+back an exact check-name binding defect, so enforcement remains **NO-GO**. The
+next bounded change is revalidation of the corrected
+`Required controls` context on the protected disposable consumer; duplicate
+baseline removal remains a later, independently reversible change.
