@@ -1,6 +1,6 @@
 # ADR-0010: Activate profile-aware controls through a stable aggregate
 
-- **Status:** Accepted — helper recommendation implemented; repository application owner-controlled
+- **Status:** Accepted — protected-consumer enforcement evidence passed; duplicate removal staged separately
 - **Date:** 2026-08-11
 - **Decision owners:** Template maintainers and consumer project owners
 
@@ -265,18 +265,27 @@ found that GitHub emitted the check run as `Required controls`, while the
 UI-style combined label was stored with no matching GitHub Actions app. The PR
 therefore recognized only the five invariant required checks. The pilot was
 closed without merge and the repository was restored to its original
-unprotected state. Helper validation remains incomplete until the exact
-check-run name passes a new protected disposable pilot.
+unprotected state. That finding required a corrected protected-consumer pilot
+before enforcement could proceed.
 
-The workflow, failure, fork, and rollback evidence remains valid, but the
-branch-protection enforcement gate returns to **NO-GO** until the corrected
-helper is revalidated. The first helper validation found and corrected an
-exact-name binding defect. The setup helper now
-recommends the aggregate check-run name `Required controls` in addition to the
-five invariant contexts. No repository setting changes automatically: an
-authorized owner must explicitly run the helper with `--apply`. Removing duplicate direct
-execution remains a subsequent change after protected-consumer validation of
-the helper.
+The corrected helper was revalidated on evidence-only
+[PR #5](https://github.com/setiyadijoko/template-ai-native-profile-starter-pilot/pull/5).
+After all workflows settled, `gh pr checks --required` returned exactly six
+required checks and every check concluded `SUCCESS`: the five invariant
+governance checks plus `Required controls` from the `Profile policy` workflow.
+The branch-protection payload bound all six entries to the GitHub Actions app
+(`app_id: 15368`), including one aggregate binding. No required context remained
+pending. The PR remained blocked only because the configured approval was not
+provided. It was closed without merge, its evidence branch was deleted, and a
+final protection query returned `Branch not protected`, restoring the
+disposable repository's original state.
+
+The branch-protection enforcement gate is therefore **PASS**. Applying the
+helper remains an explicit repository-owner action; no repository setting
+changes automatically. Removing duplicate direct profile-dependent execution
+is authorized only as a later, independently reversible PR that retains the
+five invariant governance workflows and the stable `Required controls`
+context.
 
 ## Alternatives considered
 

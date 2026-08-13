@@ -34,10 +34,11 @@ the emitted check-run name, `Required controls`. Using the UI-style combined
 label creates an unresolved legacy status context and does not enforce the
 aggregate job.
 
-The helper does not include profile-dependent component job names. Direct
-baseline workflows remain enabled during the migration, and the aggregate
-must be validated on a protected disposable consumer before those duplicate
-paths are removed in a separate change.
+The helper does not include profile-dependent component job names. A protected
+disposable consumer revalidated the corrected helper with exactly six
+successful required checks and no pending context. Direct baseline workflows
+remain enabled until their duplicate profile-dependent paths are removed in a
+separate reviewed change.
 
 For a fine-grained personal access token, grant the minimum repository
 administration permission required to update branch protection. Prefer `gh`

@@ -263,14 +263,28 @@ assert_contains "scripts README documents execution plan resolver" "$SCRIPTS_REA
   'resolve-profile-execution-plan[.]sh'
 assert_contains "scripts README documents aggregate evaluator" "$SCRIPTS_README" \
   'evaluate-profile-required-controls[.]sh'
-assert_contains "ADR status records helper recommendation" "$ADR" \
-  '^\- \*\*Status:\*\* Accepted — helper recommendation implemented; repository application owner-controlled$'
+assert_contains "ADR status records enforcement evidence pass" "$ADR" \
+  '^\- \*\*Status:\*\* Accepted — protected-consumer enforcement evidence passed; duplicate removal staged separately$'
 assert_contains "roadmap marks local advisory implementation complete" "$ROADMAP" \
   'Local advisory implementation is complete'
 assert_contains "roadmap records exact aggregate check-run name" "$ROADMAP" \
-  'exact check-run name, `Required controls`'
+  'stable `Required controls` context remains required'
 assert_contains "technical debt records exact aggregate check-run name" "$TECHNICAL_DEBT" \
   'exact `Required controls` check-run name'
+assert_contains "ADR records corrected helper revalidation PR" "$ADR" \
+  'template-ai-native-profile-starter-pilot/pull/5'
+assert_contains "ADR records exact required count" "$ADR" \
+  'returned exactly six'
+assert_contains "roadmap records aggregate enforcement PASS" "$ROADMAP" \
+  'branch-protection enforcement gate is \*\*PASS\*\*'
+assert_contains "technical debt stages duplicate removal" "$TECHNICAL_DEBT" \
+  'Protected-consumer enforcement evidence passed 2026-08-13'
+assert_contains "README records aggregate enforcement PASS" "$README" \
+  'Aggregate enforcement evidence is \*\*PASS\*\*'
+assert_contains "getting started records aggregate enforcement PASS" "$GETTING_STARTED" \
+  'evidence is \*\*PASS\*\*'
+assert_contains "changelog records corrected helper revalidation" "$CHANGELOG" \
+  'corrected helper revalidation'
 assert_contains "changelog records advisory aggregate" "$CHANGELOG" \
   'advisory `Profile policy / Required controls` aggregate'
 assert_contains "design spec records implementation status" "$DESIGN_SPEC" \
@@ -293,8 +307,8 @@ assert_contains "profile schema comment records advisory selection" "$PROFILE_SC
   'select advisory aggregate jobs'
 assert_contains "profile controls comment records advisory selection" "$PROFILE_CONTROLS" \
   'select advisory aggregate jobs'
-assert_contains "ADR index records helper recommendation" "$ADR_INDEX" \
-  'Accepted — helper recommendation implemented; repository application owner-controlled'
+assert_contains "ADR index records enforcement evidence pass" "$ADR_INDEX" \
+  'Accepted — protected-consumer enforcement evidence passed; duplicate removal staged separately'
 assert_contains "changelog records profile-selected advisory execution" "$CHANGELOG" \
   'Profile values now select reusable jobs in the advisory aggregate'
 assert_not_contains "changelog no longer claims profile workflows are entirely inactive" "$CHANGELOG" \

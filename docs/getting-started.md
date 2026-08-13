@@ -161,14 +161,12 @@ make profile-policy-check
 sh scripts/resolve-profile-execution-plan.sh
 ```
 
-Hosted workflow, failure, fork, and rollback evidence has passed, but aggregate
-branch-protection enforcement remains **NO-GO** pending corrected-helper
-revalidation. The setup helper recommends the aggregate's exact check-run name,
-`Required controls`, alongside the five invariant governance contexts. GitHub's
-PR UI displays it as `Profile policy / Required controls`. Applying that helper
-remains an explicit owner action. Do not remove
-the duplicate baseline path until the helper has been validated end-to-end on
-a protected disposable consumer.
+Hosted workflow, failure, fork, rollback, and branch-protection enforcement
+evidence is **PASS**. The corrected helper produced exactly six successful
+required checks on a protected disposable consumer, including the aggregate's
+exact check-run name, `Required controls`. GitHub's PR UI displays it as
+`Profile policy / Required controls`. Applying the helper remains an explicit
+owner action. Duplicate baseline removal remains a separate reviewed change.
 
 ### 3.4 Activate component-aware monorepo CI
 
