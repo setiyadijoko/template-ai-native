@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Run actionlint
-        uses: reviewdog/action-actionlint@d63ba7532e0942965320cd8d73cbae4c7b3c5283 # v1.73.1
+        uses: reviewdog/action-actionlint@dbe5299849118fd6f099ba563d263d770955a64a # v1.73.2
         with:
           # Bundled shellcheck in this action checks shell snippets in run: steps.
           shellcheck: true
@@ -54,7 +54,7 @@ jobs:
       - name: Upload SARIF
         if: github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true  # advisory in Phase 1; fails harmlessly if Code Scanning isn't enabled on a fresh repo
-        uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
+        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
         with:
           sarif_file: zizmor.sarif
           category: zizmor
