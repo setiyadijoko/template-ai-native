@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>template-ai-native — profile control pipeline</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;   /* white-smoke */
+      --color-ink:     #2d3142;   /* jet-black */
+      --color-muted:   #4f5d75;   /* blue-slate */
+      --color-accent:  #eb6c36;   /* atomic-tangerine */
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1240px; width: 100%; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 960px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Sequence · Diagram Design</p>
+    <h1>Profile control pipeline — one PR, one stable check</h1>
+
+    <svg viewBox="0 0 1280 736" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="tai-profile-seq-title tai-profile-seq-desc">
+      <title id="tai-profile-seq-title">Profile control pipeline sequence</title>
+      <desc id="tai-profile-seq-desc">A pull request triggers the plan job, which calls profile resolvers to produce a policy report and per-boundary run or skip decisions; gated boundary jobs report conclusions to GitHub, the aggregate job re-resolves the plan to assert identity and evaluates a fail-closed verdict matrix, and emits the single stable Required controls check that branch protection requires.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="arrow-open" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polyline points="0 0, 8 3, 0 6" fill="none" stroke="#4f5d75" stroke-width="1.2"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- ══ Lifelines (drawn first) ══ -->
+      <line x1="132" y1="72" x2="132" y2="680" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="380" y1="72" x2="380" y2="680" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="628" y1="72" x2="628" y2="680" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="876" y1="72" x2="876" y2="680" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="1124" y1="72" x2="1124" y2="680" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+
+      <!-- ══ Messages (before activation bars and actors) ══ -->
+
+      <!-- m1: GitHub → plan · async trigger -->
+      <line x1="1124" y1="112" x2="132" y2="112" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-open)"/>
+      <rect x="494" y="92" width="124" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="556" y="101" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">TRIGGER · PULL_REQUEST</text>
+
+      <!-- m2: plan → resolvers · resolve policy -->
+      <line x1="132" y1="152" x2="380" y2="152" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="170" y="132" width="172" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="256" y="141" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">resolve policy · profile + defaults</text>
+
+      <!-- m3: resolvers → plan · return policy report -->
+      <line x1="380" y1="192" x2="132" y2="192" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <rect x="184" y="172" width="144" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="256" y="181" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">policy report · key=value ×14</text>
+
+      <!-- m4: plan → resolvers · build plan -->
+      <line x1="132" y1="232" x2="380" y2="232" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="184" y="212" width="140" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="254" y="221" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">build plan · layout + stack</text>
+
+      <!-- m5: resolvers → plan · return decisions -->
+      <line x1="380" y1="272" x2="132" y2="272" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <rect x="182" y="252" width="148" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="256" y="261" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">decisions · run | skip | n/a</text>
+
+      <!-- m6: plan → boundary jobs · gate -->
+      <line x1="132" y1="312" x2="628" y2="312" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="380" y="292" width="120" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="440" y="301" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">gate · decision == run</text>
+
+      <!-- m7: boundary jobs → GitHub · conclusions -->
+      <line x1="628" y1="360" x2="1124" y2="360" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <rect x="734" y="340" width="212" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="840" y="349" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">conclusions · success | failure | skipped</text>
+
+      <!-- m8: aggregate → resolvers · re-resolve + drift assert -->
+      <line x1="876" y1="408" x2="380" y2="408" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="590" y="388" width="148" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="664" y="397" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">re-resolve · assert identity</text>
+
+      <!-- m9: resolvers → aggregate · return snapshot -->
+      <line x1="380" y1="448" x2="876" y2="448" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <rect x="590" y="428" width="76" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="628" y="437" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">plan snapshot</text>
+
+      <!-- ══ ALT fragment · verdict matrix (aggregate + GitHub) ══ -->
+      <rect x="848" y="488" width="304" height="148" rx="4" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <rect x="848" y="488" width="40" height="16" rx="2" fill="#f5f5f5" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="868" y="500" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">ALT</text>
+      <text x="900" y="520" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.04em">[run · failure · required]</text>
+
+      <!-- m10: aggregate → GitHub · fail closed -->
+      <line x1="876" y1="544" x2="1124" y2="544" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="920" y="524" width="160" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="1000" y="533" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">Required controls ✗ · blocking</text>
+
+      <line x1="856" y1="568" x2="1144" y2="568" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="900" y="588" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.04em">[else → pass | warning]</text>
+
+      <!-- m11: aggregate → GitHub · headline success (accent) -->
+      <line x1="876" y1="608" x2="1124" y2="608" stroke="#eb6c36" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+      <rect x="906" y="588" width="188" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="1000" y="597" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">Required controls ✓ · pass | warning</text>
+
+      <!-- m12: GitHub self-message · merge gate -->
+      <path d="M 1124,652 H 1096 V 668 H 1124" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="972" y="652" width="112" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="1028" y="661" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.06em">merge gate resolves</text>
+
+      <!-- ══ Activation bars ══ -->
+      <rect x="128" y="104" width="8" height="216" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="376" y="144" width="8" height="136" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="376" y="400" width="8" height="56" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="624" y="304" width="8" height="64" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="872" y="400" width="8" height="228" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+
+      <!-- ══ Actors ══ -->
+      <rect x="24" y="16" width="216" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="132" y="40" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">plan job</text>
+      <text x="132" y="56" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">profile-required-controls.yml</text>
+
+      <rect x="272" y="16" width="216" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="380" y="40" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">profile resolvers</text>
+      <text x="380" y="56" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">policy · execution-plan .sh</text>
+
+      <rect x="520" y="16" width="216" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="628" y="40" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">boundary jobs</text>
+      <text x="628" y="56" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">reusable CI ×N · gated</text>
+
+      <rect x="768" y="16" width="216" height="56" rx="6" fill="#ffffff" stroke="#eb6c36" stroke-width="1"/>
+      <text x="876" y="40" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">aggregate job</text>
+      <text x="876" y="56" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">evaluate-required-controls.sh</text>
+
+      <rect x="1016" y="16" width="216" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="1124" y="40" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">GitHub</text>
+      <text x="1124" y="56" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">check-runs · branch protection</text>
+
+      <!-- ══ Legend (horizontal bottom strip) ══ -->
+      <line x1="48" y1="696" x2="1232" y2="696" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="48" y="716" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+
+      <line x1="140" y1="712" x2="176" y2="712" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <text x="184" y="716" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.06em">CALL</text>
+
+      <line x1="248" y1="712" x2="284" y2="712" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <text x="292" y="716" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.06em">RETURN</text>
+
+      <line x1="372" y1="712" x2="408" y2="712" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-open)"/>
+      <text x="416" y="716" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.06em">EVENT</text>
+
+      <line x1="492" y1="712" x2="528" y2="712" stroke="#eb6c36" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+      <text x="536" y="716" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.06em">HEADLINE</text>
+
+      <rect x="632" y="704" width="28" height="14" rx="3" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="668" y="716" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.06em">ALT FRAGMENT</text>
+    </svg>
+  </div>
+</body>
+</html>

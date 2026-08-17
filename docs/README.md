@@ -45,6 +45,7 @@ System context, container/component views, data flow, deployment, integration, d
 - [integration.md](architecture/integration.md)
 - [data-model.md](architecture/data-model.md)
 - [technology-radar.md](architecture/technology-radar.md)
+- [diagrams/](diagrams/) — standalone system-architecture and profile-pipeline-sequence diagrams (self-contained HTML)
 
 ## adr/
 

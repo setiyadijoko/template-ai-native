@@ -34,6 +34,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   generated README identity marker.
 
 ### Added
+- Added standalone design diagrams under `docs/diagrams/`:
+  `system-architecture.html` shows the governed repository, fail-closed CI
+  gates, and platform-enforcement zones behind one stable `Required controls`
+  check and a human-gated production boundary;
+  `profile-pipeline-sequence.html` traces one pull request through policy
+  resolution, gated boundary jobs, identity-drift assertion, and the
+  fail-closed aggregate verdict. Both are self-contained HTML with inline SVG.
 - Recorded corrected helper revalidation on a protected disposable Starter
   consumer: exactly six required GitHub Actions checks succeeded, including
   `Required controls`; the evidence PR was closed without merge and branch
