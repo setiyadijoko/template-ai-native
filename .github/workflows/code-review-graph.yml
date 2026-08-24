@@ -28,7 +28,7 @@ jobs:
 
       - name: Run code-review-graph
         id: review
-        uses: tirth8205/code-review-graph@6a1ee1c7063cc35cfa5ff12b8198c29360f3e4ad # v2.3.7
+        uses: tirth8205/code-review-graph@2c6dae32643572ee528eb9b77dbcc17f58f3a8c9 # v2.3.8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           comment: "false"
