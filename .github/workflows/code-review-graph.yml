@@ -28,7 +28,7 @@ jobs:
 
       - name: Run code-review-graph
         id: review
-        uses: tirth8205/code-review-graph@6a1ee1c7063cc35cfa5ff12b8198c29360f3e4ad # v2.3.7
+        uses: tirth8205/code-review-graph@343ab7cea29d47a3e805381e09f8243a43d43d88 # v2.3.9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           comment: "false"
@@ -47,7 +47,7 @@ jobs:
           printf '%s\n' "${PR_NUMBER}" > "${ARTIFACT_DIR}/pr-number.txt"
 
       - name: Upload report artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: crg-report
           path: ${{ runner.temp }}/crg-report/
